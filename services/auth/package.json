@@ -1,0 +1,22 @@
+{
+  "name": "@chikumiku/service-auth",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "test": "jest --passWithNoTests"
+  },
+  "dependencies": {
+    "@chikumiku/types": "*",
+    "@chikumiku/validation": "*",
+    "bcrypt": "^6.0.0",
+    "react-native": "0.86.0",
+    "vite": "8.1.4"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2"
+  }
+}

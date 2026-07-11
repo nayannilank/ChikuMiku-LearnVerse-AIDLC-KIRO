@@ -1,0 +1,317 @@
+/**
+ * Global styles for ChikuMiku LearnVerse Web App
+ *
+ * Validates: Requirements 22.1, 22.2, 22.3, 22.4, 23.1, 23.2, 23.3, 23.4, 23.5, 23.6
+ */
+
+/* --- CSS Custom Properties (populated by ThemeProvider) --- */
+:root {
+  --color-primary: #E94F9B;
+  --color-secondary: #9B59B6;
+  --color-accent: #5DADE2;
+  --color-warning: #F7C948;
+  --color-success: #27AE60;
+  --color-error: #E74C3C;
+  --color-dark: #2C2341;
+  --color-background: #F8F5FF;
+  --color-border: #E0D8EC;
+  --color-text-primary: #2C2341;
+  --color-text-secondary: #5A4E6F;
+  --color-text-muted: #8B7FA8;
+  --color-white: #FFFFFF;
+
+  /* Typography (Requirement 23.2) */
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-body: 16px;
+  --font-size-min: 12px;
+
+  /* Radii (Requirement 23.3) */
+  --radius-button: 22px;
+  --radius-card: 16px;
+  --radius-badge: 10px;
+  --radius-input: 8px;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-xxl: 48px;
+
+  /* Layout (Requirement 23.4) */
+  --content-max-width: 960px;
+  --touch-target-min: 48px;
+
+  /* Watermark (Requirement 23.5) */
+  --watermark-width: 75%;
+  --watermark-opacity: 0.08;
+}
+
+/* --- Reset --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Base Styles --- */
+html {
+  font-size: var(--font-size-body);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  line-height: 1.5;
+  color: var(--color-text-primary);
+  background-color: var(--color-background);
+  min-width: 360px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* --- Responsive Layout (Requirement 23.4) --- */
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-container {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding: 0 var(--space-md);
+  flex: 1;
+}
+
+/* --- Typography Defaults --- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  color: var(--color-text-primary);
+  line-height: 1.25;
+}
+
+h1 { font-size: 2rem; font-weight: 700; }
+h2 { font-size: 1.5rem; font-weight: 600; }
+h3 { font-size: 1.25rem; font-weight: 600; }
+h4 { font-size: 1.125rem; font-weight: 500; }
+
+p {
+  margin-bottom: var(--space-md);
+}
+
+/* --- Buttons (Requirement 23.3 — pill shape) --- */
+button,
+.btn {
+  font-family: var(--font-family);
+  font-size: inherit;
+  border-radius: var(--radius-button);
+  border: none;
+  cursor: pointer;
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+  padding: var(--space-sm) var(--space-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.btn-primary:hover {
+  background-color: #D1458A;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 2px solid var(--color-primary);
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* --- Cards (Requirement 23.3 — 16px radius) --- */
+.card {
+  border-radius: var(--radius-card);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-border);
+  padding: var(--space-lg);
+  box-shadow: 0 2px 8px rgba(44, 35, 65, 0.06);
+}
+
+/* --- Badges (Requirement 23.3 — 10px radius) --- */
+.badge {
+  border-radius: var(--radius-badge);
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* --- Form Inputs --- */
+input,
+select,
+textarea {
+  font-family: var(--font-family);
+  font-size: inherit;
+  border-radius: var(--radius-input);
+  border: 1px solid var(--color-border);
+  padding: var(--space-sm) var(--space-md);
+  min-height: var(--touch-target-min);
+  width: 100%;
+  background-color: var(--color-white);
+  color: var(--color-text-primary);
+  transition: border-color 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(233, 79, 155, 0.15);
+}
+
+/* --- Touch Targets (Requirement 22.4 — min 48x48dp) --- */
+a,
+button,
+input[type="checkbox"],
+input[type="radio"],
+select,
+[role="button"] {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+}
+
+/* --- Links --- */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* --- Focus Styles (Requirement 22.3 — focus management) --- */
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* --- Watermark Container (Requirement 23.5) --- */
+.watermark {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--watermark-width);
+  opacity: var(--watermark-opacity);
+  pointer-events: none;
+  z-index: 0;
+  user-select: none;
+}
+
+/* --- Screen Reader Only --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* --- Responsive Media Queries (Requirement 23.4) --- */
+@media (max-width: 767px) {
+  :root {
+    --font-size-body: 14px;
+  }
+
+  .app-container {
+    padding: 0 var(--space-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    padding: 0 var(--space-xl);
+  }
+}
+
+/* --- High Contrast Mode (Requirement 22.2) --- */
+[data-high-contrast="true"] {
+  --color-primary: #C42077;
+  --color-secondary: #7B2D96;
+  --color-accent: #1B7AB3;
+  --color-warning: #B8900A;
+  --color-success: #1A7A3E;
+  --color-error: #C0392B;
+  --color-dark: #1A0F2E;
+  --color-background: #FFFFFF;
+  --color-border: #4A3D5C;
+  --color-text-primary: #000000;
+  --color-text-secondary: #1A0F2E;
+  --color-text-muted: #3D3352;
+}
+
+[data-high-contrast="true"] button,
+[data-high-contrast="true"] a,
+[data-high-contrast="true"] input,
+[data-high-contrast="true"] select,
+[data-high-contrast="true"] textarea {
+  border-width: 2px;
+}
+
+[data-high-contrast="true"] :focus-visible {
+  outline-width: 4px;
+}
+
+
+/* --- Touch Feedback (Requirement 19.6 — 100ms visual acknowledgment) --- */
+button,
+[role="button"],
+.btn,
+a {
+  transition: opacity 0.05s ease, transform 0.05s ease;
+}
+
+.touch-feedback-active {
+  opacity: 0.7;
+  transform: scale(0.95);
+}
+
+/* --- Timeout & Error Indicator Animation --- */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
