@@ -66,8 +66,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: arn:aws:iam::165030184891:role/cdk-hnb659fds-deploy-role-165030184891-ap-south-1
+          aws-region: ap-south-1
 
       - name: CDK Diff
         working-directory: infra

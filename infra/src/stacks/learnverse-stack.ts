@@ -379,18 +379,10 @@ export class LearnVerseStack extends cdk.Stack {
     // CloudFront Distribution for web app
     // (Defined before API Gateway so we can reference the domain in CORS config)
     // ─────────────────────────────────────────────────────────────────────────
-    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
-      this,
-      'WebAppOAI',
-      { comment: 'OAI for LearnVerse web app' },
-    );
-    webAppBucket.grantRead(originAccessIdentity);
 
     const distribution = new cloudfront.Distribution(this, 'WebAppDistribution', {
       defaultBehavior: {
-        origin: new origins.S3Origin(webAppBucket, {
-          originAccessIdentity,
-        }),
+        origin: origins.S3BucketOrigin.withOriginAccessControl(webAppBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       },
