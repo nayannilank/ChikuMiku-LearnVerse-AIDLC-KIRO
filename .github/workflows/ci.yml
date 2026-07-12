@@ -77,9 +77,6 @@ jobs:
       - name: CDK Synth
         working-directory: infra
         run: npx cdk synth --no-staging
-        env:
-          CDK_DEFAULT_ACCOUNT: '000000000000'
-          CDK_DEFAULT_REGION: 'ap-south-1'
 
   build-web:
     name: Build Web Client

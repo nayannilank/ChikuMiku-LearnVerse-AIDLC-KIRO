@@ -24,10 +24,13 @@ import { ApiStack } from './stacks/api-stack';
 
 const app = new cdk.App();
 
-const env = {
-  account: process.env.CDK_DEFAULT_ACCOUNT,
-  region: process.env.CDK_DEFAULT_REGION ?? 'ap-south-1',
-};
+// Only set explicit env when account is available (real deployment).
+// Without env, CDK uses environment-agnostic mode and won't make AWS API calls during synth.
+const account = process.env.CDK_DEFAULT_ACCOUNT;
+const region = process.env.CDK_DEFAULT_REGION ?? 'ap-south-1';
+const env = account && account !== '000000000000'
+  ? { account, region }
+  : undefined;
 
 // 1. Foundation — shared infrastructure
 const foundation = new FoundationStack(app, 'LearnVerse-Foundation', {
