@@ -1,0 +1,143 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  AWS_REGION: ap-south-1
+  NODE_VERSION: '20'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Run tests
+        run: npm test -- --ci
+
+  deploy-backend:
+    name: Deploy Backend (AWS CDK)
+    runs-on: ubuntu-latest
+    needs: test
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build all packages
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK Diff
+        working-directory: infra
+        run: npx cdk diff
+
+      - name: CDK Deploy
+        working-directory: infra
+        run: npx cdk deploy --require-approval never --outputs-file cdk-outputs.json
+
+      - name: Upload CDK outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: cdk-outputs
+          path: infra/cdk-outputs.json
+          retention-days: 30
+
+  deploy-web:
+    name: Deploy Web (Vercel)
+    runs-on: ubuntu-latest
+    needs: [test, deploy-backend]
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=${{ github.event.inputs.environment == 'production' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build for Vercel
+        run: vercel build ${{ github.event.inputs.environment == 'production' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: |
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+          else
+            vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+          fi
+
+  post-deploy:
+    name: Post-Deploy Verification
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-web]
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download CDK outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: cdk-outputs
+          path: ./
+
+      - name: Verify API Health
+        run: |
+          API_URL=$(cat cdk-outputs.json | python3 -c "import sys, json; print(json.load(sys.stdin)['ChikuMikuLearnVerseStack']['RestApiUrl'])" 2>/dev/null || echo "")
+          if [ -n "$API_URL" ]; then
+            echo "Checking API health at ${API_URL}auth/health..."
+            curl -sf "${API_URL}auth/health" || echo "Health check endpoint not yet configured"
+          else
+            echo "Could not extract API URL from CDK outputs"
+          fi

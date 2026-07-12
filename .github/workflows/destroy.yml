@@ -1,0 +1,71 @@
+name: Destroy Infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to destroy'
+        required: true
+        type: choice
+        options:
+          - staging
+      confirm:
+        description: 'Type "destroy" to confirm'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: ap-south-1
+  NODE_VERSION: '20'
+
+jobs:
+  validate:
+    name: Validate Destruction Request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify confirmation
+        if: github.event.inputs.confirm != 'destroy'
+        run: |
+          echo "::error::You must type 'destroy' to confirm. Got: '${{ github.event.inputs.confirm }}'"
+          exit 1
+
+      - name: Block production destruction
+        if: github.event.inputs.environment == 'production'
+        run: |
+          echo "::error::Production destruction is not allowed via this workflow."
+          exit 1
+
+  destroy:
+    name: Destroy AWS Infrastructure
+    runs-on: ubuntu-latest
+    needs: validate
+    environment: ${{ github.event.inputs.environment }}
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: CDK Destroy
+        working-directory: infra
+        run: npx cdk destroy --force
+        env:
+          CDK_DEFAULT_REGION: ${{ env.AWS_REGION }}

@@ -21,7 +21,10 @@
     "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "lint": "eslint . --ext .ts,.tsx"
+    "lint": "eslint . --ext .ts,.tsx",
+    "deploy:infra": "cd infra && npx cdk deploy --require-approval never --outputs-file cdk-outputs.json",
+    "deploy:web": "vercel deploy --prod",
+    "deploy": "npm run deploy:infra && npm run deploy:web"
   },
   "engines": {
     "node": ">=18.0.0"

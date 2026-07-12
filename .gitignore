@@ -23,6 +23,14 @@ Thumbs.db
 .env.local
 .env.*.local
 
+# CDK
+cdk.out/
+cdk-outputs.json
+
+# Vercel
+.vercel/
+
 # Logs
 *.log
 npm-debug.log*
+build.log
