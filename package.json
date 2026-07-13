@@ -27,7 +27,7 @@
     "deploy": "npm run deploy:infra && npm run deploy:web"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=22.0.0"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",
