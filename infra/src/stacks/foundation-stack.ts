@@ -23,9 +23,9 @@ export class FoundationStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // VPC
+    // VPC — AZs hardcoded to avoid ec2:DescribeAvailabilityZones API call during synth
     this.vpc = new ec2.Vpc(this, 'LearnVerseVpc', {
-      maxAzs: 2,
+      availabilityZones: ['ap-south-1a', 'ap-south-1b'],
       natGateways: 1,
     });
 

@@ -24,13 +24,10 @@ import { ApiStack } from './stacks/api-stack';
 
 const app = new cdk.App();
 
-// Only set explicit env when account is available (real deployment).
-// Without env, CDK uses environment-agnostic mode and won't make AWS API calls during synth.
-const account = process.env.CDK_DEFAULT_ACCOUNT;
-const region = process.env.CDK_DEFAULT_REGION ?? 'ap-south-1';
-const env = account && account !== '000000000000'
-  ? { account, region }
-  : undefined;
+// Single production environment — ap-south-1
+// Account is not set explicitly to avoid ec2:DescribeAvailabilityZones calls during synth.
+// CDK resolves the account from AWS credentials at deploy time.
+const env = { region: 'ap-south-1' };
 
 // 1. Foundation — shared infrastructure
 const foundation = new FoundationStack(app, 'LearnVerse-Foundation', {
