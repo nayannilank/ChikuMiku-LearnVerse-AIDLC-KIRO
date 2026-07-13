@@ -3,7 +3,7 @@
  * CDK App entry point for ChikuMiku LearnVerse infrastructure.
  *
  * Stacks are split by functional flow:
- * 1. Foundation — VPC, Aurora, Cognito, Secrets Manager
+ * 1. Foundation — Cognito, Secrets Manager (Neon DB URL + API keys)
  * 2. Frontend — S3 + CloudFront for web app
  * 3. Auth — Authentication Lambda
  * 4. Content — Content ingestion Lambda, page images S3, OCR queue
@@ -11,6 +11,8 @@
  * 6. Learning — Dashboard/progress Lambda, SNS notifications
  * 7. Export — Report generation Lambda, export files S3
  * 8. API — API Gateway (REST + WebSocket), CloudWatch alarms
+ *
+ * Database: Neon PostgreSQL (external, no VPC needed)
  */
 import * as cdk from 'aws-cdk-lib';
 import { FoundationStack } from './stacks/foundation-stack';
@@ -25,14 +27,13 @@ import { ApiStack } from './stacks/api-stack';
 const app = new cdk.App();
 
 // Single production environment — ap-south-1
-// Account is not set explicitly to avoid ec2:DescribeAvailabilityZones calls during synth.
-// CDK resolves the account from AWS credentials at deploy time.
+// Account not set explicitly to avoid DescribeAvailabilityZones calls during synth.
 const env = { region: 'ap-south-1' };
 
-// 1. Foundation — shared infrastructure
+// 1. Foundation — Cognito + Secrets
 const foundation = new FoundationStack(app, 'LearnVerse-Foundation', {
   env,
-  description: 'ChikuMiku LearnVerse — VPC, Aurora PostgreSQL, Cognito, Secrets',
+  description: 'ChikuMiku LearnVerse — Cognito, Secrets Manager',
 });
 
 // 2. Frontend — web app hosting
@@ -45,12 +46,10 @@ const frontend = new FrontendStack(app, 'LearnVerse-Frontend', {
 const auth = new AuthStack(app, 'LearnVerse-Auth', {
   env,
   description: 'ChikuMiku LearnVerse — Authentication service',
-  vpc: foundation.vpc,
-  dbCluster: foundation.dbCluster,
+  databaseSecret: foundation.databaseSecret,
   userPool: foundation.userPool,
   userPoolClient: foundation.userPoolClient,
   apiKeysSecret: foundation.apiKeysSecret,
-  lambdaSecurityGroup: foundation.lambdaSecurityGroup,
 });
 auth.addDependency(foundation);
 
@@ -58,10 +57,8 @@ auth.addDependency(foundation);
 const content = new ContentStack(app, 'LearnVerse-Content', {
   env,
   description: 'ChikuMiku LearnVerse — Content ingestion service',
-  vpc: foundation.vpc,
-  dbCluster: foundation.dbCluster,
+  databaseSecret: foundation.databaseSecret,
   apiKeysSecret: foundation.apiKeysSecret,
-  lambdaSecurityGroup: foundation.lambdaSecurityGroup,
 });
 content.addDependency(foundation);
 
@@ -69,11 +66,9 @@ content.addDependency(foundation);
 const aiGateway = new AiGatewayStack(app, 'LearnVerse-AiGateway', {
   env,
   description: 'ChikuMiku LearnVerse — AI Gateway service',
-  vpc: foundation.vpc,
-  dbCluster: foundation.dbCluster,
+  databaseSecret: foundation.databaseSecret,
   apiKeysSecret: foundation.apiKeysSecret,
   ocrProcessingQueue: content.ocrProcessingQueue,
-  lambdaSecurityGroup: foundation.lambdaSecurityGroup,
 });
 aiGateway.addDependency(foundation);
 aiGateway.addDependency(content);
@@ -82,10 +77,8 @@ aiGateway.addDependency(content);
 const learning = new LearningStack(app, 'LearnVerse-Learning', {
   env,
   description: 'ChikuMiku LearnVerse — Learning, progress, streaks',
-  vpc: foundation.vpc,
-  dbCluster: foundation.dbCluster,
+  databaseSecret: foundation.databaseSecret,
   apiKeysSecret: foundation.apiKeysSecret,
-  lambdaSecurityGroup: foundation.lambdaSecurityGroup,
 });
 learning.addDependency(foundation);
 
@@ -93,10 +86,8 @@ learning.addDependency(foundation);
 const exportStack = new ExportStack(app, 'LearnVerse-Export', {
   env,
   description: 'ChikuMiku LearnVerse — Export/report generation',
-  vpc: foundation.vpc,
-  dbCluster: foundation.dbCluster,
+  databaseSecret: foundation.databaseSecret,
   apiKeysSecret: foundation.apiKeysSecret,
-  lambdaSecurityGroup: foundation.lambdaSecurityGroup,
 });
 exportStack.addDependency(foundation);
 

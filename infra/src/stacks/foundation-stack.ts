@@ -1,57 +1,24 @@
 import * as cdk from 'aws-cdk-lib';
-import * as ec2 from 'aws-cdk-lib/aws-ec2';
-import * as rds from 'aws-cdk-lib/aws-rds';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
 
 /**
- * Foundation stack — shared infrastructure used by all other stacks.
+ * Foundation stack — shared infrastructure.
  *
- * Contains: VPC, Aurora Serverless PostgreSQL (pgvector), Cognito User Pool,
- * and Secrets Manager for third-party API keys.
+ * Contains: Cognito User Pool, Secrets Manager (API keys + Neon DB connection string).
+ * No VPC needed — Lambdas connect to Neon PostgreSQL over the public internet
+ * using connection pooling.
  */
 export class FoundationStack extends cdk.Stack {
-  public readonly vpc: ec2.IVpc;
-  public readonly dbCluster: rds.DatabaseCluster;
   public readonly userPool: cognito.UserPool;
   public readonly userPoolClient: cognito.UserPoolClient;
   public readonly apiKeysSecret: secretsmanager.ISecret;
-  /** Security group that Lambdas should join to access the DB */
-  public readonly lambdaSecurityGroup: ec2.SecurityGroup;
+  /** Secret holding the Neon PostgreSQL connection string */
+  public readonly databaseSecret: secretsmanager.ISecret;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    // VPC — AZs hardcoded to avoid ec2:DescribeAvailabilityZones API call during synth
-    this.vpc = new ec2.Vpc(this, 'LearnVerseVpc', {
-      availabilityZones: ['ap-south-1a', 'ap-south-1b'],
-      natGateways: 1,
-    });
-
-    // Shared security group for all Lambda functions that need DB access
-    this.lambdaSecurityGroup = new ec2.SecurityGroup(this, 'LambdaSharedSG', {
-      vpc: this.vpc,
-      description: 'Shared security group for Lambda functions needing DB access',
-      allowAllOutbound: true,
-    });
-
-    // Aurora Serverless v2 PostgreSQL with pgvector
-    this.dbCluster = new rds.DatabaseCluster(this, 'LearnVerseDb', {
-      engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_15_4,
-      }),
-      serverlessV2MinCapacity: 0.5,
-      serverlessV2MaxCapacity: 4,
-      writer: rds.ClusterInstance.serverlessV2('Writer'),
-      vpc: this.vpc,
-      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS },
-      defaultDatabaseName: 'learnverse',
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
-
-    // Allow the shared Lambda SG to access Aurora
-    this.dbCluster.connections.allowDefaultPortFrom(this.lambdaSecurityGroup);
 
     // Cognito User Pool
     this.userPool = new cognito.UserPool(this, 'LearnVerseUserPool', {
@@ -77,6 +44,20 @@ export class FoundationStack extends cdk.Stack {
       idTokenValidity: cdk.Duration.minutes(60),
     });
 
+    // Neon PostgreSQL connection string (set manually in AWS Console after deploy)
+    // Format: postgresql://user:password@ep-xyz.ap-south-1.aws.neon.tech/learnverse?sslmode=require
+    this.databaseSecret = new secretsmanager.Secret(this, 'DatabaseConnectionString', {
+      secretName: 'learnverse/database-url',
+      description: 'Neon PostgreSQL connection string (pooled endpoint with pgvector)',
+      generateSecretString: {
+        secretStringTemplate: JSON.stringify({
+          DATABASE_URL: '',
+          DATABASE_URL_UNPOOLED: '',
+        }),
+        generateStringKey: 'placeholder',
+      },
+    });
+
     // Secrets Manager for third-party API keys
     this.apiKeysSecret = new secretsmanager.Secret(this, 'ThirdPartyApiKeys', {
       secretName: 'learnverse/third-party-api-keys',
@@ -92,9 +73,9 @@ export class FoundationStack extends cdk.Stack {
     });
 
     // Outputs
-    new cdk.CfnOutput(this, 'VpcId', { value: this.vpc.vpcId, exportName: 'LearnVerse-VpcId' });
-    new cdk.CfnOutput(this, 'DbClusterEndpoint', { value: this.dbCluster.clusterEndpoint.hostname, exportName: 'LearnVerse-DbEndpoint' });
     new cdk.CfnOutput(this, 'UserPoolId', { value: this.userPool.userPoolId, exportName: 'LearnVerse-UserPoolId' });
     new cdk.CfnOutput(this, 'UserPoolClientId', { value: this.userPoolClient.userPoolClientId, exportName: 'LearnVerse-UserPoolClientId' });
+    new cdk.CfnOutput(this, 'DatabaseSecretArn', { value: this.databaseSecret.secretArn });
+    new cdk.CfnOutput(this, 'ApiKeysSecretArn', { value: this.apiKeysSecret.secretArn });
   }
 }

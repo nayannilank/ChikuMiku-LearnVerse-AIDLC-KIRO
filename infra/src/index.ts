@@ -6,6 +6,3 @@ export { AiGatewayStack } from './stacks/ai-gateway-stack';
 export { LearningStack } from './stacks/learning-stack';
 export { ExportStack } from './stacks/export-stack';
 export { ApiStack } from './stacks/api-stack';
-
-// Keep legacy export for backward compatibility
-export { LearnVerseStack } from './stacks/learnverse-stack';
