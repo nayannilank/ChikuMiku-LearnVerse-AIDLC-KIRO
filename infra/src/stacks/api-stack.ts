@@ -1,6 +1,5 @@
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
@@ -73,14 +72,12 @@ export class ApiStack extends cdk.Stack {
     });
 
     // Domain name with TLS 1.2+ enforcement
-    new apigateway.DomainName(this, 'ApiDomainName', {
-      domainName: `api.learnverse.example.com`,
-      certificate: acm.Certificate.fromCertificateArn(
-        this, 'ApiCert',
-        `arn:aws:acm:${this.region}:${this.account}:certificate/placeholder`,
-      ),
-      securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
-    });
+    // Uncomment and configure when you have a real domain + ACM certificate:
+    // new apigateway.DomainName(this, 'ApiDomainName', {
+    //   domainName: 'api.learnverse.yourdomain.com',
+    //   certificate: acm.Certificate.fromCertificateArn(this, 'ApiCert', 'arn:aws:acm:...'),
+    //   securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
+    // });
 
     // Cognito authorizer
     const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
