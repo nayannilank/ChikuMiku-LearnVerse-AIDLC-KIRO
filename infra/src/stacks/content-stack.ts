@@ -34,7 +34,7 @@ export class ContentStack extends cdk.Stack {
 
     this.ocrProcessingQueue = new sqs.Queue(this, 'OcrProcessingQueue', {
       queueName: 'learnverse-ocr-processing',
-      visibilityTimeout: cdk.Duration.seconds(60),
+      visibilityTimeout: cdk.Duration.seconds(180),
       retentionPeriod: cdk.Duration.days(7),
       deadLetterQueue: {
         queue: new sqs.Queue(this, 'OcrProcessingDlq', {
