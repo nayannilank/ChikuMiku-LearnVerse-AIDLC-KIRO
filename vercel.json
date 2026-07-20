@@ -1,7 +1,7 @@
 {
-  "buildCommand": "npm run build && cd clients/web && npx vite build",
+  "buildCommand": "npx tsc --build shared/types shared/validation clients/web && cd clients/web && npx vite build",
   "outputDirectory": "clients/web/dist",
-  "installCommand": "npm install",
+  "installCommand": "npm install --include=dev",
   "framework": null,
   "rewrites": [
     {
