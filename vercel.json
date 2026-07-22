@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx tsc --build shared/types shared/validation clients/web && cd clients/web && npx vite build",
+  "buildCommand": "node_modules/.bin/tsc --build shared/types shared/validation clients/web && cd clients/web && npx vite build",
   "outputDirectory": "clients/web/dist",
   "installCommand": "npm install --include=dev",
   "framework": null,
