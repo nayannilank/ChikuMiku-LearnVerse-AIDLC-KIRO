@@ -203,7 +203,17 @@ export function ParentRegistration() {
 
   if (success) {
     return (
-      <div className="card" style={{ maxWidth: 480, margin: '0 auto', textAlign: 'center' }}>
+      <div
+        style={{
+          maxWidth: 500,
+          margin: '60px auto',
+          background: 'var(--color-white)',
+          borderRadius: '16px',
+          padding: '40px',
+          textAlign: 'center',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+        }}
+      >
         <h2 style={{ color: 'var(--color-success)', marginBottom: 'var(--space-md)' }}>
           Registration Successful!
         </h2>
@@ -216,79 +226,145 @@ export function ParentRegistration() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 480, margin: '0 auto' }}>
-      <h2 style={{ marginBottom: 'var(--space-lg)', textAlign: 'center' }}>Parent Registration</h2>
+    <div style={{ minHeight: '100vh', background: 'var(--color-background)' }}>
+      {/* Purple header bar */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #2C2341, #9B59B6)',
+          padding: '16px 32px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <span style={{ fontSize: '1rem' }} aria-hidden="true">📖</span>
+        <span style={{ color: 'white', fontSize: '0.875rem', fontWeight: 800 }}>
+          ChikuMiku LearnVerse
+        </span>
+      </div>
 
-      <form onSubmit={handleSubmit} noValidate aria-label="Parent registration form">
-        <FormField
-          id="username"
-          label="Username"
-          type="text"
-          value={formData.username}
-          error={touched.username ? errors.username : undefined}
-          onChange={handleChange('username')}
-          onBlur={handleBlur('username')}
-          placeholder="8-15 chars, lowercase, digits, _ or -"
-          autoComplete="username"
-        />
+      {/* Form content */}
+      <div style={{ maxWidth: 520, margin: '0 auto', padding: '24px 16px' }}>
+        {/* Title area */}
+        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-dark)', marginBottom: '4px' }}>
+            Create Parent Account
+          </h2>
+          <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', margin: 0 }}>
+            Register first, then add your children
+          </p>
+        </div>
 
-        <FormField
-          id="fullName"
-          label="Full Name"
-          type="text"
-          value={formData.fullName}
-          error={touched.fullName ? errors.fullName : undefined}
-          onChange={handleChange('fullName')}
-          onBlur={handleBlur('fullName')}
-          placeholder="5-20 chars, letters and spaces"
-          autoComplete="name"
-        />
-
-        <FormField
-          id="phone"
-          label="Phone"
-          type="tel"
-          value={formData.phone}
-          error={touched.phone ? errors.phone : undefined}
-          onChange={handleChange('phone')}
-          onBlur={handleBlur('phone')}
-          placeholder="10 digit phone number"
-          autoComplete="tel"
-        />
-
-        <FormField
-          id="email"
-          label="Email"
-          type="email"
-          value={formData.email}
-          error={touched.email ? errors.email : undefined}
-          onChange={handleChange('email')}
-          onBlur={handleBlur('email')}
-          placeholder="your@email.com"
-          autoComplete="email"
-        />
-
-        <FormField
-          id="password"
-          label="Password"
-          type="password"
-          value={formData.password}
-          error={touched.password ? errors.password : undefined}
-          onChange={handleChange('password')}
-          onBlur={handleBlur('password')}
-          placeholder="8-20 chars, upper, lower, digit, special"
-          autoComplete="new-password"
-        />
-
-        <button
-          type="submit"
-          className="btn-primary"
-          disabled={isSubmitting}
-          style={{ width: '100%', marginTop: 'var(--space-md)' }}
+        <div
+          style={{
+            background: 'var(--color-white)',
+            borderRadius: '16px',
+            padding: '24px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+          }}
         >
-          {isSubmitting ? 'Registering…' : 'Register'}
-        </button>
-      </form>
+          <form onSubmit={handleSubmit} noValidate aria-label="Parent registration form">
+            {/* 2-column grid for username + name, phone + email */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 16px' }}>
+              <FormField
+                id="username"
+                label="Parent Username"
+                type="text"
+                value={formData.username}
+                error={touched.username ? errors.username : undefined}
+                onChange={handleChange('username')}
+                onBlur={handleBlur('username')}
+                placeholder="8-15 chars (a-z, 0-9, -, _)"
+                autoComplete="username"
+                required
+              />
+
+              <FormField
+                id="fullName"
+                label="Name"
+                type="text"
+                value={formData.fullName}
+                error={touched.fullName ? errors.fullName : undefined}
+                onChange={handleChange('fullName')}
+                onBlur={handleBlur('fullName')}
+                placeholder="5-20 chars, letters and spaces"
+                autoComplete="name"
+                required
+              />
+
+              <FormField
+                id="phone"
+                label="Phone"
+                type="tel"
+                value={formData.phone}
+                error={touched.phone ? errors.phone : undefined}
+                onChange={handleChange('phone')}
+                onBlur={handleBlur('phone')}
+                placeholder="10 digit phone number"
+                autoComplete="tel"
+                required
+              />
+
+              <FormField
+                id="email"
+                label="Email"
+                type="email"
+                value={formData.email}
+                error={touched.email ? errors.email : undefined}
+                onChange={handleChange('email')}
+                onBlur={handleBlur('email')}
+                placeholder="your@email.com"
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            {/* Password (full width) */}
+            <div style={{ marginTop: '12px' }}>
+              <FormField
+                id="password"
+                label="Password"
+                type="password"
+                value={formData.password}
+                error={touched.password ? errors.password : undefined}
+                onChange={handleChange('password')}
+                onBlur={handleBlur('password')}
+                placeholder="8-20 chars, upper, lower, digit, special"
+                autoComplete="new-password"
+                required
+                hint="8-20, uppercase, lowercase, number, symbol"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              style={{
+                width: '100%',
+                marginTop: 'var(--space-lg)',
+                padding: '12px',
+                border: 'none',
+                borderRadius: '22px',
+                background: 'linear-gradient(135deg, #E94F9B, #9B59B6)',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.7 : 1,
+                boxShadow: '0 4px 12px rgba(233,79,155,0.3)',
+                minHeight: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+              }}
+            >
+              <span aria-hidden="true">👤</span>
+              {isSubmitting ? 'Registering…' : 'Register Parent'}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
@@ -305,6 +381,8 @@ interface FormFieldProps {
   onBlur: () => void;
   placeholder?: string;
   autoComplete?: string;
+  required?: boolean;
+  hint?: string;
 }
 
 function FormField({
@@ -317,21 +395,30 @@ function FormField({
   onBlur,
   placeholder,
   autoComplete,
+  required,
+  hint,
 }: FormFieldProps) {
   const errorId = `${id}-error`;
 
   return (
-    <div style={{ marginBottom: 'var(--space-md)' }}>
+    <div>
       <label
         htmlFor={id}
         style={{
           display: 'block',
-          marginBottom: 'var(--space-xs)',
-          fontWeight: 500,
-          color: 'var(--color-text-primary)',
+          marginBottom: '4px',
+          fontSize: '0.8125rem',
+          fontWeight: 600,
+          color: 'var(--color-text-secondary)',
         }}
       >
         {label}
+        {required && <span style={{ color: 'var(--color-error)', marginLeft: '2px' }}>*</span>}
+        {hint && (
+          <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: '6px', fontSize: '0.6875rem' }}>
+            ({hint})
+          </span>
+        )}
       </label>
       <input
         id={id}
@@ -344,7 +431,12 @@ function FormField({
         autoComplete={autoComplete}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        style={error ? { borderColor: 'var(--color-error)' } : undefined}
+        style={{
+          borderColor: error ? 'var(--color-error)' : undefined,
+          borderRadius: '8px',
+          padding: '10px 12px',
+          fontSize: '0.875rem',
+        }}
       />
       {error && (
         <p
@@ -352,8 +444,8 @@ function FormField({
           role="alert"
           style={{
             color: 'var(--color-error)',
-            fontSize: '0.875rem',
-            marginTop: 'var(--space-xs)',
+            fontSize: '0.75rem',
+            marginTop: '2px',
           }}
         >
           {error}

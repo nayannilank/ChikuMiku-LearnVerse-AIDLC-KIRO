@@ -1,5 +1,5 @@
 /**
- * Landing Page styles
+ * Landing Page styles — aligned with design mocks
  *
  * Validates: Requirements 18.1, 18.5, 23.4
  * Responsive layout: mobile-first (360px min), desktop (960px+ content)
@@ -8,212 +8,342 @@
 .landing {
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
+}
+
+/* --- Navigation Bar --- */
+.navbar {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--space-xl);
-  padding: var(--space-xl) 0;
-  text-align: center;
+  padding: 12px 32px;
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navLogoIcon {
+  color: var(--color-primary);
+  font-size: 1.25rem;
+}
+
+.navLogoText {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: var(--color-dark);
+}
+
+.navButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.navBtnOutline {
+  padding: 7px 16px;
+  border: 2px solid var(--color-secondary);
+  border-radius: 18px;
+  background: var(--color-white);
+  color: var(--color-secondary);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: auto;
+  min-width: auto;
+}
+
+.navBtnOutline:hover {
+  background: var(--color-secondary);
+  color: var(--color-white);
+  text-decoration: none;
+}
+
+.navBtnFilled {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: var(--color-white);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: auto;
+  min-width: auto;
+}
+
+.navBtnFilled:hover {
+  opacity: 0.9;
+  text-decoration: none;
 }
 
 /* --- Hero Section --- */
 .hero {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: var(--space-md);
+  padding: 48px 32px;
+  background: linear-gradient(135deg, #2C2341, #4A2068);
+  min-height: 280px;
 }
 
-.logoArea {
+.heroContent {
+  flex: 1;
+  padding-right: 24px;
+}
+
+.heroTitle {
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin-bottom: 8px;
+  line-height: 1.2;
+}
+
+.heroSubtitle {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.heroButtons {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
+  gap: 12px;
 }
 
-.logoIcon {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
+.heroBtnPrimary {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 22px;
   background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(233, 79, 155, 0.3);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: auto;
+  min-width: auto;
+}
+
+.heroBtnPrimary:hover {
+  opacity: 0.9;
+  text-decoration: none;
+}
+
+.heroBtnSecondary {
+  padding: 12px 24px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 22px;
+  background: transparent;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: auto;
+  min-width: auto;
+}
+
+.heroBtnSecondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  text-decoration: none;
+}
+
+.heroVisual {
+  flex: 0 0 200px;
+  text-align: center;
+}
+
+.heroIconCircle {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-white);
-  font-size: 2rem;
-  font-weight: 700;
+  font-size: 3rem;
 }
 
-.appName {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--color-text-primary);
-  margin: 0;
+/* --- Features Section --- */
+.featuresSection {
+  padding: 32px;
+  background: var(--color-background);
 }
 
-.tagline {
+.featuresTitle {
   font-size: 1.125rem;
-  color: var(--color-text-secondary);
-  font-style: italic;
-  margin: 0;
+  font-weight: 700;
+  color: var(--color-dark);
+  text-align: center;
+  margin-bottom: 24px;
 }
 
-.gradeRange {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-white);
-  background: linear-gradient(135deg, var(--color-secondary), var(--color-accent));
-  padding: var(--space-xs) var(--space-md);
-  border-radius: var(--radius-badge);
-}
-
-/* --- Feature Highlights --- */
-.features {
+.featuresGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-md);
-  width: 100%;
-  max-width: 600px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .featureCard {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-lg);
+  background: var(--color-white);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.featureIcon {
+.featureIconCircle {
   width: 48px;
   height: 48px;
   border-radius: 50%;
+  margin: 0 auto 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
 }
 
-.featureIcon[data-feature="subjects"] {
-  background-color: rgba(93, 173, 226, 0.15);
-  color: var(--color-accent);
+.featureIconPink {
+  background: #FDE8F4;
+  color: var(--color-primary);
 }
 
-.featureIcon[data-feature="pronunciation"] {
-  background-color: rgba(155, 89, 182, 0.15);
+.featureIconPurple {
+  background: #F3E8F9;
   color: var(--color-secondary);
 }
 
-.featureIcon[data-feature="scan"] {
-  background-color: rgba(39, 174, 96, 0.15);
-  color: var(--color-success);
-}
-
-.featureIcon[data-feature="quizzes"] {
-  background-color: rgba(247, 201, 72, 0.15);
-  color: var(--color-warning);
-}
-
-.featureLabel {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-/* --- CTAs --- */
-.ctaGroup {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-  width: 100%;
-  max-width: 320px;
-}
-
-.ctaPrimary,
-.ctaSecondary {
-  width: 100%;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: var(--space-md) var(--space-xl);
-  text-decoration: none;
-}
-
-/* --- Platform Indicators --- */
-.platforms {
-  display: flex;
-  gap: var(--space-lg);
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.platformItem {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.platformIcon {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.featureIconBlue {
+  background: #E8F6FD;
   color: var(--color-accent);
 }
 
-/* --- Safety Badge --- */
-.safetyBadge {
-  background-color: rgba(39, 174, 96, 0.1);
-  color: var(--color-success);
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-badge);
-  font-size: 0.8125rem;
+.featureIconGold {
+  background: #FFF8E1;
+  color: var(--color-warning);
 }
 
-.safetyIcon {
-  font-size: 1rem;
+.featureCardTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.featureCardDesc {
+  font-size: 0.75rem;
+  color: #777;
+}
+
+/* --- Subject Pills --- */
+.subjectPills {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.pill {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 14px;
+  border-radius: 12px;
+}
+
+.pillPink { background: #FDE8F4; color: var(--color-primary); }
+.pillPurple { background: #F3E8F9; color: var(--color-secondary); }
+.pillBlue { background: #E8F6FD; color: var(--color-accent); }
+.pillGold { background: #FFF8E1; color: #D4A017; }
+.pillGreen { background: #E8F8EE; color: var(--color-success); }
+.pillIndigo { background: #E8E8FD; color: #6C63FF; }
+.pillOrange { background: #FFF0E0; color: #E67E22; }
+
+/* --- Bottom Info Bar --- */
+.bottomInfo {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+  padding-top: 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.bottomInfoItem {
+  text-align: center;
+}
+
+.bottomInfoIcon {
+  font-size: 1.25rem;
+  margin-bottom: 4px;
+}
+
+.bottomInfoLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #333;
 }
 
 /* --- Desktop layout (960px+) --- */
 @media (min-width: 960px) {
-  .landing {
-    gap: var(--space-xxl);
-    padding: var(--space-xxl) 0;
-  }
-
-  .logoIcon {
-    width: 100px;
-    height: 100px;
-    font-size: 2.5rem;
-  }
-
-  .appName {
-    font-size: 2.25rem;
-  }
-
-  .tagline {
-    font-size: 1.25rem;
-  }
-
-  .features {
+  .featuresGrid {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 100%;
+  }
+}
+
+/* --- Mobile layout --- */
+@media (max-width: 767px) {
+  .navbar {
+    padding: 10px 16px;
   }
 
-  .ctaGroup {
-    flex-direction: row;
+  .hero {
+    flex-direction: column;
+    padding: 32px 16px;
+    text-align: center;
+  }
+
+  .heroContent {
+    padding-right: 0;
+    margin-bottom: 20px;
+  }
+
+  .heroButtons {
     justify-content: center;
-    max-width: 480px;
+    flex-wrap: wrap;
   }
 
-  .ctaPrimary,
-  .ctaSecondary {
-    width: auto;
-    min-width: 180px;
+  .heroVisual {
+    flex: none;
+  }
+
+  .featuresSection {
+    padding: 24px 16px;
+  }
+
+  .bottomInfo {
+    gap: 16px;
+    flex-wrap: wrap;
   }
 }

@@ -91,205 +91,353 @@ export function LoginPage() {
   );
 
   return (
-    <div
-      className="card"
-      style={{
-        maxWidth: '420px',
-        margin: 'var(--space-xxl) auto',
-        padding: 'var(--space-xl)',
-      }}
-    >
-      <h2
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      {/* Left gradient panel */}
+      <div
         style={{
-          textAlign: 'center',
-          marginBottom: 'var(--space-lg)',
-          color: 'var(--color-primary)',
+          flex: 1,
+          background: 'linear-gradient(135deg, #2C2341, #9B59B6)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px',
+          color: 'white',
         }}
       >
-        Login
-      </h2>
-
-      <form onSubmit={handleSubmit} noValidate>
-        {/* Role Selector — Requirement 3.1 */}
-        <fieldset
+        <div
           style={{
-            border: 'none',
-            padding: 0,
-            marginBottom: 'var(--space-lg)',
+            width: '100px',
+            height: '100px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '20px',
+            fontSize: '2.5rem',
+          }}
+          aria-hidden="true"
+        >
+          📖
+        </div>
+        <div style={{ fontSize: '1.5rem', fontWeight: 800, marginBottom: '8px' }}>
+          ChikuMiku LearnVerse
+        </div>
+        <div style={{ fontSize: '0.875rem', opacity: 0.8, fontStyle: 'italic' }}>
+          Where Curiosity Comes Alive ✨
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div
+        style={{
+          flex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '40px',
+          background: 'var(--color-background)',
+        }}
+      >
+        <div
+          className="card"
+          style={{
+            width: '100%',
+            maxWidth: '400px',
+            padding: 'var(--space-xl)',
           }}
         >
-          <legend
-            style={{
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)',
-              marginBottom: 'var(--space-sm)',
-            }}
-          >
-            I am a
-          </legend>
-          <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-            <button
-              type="button"
-              className={role === 'parent' ? 'btn-primary' : 'btn-secondary'}
-              onClick={() => {
-                setRole('parent');
-                setErrors((prev) => ({ ...prev, role: undefined }));
+          {/* Logo area */}
+          <div style={{ textAlign: 'center', marginBottom: 'var(--space-lg)' }}>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                margin: '0 auto 8px',
+                borderRadius: '12px',
+                background: '#FDE8F4',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.25rem',
               }}
-              aria-pressed={role === 'parent'}
-              style={{ flex: 1 }}
+              aria-hidden="true"
             >
-              Parent
-            </button>
-            <button
-              type="button"
-              className={role === 'learner' ? 'btn-primary' : 'btn-secondary'}
-              onClick={() => {
-                setRole('learner');
-                setErrors((prev) => ({ ...prev, role: undefined }));
-              }}
-              aria-pressed={role === 'learner'}
-              style={{ flex: 1 }}
-            >
-              Learner
-            </button>
+              📖
+            </div>
+            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-dark)' }}>
+              ChikuMiku LearnVerse
+            </div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-primary)', fontStyle: 'italic' }}>
+              Where Curiosity Comes Alive
+            </div>
           </div>
-          {errors.role && (
-            <p
-              role="alert"
+
+          <form onSubmit={handleSubmit} noValidate>
+            {/* Role Selector — Requirement 3.1 */}
+            <fieldset
               style={{
-                color: 'var(--color-error)',
-                fontSize: '0.8125rem',
-                marginTop: 'var(--space-xs)',
+                border: 'none',
+                padding: 0,
+                marginBottom: 'var(--space-lg)',
               }}
             >
-              {errors.role}
-            </p>
-          )}
-        </fieldset>
+              <legend
+                style={{
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: 'var(--space-sm)',
+                }}
+              >
+                I am a...
+              </legend>
+              <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole('parent');
+                    setErrors((prev) => ({ ...prev, role: undefined }));
+                  }}
+                  aria-pressed={role === 'parent'}
+                  style={{
+                    flex: 1,
+                    padding: '12px 8px',
+                    borderRadius: '10px',
+                    border: role === 'parent'
+                      ? '2px solid var(--color-secondary)'
+                      : '2px solid var(--color-border)',
+                    background: role === 'parent' ? '#F3E8F9' : 'var(--color-white)',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    minHeight: 'auto',
+                  }}
+                >
+                  <div style={{ fontSize: '1.5rem', marginBottom: '4px' }} aria-hidden="true">🛡️</div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: role === 'parent' ? 'var(--color-secondary)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    Parent
+                  </div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole('learner');
+                    setErrors((prev) => ({ ...prev, role: undefined }));
+                  }}
+                  aria-pressed={role === 'learner'}
+                  style={{
+                    flex: 1,
+                    padding: '12px 8px',
+                    borderRadius: '10px',
+                    border: role === 'learner'
+                      ? '2px solid var(--color-secondary)'
+                      : '2px solid var(--color-border)',
+                    background: role === 'learner' ? '#F3E8F9' : 'var(--color-white)',
+                    cursor: 'pointer',
+                    textAlign: 'center',
+                    minHeight: 'auto',
+                  }}
+                >
+                  <div style={{ fontSize: '1.5rem', marginBottom: '4px' }} aria-hidden="true">🧒</div>
+                  <div
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: role === 'learner' ? 'var(--color-secondary)' : 'var(--color-text-muted)',
+                    }}
+                  >
+                    Learner
+                  </div>
+                </button>
+              </div>
+              {errors.role && (
+                <p
+                  role="alert"
+                  style={{
+                    color: 'var(--color-error)',
+                    fontSize: '0.8125rem',
+                    marginTop: 'var(--space-xs)',
+                  }}
+                >
+                  {errors.role}
+                </p>
+              )}
+            </fieldset>
 
-        {/* Username — Requirement 3.1 */}
-        <div style={{ marginBottom: 'var(--space-md)' }}>
-          <label
-            htmlFor="login-username"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)',
-              marginBottom: 'var(--space-xs)',
-            }}
-          >
-            Username
-          </label>
-          <input
-            id="login-username"
-            type="text"
-            value={username}
-            onChange={(e) => {
-              setUsername(e.target.value);
-              setErrors((prev) => ({ ...prev, username: undefined }));
-            }}
-            autoComplete="username"
-            aria-invalid={!!errors.username}
-            aria-describedby={errors.username ? 'username-error' : undefined}
-          />
-          {errors.username && (
-            <p
-              id="username-error"
-              role="alert"
+            {/* Username — Requirement 3.1 */}
+            <div style={{ marginBottom: 'var(--space-md)' }}>
+              <label
+                htmlFor="login-username"
+                style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: 'var(--space-xs)',
+                }}
+              >
+                Username
+              </label>
+              <input
+                id="login-username"
+                type="text"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  setErrors((prev) => ({ ...prev, username: undefined }));
+                }}
+                autoComplete="username"
+                aria-invalid={!!errors.username}
+                aria-describedby={errors.username ? 'username-error' : undefined}
+                style={{
+                  borderColor: errors.username ? 'var(--color-error)' : undefined,
+                }}
+              />
+              {errors.username && (
+                <p
+                  id="username-error"
+                  role="alert"
+                  style={{
+                    color: 'var(--color-error)',
+                    fontSize: '0.8125rem',
+                    marginTop: 'var(--space-xs)',
+                  }}
+                >
+                  {errors.username}
+                </p>
+              )}
+            </div>
+
+            {/* Password (masked) — Requirement 3.1 */}
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <label
+                htmlFor="login-password"
+                style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: 'var(--color-text-secondary)',
+                  marginBottom: 'var(--space-xs)',
+                }}
+              >
+                Password
+              </label>
+              <input
+                id="login-password"
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrors((prev) => ({ ...prev, password: undefined }));
+                }}
+                autoComplete="current-password"
+                aria-invalid={!!errors.password}
+                aria-describedby={errors.password ? 'password-error' : undefined}
+                style={{
+                  borderColor: errors.password ? 'var(--color-error)' : undefined,
+                }}
+              />
+              {errors.password && (
+                <p
+                  id="password-error"
+                  role="alert"
+                  style={{
+                    color: 'var(--color-error)',
+                    fontSize: '0.8125rem',
+                    marginTop: 'var(--space-xs)',
+                  }}
+                >
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* API error / lockout message — Requirements 3.4, 3.5 */}
+            {apiError && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                style={{
+                  backgroundColor: 'rgba(231, 76, 60, 0.08)',
+                  border: '1px solid var(--color-error)',
+                  borderRadius: 'var(--radius-input)',
+                  padding: 'var(--space-sm) var(--space-md)',
+                  marginBottom: 'var(--space-md)',
+                  color: 'var(--color-error)',
+                  fontSize: '0.875rem',
+                  textAlign: 'center',
+                }}
+              >
+                {apiError}
+              </div>
+            )}
+
+            {/* Login button */}
+            <button
+              type="submit"
+              disabled={isSubmitting}
               style={{
-                color: 'var(--color-error)',
-                fontSize: '0.8125rem',
-                marginTop: 'var(--space-xs)',
+                width: '100%',
+                marginBottom: 'var(--space-md)',
+                padding: '12px',
+                border: 'none',
+                borderRadius: '22px',
+                background: 'linear-gradient(135deg, #E94F9B, #9B59B6)',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 700,
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isSubmitting ? 0.7 : 1,
+                minHeight: '48px',
               }}
             >
-              {errors.username}
-            </p>
-          )}
-        </div>
+              {isSubmitting ? 'Logging in…' : 'Login'}
+            </button>
 
-        {/* Password (masked) — Requirement 3.1 */}
-        <div style={{ marginBottom: 'var(--space-lg)' }}>
-          <label
-            htmlFor="login-password"
-            style={{
-              display: 'block',
-              fontSize: '0.875rem',
-              fontWeight: 500,
-              color: 'var(--color-text-secondary)',
-              marginBottom: 'var(--space-xs)',
-            }}
-          >
-            Password
-          </label>
-          <input
-            id="login-password"
-            type="password"
-            value={password}
-            onChange={(e) => {
-              setPassword(e.target.value);
-              setErrors((prev) => ({ ...prev, password: undefined }));
-            }}
-            autoComplete="current-password"
-            aria-invalid={!!errors.password}
-            aria-describedby={errors.password ? 'password-error' : undefined}
-          />
-          {errors.password && (
-            <p
-              id="password-error"
-              role="alert"
+            {/* Forgot Password link — Requirement 3.1 */}
+            <div style={{ textAlign: 'center', marginBottom: 'var(--space-md)' }}>
+              <Link
+                to="/forgot-password"
+                style={{
+                  fontSize: '0.875rem',
+                  color: 'var(--color-primary)',
+                  fontWeight: 600,
+                }}
+              >
+                Forgot Password?
+              </Link>
+            </div>
+
+            {/* Create Account */}
+            <Link
+              to="/register"
               style={{
-                color: 'var(--color-error)',
-                fontSize: '0.8125rem',
-                marginTop: 'var(--space-xs)',
+                display: 'block',
+                width: '100%',
+                padding: '12px',
+                border: '2px solid var(--color-secondary)',
+                borderRadius: '22px',
+                background: 'var(--color-white)',
+                color: 'var(--color-secondary)',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                textAlign: 'center',
+                textDecoration: 'none',
+                minHeight: '48px',
               }}
             >
-              {errors.password}
-            </p>
-          )}
+              Create Account
+            </Link>
+          </form>
         </div>
-
-        {/* API error / lockout message — Requirements 3.4, 3.5 */}
-        {apiError && (
-          <div
-            role="alert"
-            aria-live="assertive"
-            style={{
-              backgroundColor: 'rgba(231, 76, 60, 0.08)',
-              border: '1px solid var(--color-error)',
-              borderRadius: 'var(--radius-input)',
-              padding: 'var(--space-sm) var(--space-md)',
-              marginBottom: 'var(--space-md)',
-              color: 'var(--color-error)',
-              fontSize: '0.875rem',
-              textAlign: 'center',
-            }}
-          >
-            {apiError}
-          </div>
-        )}
-
-        {/* Login button */}
-        <button
-          type="submit"
-          className="btn-primary"
-          disabled={isSubmitting}
-          style={{ width: '100%', marginBottom: 'var(--space-md)' }}
-        >
-          {isSubmitting ? 'Logging in…' : 'Login'}
-        </button>
-
-        {/* Forgot Password link — Requirement 3.1 */}
-        <div style={{ textAlign: 'center' }}>
-          <Link
-            to="/forgot-password"
-            style={{ fontSize: '0.875rem' }}
-          >
-            Forgot Password?
-          </Link>
-        </div>
-      </form>
+      </div>
     </div>
   );
 }

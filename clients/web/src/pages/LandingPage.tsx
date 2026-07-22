@@ -12,75 +12,110 @@ import styles from './LandingPage.module.css';
 export function LandingPage() {
   return (
     <section className={styles.landing} aria-label="ChikuMiku LearnVerse landing page">
-      {/* Hero: Logo, Name, Tagline, Grade Range */}
-      <div className={styles.hero}>
-        <div className={styles.logoArea}>
-          <div className={styles.logoIcon} aria-hidden="true">
-            CM
-          </div>
-          <h1 className={styles.appName}>ChikuMiku LearnVerse</h1>
-          <p className={styles.tagline}>Where Curiosity Comes Alive</p>
+      {/* Navigation Bar */}
+      <nav className={styles.navbar} aria-label="Main navigation">
+        <div className={styles.navLogo}>
+          <span className={styles.navLogoIcon} aria-hidden="true">📖</span>
+          <span className={styles.navLogoText}>ChikuMiku LearnVerse</span>
         </div>
-        <span className={styles.gradeRange}>LKG to 12th Grade</span>
-      </div>
-
-      {/* Feature Highlights */}
-      <div className={styles.features} role="list" aria-label="Feature highlights">
-        <div className={`card ${styles.featureCard}`} role="listitem">
-          <div className={styles.featureIcon} data-feature="subjects" aria-hidden="true">
-            📚
-          </div>
-          <span className={styles.featureLabel}>7 Subjects</span>
+        <div className={styles.navButtons}>
+          <Link to="/login" className={styles.navBtnOutline}>Login</Link>
+          <Link to="/register" className={styles.navBtnFilled}>Register</Link>
         </div>
-
-        <div className={`card ${styles.featureCard}`} role="listitem">
-          <div className={styles.featureIcon} data-feature="pronunciation" aria-hidden="true">
-            🎙️
-          </div>
-          <span className={styles.featureLabel}>Pronunciation</span>
-        </div>
-
-        <div className={`card ${styles.featureCard}`} role="listitem">
-          <div className={styles.featureIcon} data-feature="scan" aria-hidden="true">
-            📷
-          </div>
-          <span className={styles.featureLabel}>Scan &amp; Learn</span>
-        </div>
-
-        <div className={`card ${styles.featureCard}`} role="listitem">
-          <div className={styles.featureIcon} data-feature="quizzes" aria-hidden="true">
-            ✏️
-          </div>
-          <span className={styles.featureLabel}>Quizzes</span>
-        </div>
-      </div>
-
-      {/* Call-to-Action Buttons */}
-      <nav className={styles.ctaGroup} aria-label="Get started">
-        <Link to="/register" className={`btn btn-primary ${styles.ctaPrimary}`}>
-          Register Now
-        </Link>
-        <Link to="/login" className={`btn btn-secondary ${styles.ctaSecondary}`}>
-          Login
-        </Link>
       </nav>
 
-      {/* Platform Indicators */}
-      <div className={styles.platforms} aria-label="Available platforms">
-        <div className={styles.platformItem}>
-          <span className={styles.platformIcon} aria-hidden="true">📱</span>
-          <span>Android App</span>
+      {/* Hero Section */}
+      <div className={styles.hero}>
+        <div className={styles.heroContent}>
+          <h1 className={styles.heroTitle}>
+            Where Curiosity<br />Comes Alive ✨
+          </h1>
+          <p className={styles.heroSubtitle}>
+            A complete learning platform for LKG to 12th grade students.<br />
+            7 subjects • Pronunciation practice • Textbook scanning • Interactive quizzes
+          </p>
+          <div className={styles.heroButtons}>
+            <Link to="/register" className={styles.heroBtnPrimary}>
+              <span aria-hidden="true">👤</span> Get Started — Register
+            </Link>
+            <Link to="/login" className={styles.heroBtnSecondary}>
+              <span aria-hidden="true">🔑</span> Login
+            </Link>
+          </div>
         </div>
-        <div className={styles.platformItem}>
-          <span className={styles.platformIcon} aria-hidden="true">🌐</span>
-          <span>Web Access</span>
+        <div className={styles.heroVisual} aria-hidden="true">
+          <div className={styles.heroIconCircle}>🎓</div>
         </div>
       </div>
 
-      {/* Safety Badge */}
-      <div className={styles.safetyBadge} role="status">
-        <span className={styles.safetyIcon} aria-hidden="true">🛡️</span>
-        <span>Safe &amp; secure for children • Parent-monitored</span>
+      {/* Features Section */}
+      <div className={styles.featuresSection}>
+        <h2 className={styles.featuresTitle}>Everything Your Child Needs to Excel</h2>
+
+        <div className={styles.featuresGrid} role="list" aria-label="Feature highlights">
+          <div className={styles.featureCard} role="listitem">
+            <div className={`${styles.featureIconCircle} ${styles.featureIconPink}`} aria-hidden="true">
+              📚
+            </div>
+            <div className={styles.featureCardTitle}>7 Subjects</div>
+            <div className={styles.featureCardDesc}>English, Hindi, Kannada, Maths, Science, Computers, EVS</div>
+          </div>
+
+          <div className={styles.featureCard} role="listitem">
+            <div className={`${styles.featureIconCircle} ${styles.featureIconPurple}`} aria-hidden="true">
+              🎙️
+            </div>
+            <div className={styles.featureCardTitle}>Pronunciation</div>
+            <div className={styles.featureCardDesc}>Speak aloud, get instant accuracy scores &amp; feedback</div>
+          </div>
+
+          <div className={styles.featureCard} role="listitem">
+            <div className={`${styles.featureIconCircle} ${styles.featureIconBlue}`} aria-hidden="true">
+              📷
+            </div>
+            <div className={styles.featureCardTitle}>Scan Textbooks</div>
+            <div className={styles.featureCardDesc}>Photograph pages, auto-extract text, get explanations</div>
+          </div>
+
+          <div className={styles.featureCard} role="listitem">
+            <div className={`${styles.featureIconCircle} ${styles.featureIconGold}`} aria-hidden="true">
+              🏆
+            </div>
+            <div className={styles.featureCardTitle}>Quizzes &amp; Revision</div>
+            <div className={styles.featureCardDesc}>MCQ, fill-in-blank, timed tests with progress tracking</div>
+          </div>
+        </div>
+
+        {/* Subject Pills */}
+        <div className={styles.subjectPills} aria-label="Available subjects">
+          <span className={`${styles.pill} ${styles.pillPink}`}>English</span>
+          <span className={`${styles.pill} ${styles.pillPurple}`}>Hindi</span>
+          <span className={`${styles.pill} ${styles.pillBlue}`}>Kannada</span>
+          <span className={`${styles.pill} ${styles.pillGold}`}>Maths</span>
+          <span className={`${styles.pill} ${styles.pillGreen}`}>Science</span>
+          <span className={`${styles.pill} ${styles.pillIndigo}`}>Computers</span>
+          <span className={`${styles.pill} ${styles.pillOrange}`}>EVS</span>
+        </div>
+
+        {/* Bottom Info */}
+        <div className={styles.bottomInfo}>
+          <div className={styles.bottomInfoItem}>
+            <div className={styles.bottomInfoIcon} aria-hidden="true" style={{ color: '#9B59B6' }}>📱</div>
+            <div className={styles.bottomInfoLabel}>Android App</div>
+          </div>
+          <div className={styles.bottomInfoItem}>
+            <div className={styles.bottomInfoIcon} aria-hidden="true" style={{ color: '#5DADE2' }}>🌐</div>
+            <div className={styles.bottomInfoLabel}>Web Access</div>
+          </div>
+          <div className={styles.bottomInfoItem}>
+            <div className={styles.bottomInfoIcon} aria-hidden="true" style={{ color: '#27AE60' }}>🛡️</div>
+            <div className={styles.bottomInfoLabel}>Parent Controls</div>
+          </div>
+          <div className={styles.bottomInfoItem}>
+            <div className={styles.bottomInfoIcon} aria-hidden="true" style={{ color: '#F7C948' }}>👧</div>
+            <div className={styles.bottomInfoLabel}>LKG – 12th</div>
+          </div>
+        </div>
       </div>
     </section>
   );

@@ -43,16 +43,18 @@ const GRADE_OPTIONS = [
 interface DefaultSubject {
   name: string;
   icon: string;
+  color: string;
+  bgColor: string;
 }
 
 const DEFAULT_SUBJECTS: DefaultSubject[] = [
-  { name: 'English', icon: '📖' },
-  { name: 'Hindi', icon: '🕉️' },
-  { name: 'Kannada', icon: '✍️' },
-  { name: 'Maths', icon: '🔢' },
-  { name: 'Science', icon: '🔬' },
-  { name: 'EVS', icon: '🌿' },
-  { name: 'Computers', icon: '💻' },
+  { name: 'English', icon: '📖', color: '#5DADE2', bgColor: '#E8F6FD' },
+  { name: 'Hindi', icon: '🕉️', color: '#E5A100', bgColor: '#FFF8E1' },
+  { name: 'Kannada', icon: '✍️', color: '#9B59B6', bgColor: '#F3E8F9' },
+  { name: 'Maths', icon: '🔢', color: '#E94F9B', bgColor: '#FDE8F4' },
+  { name: 'Science', icon: '🔬', color: '#27AE60', bgColor: '#E8F8EE' },
+  { name: 'EVS', icon: '🌿', color: '#E67E22', bgColor: '#FFF0E0' },
+  { name: 'Computers', icon: '💻', color: '#4A6CF7', bgColor: '#EBF0FF' },
 ];
 
 const MAX_CUSTOM_SUBJECTS = 5;
@@ -199,7 +201,6 @@ export function LearnerRegistration() {
       }
       return next;
     });
-    // Clear subject error when toggling
     setErrors((prev) => ({ ...prev, subjects: undefined }));
   }, []);
 
@@ -213,7 +214,6 @@ export function LearnerRegistration() {
       return;
     }
 
-    // Check for duplicates
     const allSubjects = [...DEFAULT_SUBJECTS.map((s) => s.name.toLowerCase()), ...customSubjects.map((s) => s.toLowerCase())];
     if (allSubjects.includes(trimmed.toLowerCase())) {
       setErrors((prev) => ({ ...prev, customSubject: 'This subject already exists' }));
@@ -298,7 +298,6 @@ export function LearnerRegistration() {
         setSuccess(true);
         successTimerRef.current = setTimeout(() => {
           setSuccess(false);
-          // Reset form for adding another learner
           setFormData(INITIAL_FORM);
           setSelectedSubjects(new Set(DEFAULT_SUBJECTS.map((s) => s.name)));
           setCustomSubjects([]);
@@ -324,7 +323,17 @@ export function LearnerRegistration() {
 
   if (success) {
     return (
-      <div className="card" style={{ maxWidth: 560, margin: '0 auto', textAlign: 'center' }}>
+      <div
+        style={{
+          maxWidth: 560,
+          margin: '60px auto',
+          background: 'var(--color-white)',
+          borderRadius: '16px',
+          padding: '40px',
+          textAlign: 'center',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+        }}
+      >
         <h2 style={{ color: 'var(--color-success)', marginBottom: 'var(--space-md)' }}>
           🎉 Learner Registered Successfully!
         </h2>
@@ -337,229 +346,275 @@ export function LearnerRegistration() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: 560, margin: '0 auto' }}>
-      <h2 style={{ marginBottom: 'var(--space-lg)', textAlign: 'center' }}>
-        Register Learner
-      </h2>
+    <div style={{ minHeight: '100vh', background: 'var(--color-background)' }}>
+      {/* Header bar */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #2C2341, #9B59B6)',
+          padding: '16px 32px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+        }}
+      >
+        <span style={{ fontSize: '1rem' }} aria-hidden="true">📖</span>
+        <span style={{ color: 'white', fontSize: '0.875rem', fontWeight: 800 }}>
+          ChikuMiku LearnVerse
+        </span>
+      </div>
 
-      <form onSubmit={handleSubmit} noValidate aria-label="Learner registration form">
-        {/* Parent Username (read-only) */}
-        <div style={{ marginBottom: 'var(--space-md)' }}>
-          <label
-            htmlFor="parentUsername"
-            style={{ display: 'block', marginBottom: 'var(--space-xs)', fontWeight: 500 }}
-          >
-            Parent Username
-          </label>
-          <input
-            id="parentUsername"
-            type="text"
-            value={parentUsername || ''}
-            disabled
-            readOnly
-            style={{ backgroundColor: 'var(--color-background)', cursor: 'not-allowed' }}
-            aria-label="Parent username (read-only)"
-          />
+      {/* Main Content */}
+      <div style={{ padding: '24px 32px', maxWidth: '760px', margin: '0 auto' }}>
+        {/* Title with back arrow */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <span style={{ color: 'var(--color-secondary)', fontSize: '1rem', cursor: 'pointer' }} aria-hidden="true">←</span>
+          <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: 'var(--color-dark)', margin: 0 }}>
+            Register New Learner
+          </h2>
         </div>
 
-        {/* Learner Username */}
-        <FormField
-          id="learnerUsername"
-          label="Learner Username"
-          type="text"
-          value={formData.username}
-          error={touched.username ? errors.username : undefined}
-          onChange={handleChange('username')}
-          onBlur={handleBlur('username')}
-          placeholder="8-15 chars, lowercase, digits, _ or -"
-          autoComplete="username"
-        />
-
-        {/* Name */}
-        <FormField
-          id="learnerName"
-          label="Name"
-          type="text"
-          value={formData.name}
-          error={touched.name ? errors.name : undefined}
-          onChange={handleChange('name')}
-          onBlur={handleBlur('name')}
-          placeholder="5-20 chars, letters and spaces"
-          autoComplete="name"
-        />
-
-        {/* Password */}
-        <FormField
-          id="learnerPassword"
-          label="Password"
-          type="password"
-          value={formData.password}
-          error={touched.password ? errors.password : undefined}
-          onChange={handleChange('password')}
-          onBlur={handleBlur('password')}
-          placeholder="8-20 chars, upper, lower, digit, special"
-          autoComplete="new-password"
-        />
-
-        {/* Gender (radio with icons) */}
-        <fieldset
-          style={{ border: 'none', padding: 0, marginBottom: 'var(--space-md)' }}
+        {/* Form Card */}
+        <div
+          style={{
+            background: 'var(--color-white)',
+            borderRadius: '14px',
+            padding: '24px',
+            boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+          }}
         >
-          <legend style={{ fontWeight: 500, marginBottom: 'var(--space-sm)' }}>
-            Gender
-          </legend>
-          <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-            {GENDER_OPTIONS.map((opt) => (
-              <label
-                key={opt.value}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--space-xs)',
-                  cursor: 'pointer',
-                  padding: 'var(--space-sm) var(--space-md)',
-                  borderRadius: 'var(--radius-badge)',
-                  border: formData.gender === opt.value
-                    ? '2px solid var(--color-primary)'
-                    : '2px solid var(--color-border)',
-                  backgroundColor: formData.gender === opt.value
-                    ? 'rgba(233, 79, 155, 0.08)'
-                    : 'transparent',
-                }}
-              >
-                <input
-                  type="radio"
-                  name="gender"
-                  value={opt.value}
-                  checked={formData.gender === opt.value}
-                  onChange={() => handleGenderChange(opt.value)}
-                  style={{ width: 'auto', minWidth: 'auto', minHeight: 'auto' }}
-                />
-                <span style={{ fontSize: '1.25rem' }} aria-hidden="true">{opt.icon}</span>
-                <span>{opt.label}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {/* Relationship (dropdown) */}
-        <div style={{ marginBottom: 'var(--space-md)' }}>
-          <label
-            htmlFor="relationship"
-            style={{ display: 'block', marginBottom: 'var(--space-xs)', fontWeight: 500 }}
-          >
-            Relationship
-          </label>
-          <select
-            id="relationship"
-            value={formData.relationship}
-            onChange={handleSelectChange('relationship')}
-          >
-            {RELATIONSHIP_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Grade (dropdown) */}
-        <div style={{ marginBottom: 'var(--space-md)' }}>
-          <label
-            htmlFor="grade"
-            style={{ display: 'block', marginBottom: 'var(--space-xs)', fontWeight: 500 }}
-          >
-            Grade
-          </label>
-          <select
-            id="grade"
-            value={formData.grade}
-            onChange={handleSelectChange('grade')}
-          >
-            {GRADE_OPTIONS.map((g) => (
-              <option key={g} value={g}>{g}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* School Name */}
-        <FormField
-          id="school"
-          label="School"
-          type="text"
-          value={formData.school}
-          error={touched.school ? errors.school : undefined}
-          onChange={handleChange('school')}
-          onBlur={handleBlur('school')}
-          placeholder="5-30 chars, letters, digits, spaces"
-          autoComplete="organization"
-        />
-
-        {/* Subjects Section */}
-        <fieldset style={{ border: 'none', padding: 0, marginBottom: 'var(--space-md)' }}>
-          <legend style={{ fontWeight: 500, marginBottom: 'var(--space-sm)' }}>
-            Subjects
-          </legend>
-
-          {/* Default subjects as toggle-able icon cards */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: 'var(--space-sm)',
-              marginBottom: 'var(--space-md)',
-            }}
-          >
-            {DEFAULT_SUBJECTS.map((subject) => {
-              const isSelected = selectedSubjects.has(subject.name);
-              return (
-                <button
-                  key={subject.name}
-                  type="button"
-                  onClick={() => toggleSubject(subject.name)}
-                  className="badge"
-                  aria-pressed={isSelected}
+          <form onSubmit={handleSubmit} noValidate aria-label="Learner registration form">
+            {/* 2-column form layout */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 20px' }}>
+              {/* Parent Username (read-only) */}
+              <div>
+                <label
+                  htmlFor="parentUsername"
+                  style={{ display: 'block', marginBottom: '4px', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}
+                >
+                  Parent Username
+                </label>
+                <div
                   style={{
-                    cursor: 'pointer',
-                    padding: 'var(--space-sm) var(--space-md)',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    background: '#EDE8F5',
+                    border: '1px solid #D0C8DC',
                     fontSize: '0.875rem',
-                    border: isSelected
-                      ? '2px solid var(--color-primary)'
-                      : '2px solid var(--color-border)',
-                    backgroundColor: isSelected
-                      ? 'rgba(233, 79, 155, 0.1)'
-                      : 'var(--color-white)',
-                    color: isSelected ? 'var(--color-primary)' : 'var(--color-text-secondary)',
-                    borderRadius: 'var(--radius-badge)',
+                    color: '#666',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    minHeight: '48px',
                   }}
                 >
-                  <span aria-hidden="true" style={{ marginRight: 'var(--space-xs)' }}>
-                    {subject.icon}
-                  </span>
-                  {subject.name}
-                </button>
-              );
-            })}
-          </div>
+                  <span aria-hidden="true">🔒</span> {parentUsername || 'parent_username'}
+                </div>
+              </div>
 
-          {/* Custom subjects list */}
-          {customSubjects.length > 0 && (
-            <div style={{ marginBottom: 'var(--space-sm)' }}>
-              <p style={{ fontSize: '0.875rem', color: 'var(--color-text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                Custom subjects:
-              </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-xs)' }}>
+              {/* Learner Username */}
+              <FormField
+                id="learnerUsername"
+                label="Learner Username"
+                type="text"
+                value={formData.username}
+                error={touched.username ? errors.username : undefined}
+                onChange={handleChange('username')}
+                onBlur={handleBlur('username')}
+                placeholder="8-15 chars (a-z, 0-9, -, _)"
+                autoComplete="username"
+                required
+              />
+
+              {/* Name */}
+              <FormField
+                id="learnerName"
+                label="Name"
+                type="text"
+                value={formData.name}
+                error={touched.name ? errors.name : undefined}
+                onChange={handleChange('name')}
+                onBlur={handleBlur('name')}
+                placeholder="5-20 chars, letters and spaces"
+                autoComplete="name"
+                required
+              />
+
+              {/* Password */}
+              <FormField
+                id="learnerPassword"
+                label="Password"
+                type="password"
+                value={formData.password}
+                error={touched.password ? errors.password : undefined}
+                onChange={handleChange('password')}
+                onBlur={handleBlur('password')}
+                placeholder="8-20 chars, upper, lower, digit, special"
+                autoComplete="new-password"
+                required
+              />
+
+              {/* Gender */}
+              <div>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>
+                  Gender <span style={{ color: 'var(--color-error)' }}>*</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  {GENDER_OPTIONS.map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => handleGenderChange(opt.value)}
+                      style={{
+                        flex: 1,
+                        padding: '10px 6px',
+                        borderRadius: '8px',
+                        border: formData.gender === opt.value
+                          ? '2px solid var(--color-primary)'
+                          : '2px solid var(--color-border)',
+                        background: formData.gender === opt.value
+                          ? '#FDE8F4'
+                          : 'var(--color-white)',
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        minHeight: 'auto',
+                        minWidth: 'auto',
+                      }}
+                      aria-pressed={formData.gender === opt.value}
+                    >
+                      <div style={{ fontSize: '1.5rem' }} aria-hidden="true">{opt.icon}</div>
+                      <div style={{
+                        fontSize: '0.6875rem',
+                        fontWeight: 600,
+                        color: formData.gender === opt.value ? 'var(--color-primary)' : '#666',
+                        marginTop: '2px',
+                      }}>
+                        {opt.label}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Relationship */}
+              <div>
+                <label
+                  htmlFor="relationship"
+                  style={{ display: 'block', marginBottom: '4px', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}
+                >
+                  Relationship <span style={{ color: 'var(--color-error)' }}>*</span>
+                </label>
+                <select
+                  id="relationship"
+                  value={formData.relationship}
+                  onChange={handleSelectChange('relationship')}
+                  style={{ borderRadius: '8px', padding: '10px 12px', fontSize: '0.875rem' }}
+                >
+                  {RELATIONSHIP_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Grade */}
+              <div>
+                <label
+                  htmlFor="grade"
+                  style={{ display: 'block', marginBottom: '4px', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}
+                >
+                  Grade <span style={{ color: 'var(--color-error)' }}>*</span>
+                </label>
+                <select
+                  id="grade"
+                  value={formData.grade}
+                  onChange={handleSelectChange('grade')}
+                  style={{ borderRadius: '8px', padding: '10px 12px', fontSize: '0.875rem' }}
+                >
+                  {GRADE_OPTIONS.map((g) => (
+                    <option key={g} value={g}>{g}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* School Name (full width) */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <FormField
+                  id="school"
+                  label="School Name"
+                  type="text"
+                  value={formData.school}
+                  error={touched.school ? errors.school : undefined}
+                  onChange={handleChange('school')}
+                  onBlur={handleBlur('school')}
+                  placeholder="5-30 chars, letters, digits, spaces"
+                  autoComplete="organization"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Subject Selection */}
+            <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid var(--color-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text-secondary)' }}>
+                  Select Subjects <span style={{ color: 'var(--color-error)' }}>*</span>
+                  <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: '6px' }}>(min. 1 required)</span>
+                </div>
+              </div>
+
+              {/* Subject pills */}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                {DEFAULT_SUBJECTS.map((subject) => {
+                  const isSelected = selectedSubjects.has(subject.name);
+                  return (
+                    <button
+                      key={subject.name}
+                      type="button"
+                      onClick={() => toggleSubject(subject.name)}
+                      aria-pressed={isSelected}
+                      style={{
+                        padding: '7px 14px',
+                        borderRadius: '18px',
+                        border: isSelected
+                          ? `2px solid ${subject.color}`
+                          : '2px solid var(--color-border)',
+                        background: isSelected ? subject.bgColor : 'var(--color-white)',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        color: isSelected ? subject.color : 'var(--color-text-muted)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        cursor: 'pointer',
+                        minHeight: 'auto',
+                        minWidth: 'auto',
+                      }}
+                    >
+                      <span aria-hidden="true">{subject.icon}</span>
+                      {subject.name}
+                      {isSelected && <span aria-hidden="true">✓</span>}
+                    </button>
+                  );
+                })}
+
+                {/* Custom subjects as pills */}
                 {customSubjects.map((subj, idx) => (
                   <span
                     key={idx}
-                    className="badge"
                     style={{
-                      backgroundColor: 'var(--color-secondary)',
-                      color: 'var(--color-white)',
+                      padding: '7px 14px',
+                      borderRadius: '18px',
+                      border: '2px dashed var(--color-border)',
+                      background: 'var(--color-white)',
+                      fontSize: '0.75rem',
+                      fontWeight: 600,
+                      color: 'var(--color-secondary)',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 'var(--space-xs)',
+                      gap: '5px',
                     }}
                   >
                     {subj}
+                    <span style={{ color: 'var(--color-secondary)', fontSize: '0.625rem' }}>(custom)</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveCustomSubject(idx)}
@@ -567,12 +622,12 @@ export function LearnerRegistration() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: 'var(--color-white)',
+                        color: 'var(--color-error)',
                         cursor: 'pointer',
                         padding: '0 2px',
                         minHeight: 'auto',
                         minWidth: 'auto',
-                        fontSize: '1rem',
+                        fontSize: '0.875rem',
                         lineHeight: 1,
                       }}
                     >
@@ -581,78 +636,100 @@ export function LearnerRegistration() {
                   </span>
                 ))}
               </div>
-            </div>
-          )}
 
-          {/* Add custom subject input */}
-          <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'flex-start' }}>
-            <div style={{ flex: 1 }}>
-              <input
-                type="text"
-                value={customSubjectInput}
-                onChange={(e) => {
-                  setCustomSubjectInput(e.target.value);
-                  setErrors((prev) => ({ ...prev, customSubject: undefined }));
-                }}
-                onKeyDown={handleCustomSubjectKeyDown}
-                placeholder="Add custom subject (1-50 chars)"
-                disabled={customSubjects.length >= MAX_CUSTOM_SUBJECTS}
-                aria-label="Custom subject name"
-                aria-describedby={errors.customSubject ? 'customSubject-error' : undefined}
-              />
-              {errors.customSubject && (
-                <p
-                  id="customSubject-error"
-                  role="alert"
+              {/* Add custom subject */}
+              <div style={{ display: 'flex', gap: 'var(--space-sm)', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1 }}>
+                  <input
+                    type="text"
+                    value={customSubjectInput}
+                    onChange={(e) => {
+                      setCustomSubjectInput(e.target.value);
+                      setErrors((prev) => ({ ...prev, customSubject: undefined }));
+                    }}
+                    onKeyDown={handleCustomSubjectKeyDown}
+                    placeholder="Add custom subject (1-50 chars)"
+                    disabled={customSubjects.length >= MAX_CUSTOM_SUBJECTS}
+                    aria-label="Custom subject name"
+                    aria-describedby={errors.customSubject ? 'customSubject-error' : undefined}
+                    style={{ borderRadius: '8px', padding: '10px 12px', fontSize: '0.875rem' }}
+                  />
+                  {errors.customSubject && (
+                    <p
+                      id="customSubject-error"
+                      role="alert"
+                      style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: '2px' }}
+                    >
+                      {errors.customSubject}
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddCustomSubject}
+                  disabled={customSubjects.length >= MAX_CUSTOM_SUBJECTS}
                   style={{
-                    color: 'var(--color-error)',
-                    fontSize: '0.875rem',
-                    marginTop: 'var(--space-xs)',
+                    padding: '10px 16px',
+                    borderRadius: '18px',
+                    border: '2px solid var(--color-secondary)',
+                    background: 'var(--color-white)',
+                    color: 'var(--color-secondary)',
+                    fontSize: '0.8125rem',
+                    fontWeight: 600,
+                    cursor: customSubjects.length >= MAX_CUSTOM_SUBJECTS ? 'not-allowed' : 'pointer',
+                    whiteSpace: 'nowrap',
+                    minHeight: 'auto',
+                    minWidth: 'auto',
+                    opacity: customSubjects.length >= MAX_CUSTOM_SUBJECTS ? 0.5 : 1,
                   }}
                 >
-                  {errors.customSubject}
+                  {customSubjects.length >= MAX_CUSTOM_SUBJECTS ? 'Max reached' : '+ Add'}
+                </button>
+              </div>
+
+              <p style={{ fontSize: '0.6875rem', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                {customSubjects.length}/{MAX_CUSTOM_SUBJECTS} custom subjects added
+              </p>
+
+              {errors.subjects && (
+                <p
+                  role="alert"
+                  style={{ color: 'var(--color-error)', fontSize: '0.75rem', marginTop: 'var(--space-sm)' }}
+                >
+                  {errors.subjects}
                 </p>
               )}
             </div>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={handleAddCustomSubject}
-              disabled={customSubjects.length >= MAX_CUSTOM_SUBJECTS}
-              style={{ whiteSpace: 'nowrap' }}
-            >
-              {customSubjects.length >= MAX_CUSTOM_SUBJECTS ? 'Max reached' : 'Add'}
-            </button>
-          </div>
-          <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-xs)' }}>
-            {customSubjects.length}/{MAX_CUSTOM_SUBJECTS} custom subjects added
-          </p>
 
-          {/* Subjects validation error */}
-          {errors.subjects && (
-            <p
-              role="alert"
-              style={{
-                color: 'var(--color-error)',
-                fontSize: '0.875rem',
-                marginTop: 'var(--space-sm)',
-              }}
-            >
-              {errors.subjects}
-            </p>
-          )}
-        </fieldset>
-
-        {/* Submit */}
-        <button
-          type="submit"
-          className="btn-primary"
-          disabled={isSubmitting}
-          style={{ width: '100%', marginTop: 'var(--space-md)' }}
-        >
-          {isSubmitting ? 'Registering…' : 'Register Learner'}
-        </button>
-      </form>
+            {/* Submit */}
+            <div style={{ marginTop: '20px', textAlign: 'center' }}>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                style={{
+                  padding: '12px 40px',
+                  border: 'none',
+                  borderRadius: '22px',
+                  background: 'linear-gradient(135deg, #E94F9B, #9B59B6)',
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting ? 0.7 : 1,
+                  boxShadow: '0 4px 12px rgba(233,79,155,0.3)',
+                  minHeight: '48px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span aria-hidden="true">🎓</span>
+                {isSubmitting ? 'Registering…' : 'Register Learner'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }
@@ -669,6 +746,7 @@ interface FormFieldProps {
   onBlur: () => void;
   placeholder?: string;
   autoComplete?: string;
+  required?: boolean;
 }
 
 function FormField({
@@ -681,21 +759,24 @@ function FormField({
   onBlur,
   placeholder,
   autoComplete,
+  required,
 }: FormFieldProps) {
   const errorId = `${id}-error`;
 
   return (
-    <div style={{ marginBottom: 'var(--space-md)' }}>
+    <div>
       <label
         htmlFor={id}
         style={{
           display: 'block',
-          marginBottom: 'var(--space-xs)',
-          fontWeight: 500,
-          color: 'var(--color-text-primary)',
+          marginBottom: '4px',
+          fontSize: '0.8125rem',
+          fontWeight: 600,
+          color: 'var(--color-text-secondary)',
         }}
       >
         {label}
+        {required && <span style={{ color: 'var(--color-error)', marginLeft: '2px' }}>*</span>}
       </label>
       <input
         id={id}
@@ -708,7 +789,12 @@ function FormField({
         autoComplete={autoComplete}
         aria-invalid={!!error}
         aria-describedby={error ? errorId : undefined}
-        style={error ? { borderColor: 'var(--color-error)' } : undefined}
+        style={{
+          borderColor: error ? 'var(--color-error)' : undefined,
+          borderRadius: '8px',
+          padding: '10px 12px',
+          fontSize: '0.875rem',
+        }}
       />
       {error && (
         <p
@@ -716,8 +802,8 @@ function FormField({
           role="alert"
           style={{
             color: 'var(--color-error)',
-            fontSize: '0.875rem',
-            marginTop: 'var(--space-xs)',
+            fontSize: '0.75rem',
+            marginTop: '2px',
           }}
         >
           {error}
