@@ -1,5 +1,5 @@
 /**
- * LoginPage — Role selector, username, password, login button.
+ * LoginPage — Split layout with branding panel (left) and login form (right).
  */
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -35,12 +35,16 @@ export function LoginPage() {
   };
 
   const styles: Record<string, React.CSSProperties> = {
-    container: { minHeight: '100vh', background: theme.colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: theme.fonts.family },
-    card: { width: '100%', maxWidth: 380 },
+    container: { minHeight: '100vh', display: 'flex', fontFamily: theme.fonts.family },
+    leftPanel: { flex: 1, background: theme.gradients.dark, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 40, color: '#fff' },
+    brandIcon: { width: 64, height: 64, borderRadius: 16, background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
+    brandTitle: { fontSize: 22, fontWeight: theme.fonts.weights.extrabold, color: '#fff', marginBottom: 6, textAlign: 'center' },
+    brandTagline: { fontSize: 13, color: 'rgba(255,255,255,0.8)', fontStyle: 'italic', textAlign: 'center' },
+    rightPanel: { flex: 1, background: theme.colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 40 },
+    formCard: { width: '100%', maxWidth: 380 },
     header: { textAlign: 'center', marginBottom: 24 },
-    logo: { fontSize: 32, color: theme.colors.pink, marginBottom: 8 },
-    title: { fontSize: theme.fonts.sizes.xl, fontWeight: theme.fonts.weights.extrabold, color: theme.colors.dark, marginBottom: 4 },
-    tagline: { fontSize: theme.fonts.sizes.sm, color: theme.colors.pink, fontStyle: 'italic' },
+    title: { fontSize: theme.fonts.sizes.xl, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark, marginBottom: 4 },
+    subtitle: { fontSize: theme.fonts.sizes.sm, color: theme.colors.textLight },
     roleSection: { marginBottom: 16 },
     roleLabel: { fontSize: theme.fonts.sizes.sm, fontWeight: theme.fonts.weights.semibold, color: theme.colors.text, marginBottom: 8, display: 'block' },
     roleRow: { display: 'flex', gap: 10 },
@@ -63,43 +67,54 @@ export function LoginPage() {
 
   return (
     <div style={styles.container}>
-      <Card style={styles.card} padding="24px">
-        <div style={styles.header}>
-          <i className="fas fa-book-open-reader" style={styles.logo} />
-          <div style={styles.title}>ChikuMiku LearnVerse</div>
-          <div style={styles.tagline}>Where Curiosity Comes Alive ✨</div>
+      {/* Left branding panel */}
+      <div style={styles.leftPanel}>
+        <div style={styles.brandIcon}>
+          <i className="fas fa-book-open-reader" style={{ fontSize: 28, color: '#fff' }} />
         </div>
+        <div style={styles.brandTitle}>ChikuMiku LearnVerse</div>
+        <div style={styles.brandTagline}>Where Curiosity Comes Alive ✨</div>
+      </div>
 
-        <div style={styles.roleSection}>
-          <span style={styles.roleLabel}>I am a:</span>
-          <div style={styles.roleRow}>
-            <div style={roleOption(role === 'Parent')} onClick={() => setRole('Parent')}>
-              <i className="fas fa-user-shield" style={{ fontSize: 20, color: role === 'Parent' ? theme.colors.purple : theme.colors.textLight, marginBottom: 4 }} />
-              <div style={{ fontSize: theme.fonts.sizes.sm, fontWeight: role === 'Parent' ? theme.fonts.weights.semibold : theme.fonts.weights.normal, color: role === 'Parent' ? theme.colors.purple : theme.colors.textLight }}>Parent</div>
-            </div>
-            <div style={roleOption(role === 'Learner')} onClick={() => setRole('Learner')}>
-              <i className="fas fa-user-graduate" style={{ fontSize: 20, color: role === 'Learner' ? theme.colors.purple : theme.colors.textLight, marginBottom: 4 }} />
-              <div style={{ fontSize: theme.fonts.sizes.sm, fontWeight: role === 'Learner' ? theme.fonts.weights.semibold : theme.fonts.weights.normal, color: role === 'Learner' ? theme.colors.purple : theme.colors.textLight }}>Learner</div>
+      {/* Right form panel */}
+      <div style={styles.rightPanel}>
+        <Card style={styles.formCard} padding="28px">
+          <div style={styles.header}>
+            <div style={styles.title}>Welcome Back</div>
+            <div style={styles.subtitle}>Sign in to continue learning</div>
+          </div>
+
+          <div style={styles.roleSection}>
+            <span style={styles.roleLabel}>I am a:</span>
+            <div style={styles.roleRow}>
+              <div style={roleOption(role === 'Parent')} onClick={() => setRole('Parent')}>
+                <i className="fas fa-user-shield" style={{ fontSize: 20, color: role === 'Parent' ? theme.colors.purple : theme.colors.textLight, marginBottom: 4 }} />
+                <div style={{ fontSize: theme.fonts.sizes.sm, fontWeight: role === 'Parent' ? theme.fonts.weights.semibold : theme.fonts.weights.normal, color: role === 'Parent' ? theme.colors.purple : theme.colors.textLight }}>Parent</div>
+              </div>
+              <div style={roleOption(role === 'Learner')} onClick={() => setRole('Learner')}>
+                <i className="fas fa-user-graduate" style={{ fontSize: 20, color: role === 'Learner' ? theme.colors.purple : theme.colors.textLight, marginBottom: 4 }} />
+                <div style={{ fontSize: theme.fonts.sizes.sm, fontWeight: role === 'Learner' ? theme.fonts.weights.semibold : theme.fonts.weights.normal, color: role === 'Learner' ? theme.colors.purple : theme.colors.textLight }}>Learner</div>
+              </div>
             </div>
           </div>
-        </div>
 
-        {error && <div style={styles.error}>{error}</div>}
+          {error && <div style={styles.error}>{error}</div>}
 
-        <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" required />
-        <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" showPasswordToggle required />
+          <Input label="Username" value={username} onChange={(e) => setUsername(e.target.value)} placeholder="Enter your username" required />
+          <Input label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" showPasswordToggle required />
 
-        <Button variant="primary" label={loading ? 'Logging in...' : 'Login'} icon="sign-in-alt" onPress={handleSubmit} fullWidth disabled={!role || !username || !password || loading} />
+          <Button variant="primary" label={loading ? 'Logging in...' : 'Login'} icon="sign-in-alt" onPress={handleSubmit} fullWidth disabled={!role || !username || !password || loading} />
 
-        <div style={styles.forgotLink}>
-          <span style={styles.link} onClick={() => navigate('/forgot-password')}>Forgot Password?</span>
-        </div>
+          <div style={styles.forgotLink}>
+            <span style={styles.link} onClick={() => navigate('/forgot-password')}>Forgot Password?</span>
+          </div>
 
-        <div style={styles.registerSection}>
-          Don&apos;t have an account?{' '}
-          <span style={styles.link} onClick={() => navigate('/register/parent')}>Register here</span>
-        </div>
-      </Card>
+          <div style={styles.registerSection}>
+            Don&apos;t have an account?{' '}
+            <span style={styles.link} onClick={() => navigate('/register/parent')}>Register here</span>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

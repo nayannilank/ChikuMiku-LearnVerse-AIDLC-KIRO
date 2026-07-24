@@ -63,12 +63,18 @@ export function LearnerRegistration() {
   };
 
   const styles: Record<string, React.CSSProperties> = {
-    container: { minHeight: '100vh', background: theme.colors.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: theme.fonts.family },
-    card: { width: '100%', maxWidth: 520 },
-    header: { textAlign: 'center', marginBottom: 20 },
+    page: { minHeight: '100vh', background: theme.colors.bg, fontFamily: theme.fonts.family },
+    nav: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', background: '#fff', borderBottom: `1px solid ${theme.colors.border}` },
+    navLeft: { display: 'flex', alignItems: 'center', gap: 8 },
+    navTitle: { fontSize: 13, fontWeight: theme.fonts.weights.extrabold, color: theme.colors.dark },
+    navRight: { display: 'flex', alignItems: 'center', gap: 10 },
+    avatar: { width: 28, height: 28, borderRadius: '50%', backgroundColor: theme.colors.purple, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    content: { display: 'flex', alignItems: 'flex-start', justifyContent: 'center', padding: '24px 20px' },
+    card: { width: '100%', maxWidth: 700 },
+    backRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 },
     title: { fontSize: theme.fonts.sizes.xl, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark },
-    subtitle: { fontSize: theme.fonts.sizes.sm, color: theme.colors.textLight, marginTop: 4 },
     twoCol: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+    fullWidth: { gridColumn: '1 / -1' },
     error: { background: theme.colors.redLight, color: theme.colors.red, padding: '8px 12px', borderRadius: theme.borderRadius.input, fontSize: theme.fonts.sizes.sm, marginBottom: 12, textAlign: 'center' },
     sectionLabel: { fontSize: theme.fonts.sizes.sm, fontWeight: theme.fonts.weights.semibold, color: theme.colors.text, marginBottom: 8 },
     subjectGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8, marginBottom: 12 },
@@ -76,38 +82,64 @@ export function LearnerRegistration() {
   };
 
   return (
-    <div style={styles.container}>
-      <Card style={styles.card} padding="24px">
-        <div style={styles.header}>
-          <div style={styles.title}>Register Learner</div>
-          <div style={styles.subtitle}>Add a new learner to your account</div>
+    <div style={styles.page}>
+      {/* Nav bar */}
+      <div style={styles.nav}>
+        <div style={styles.navLeft}>
+          <i className="fas fa-book-open-reader" style={{ color: theme.colors.pink, fontSize: 16 }} />
+          <span style={styles.navTitle}>ChikuMiku LearnVerse</span>
         </div>
-        {serverError && <div style={styles.error}>{serverError}</div>}
-        <div style={styles.twoCol}>
-          <Input label="Parent Username" value={parentUsername || 'parent_user'} readOnly />
-          <Input label="Learner Username" value={form.username} onChange={updateField('username')} placeholder="8-15 chars" required error={validationErrors.username} />
-          <Input label="Name" value={form.name} onChange={updateField('name')} placeholder="5-20 characters" required error={validationErrors.name} />
-          <Input label="Password" type="password" value={form.password} onChange={updateField('password')} placeholder="8-20 characters" showPasswordToggle required error={validationErrors.password} />
-        </div>
-        <RadioGroup label="Gender" value={form.gender} onChange={updateField('gender') as (v: string) => void} options={GENDERS} required activeColor={theme.colors.pink} />
-        <div style={styles.twoCol}>
-          <Select label="Relationship" value={form.relationship} onChange={updateField('relationship')} options={RELATIONSHIPS} placeholder="Select..." required error={validationErrors.relationship} />
-          <Select label="Grade" value={form.grade} onChange={updateField('grade')} options={GRADES} placeholder="Select grade..." required error={validationErrors.grade} />
-        </div>
-        <Input label="School Name" value={form.schoolName} onChange={updateField('schoolName')} placeholder="5-30 characters" required error={validationErrors.schoolName} />
-        <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${theme.colors.border}` }}>
-          <div style={styles.sectionLabel}>Select Subjects <span style={{ color: theme.colors.red }}>*</span></div>
-          <div style={styles.subjectGrid}>
-            {Object.keys(SUBJECTS).map((subj) => (
-              <SubjectIcon key={subj} subject={subj} selected={selectedSubjects.includes(subj)} onToggle={toggleSubject} showCheck variant="card" />
-            ))}
+        <div style={styles.navRight}>
+          <span style={{ fontSize: 11, color: theme.colors.text }}>Welcome, {parentUsername || 'Parent'}</span>
+          <div style={styles.avatar}>
+            <i className="fas fa-user" style={{ color: '#fff', fontSize: 11 }} />
           </div>
-          {validationErrors.subjects && <div style={styles.subjectError}>{validationErrors.subjects}</div>}
         </div>
-        <div style={{ marginTop: 16 }}>
-          <Button variant="primary" label={loading ? 'Registering...' : 'Register Learner'} icon="user-graduate" onPress={handleSubmit} fullWidth disabled={loading} />
-        </div>
-      </Card>
+      </div>
+
+      {/* Content */}
+      <div style={styles.content}>
+        <Card style={styles.card} padding="24px">
+          <div style={styles.backRow}>
+            <i className="fas fa-arrow-left" style={{ color: theme.colors.purple, fontSize: 14, cursor: 'pointer' }} onClick={() => navigate(-1)} />
+            <span style={styles.title}>Register New Learner</span>
+          </div>
+
+          {serverError && <div style={styles.error}>{serverError}</div>}
+
+          <div style={styles.twoCol}>
+            <Input label="Parent Username" value={parentUsername || 'parent_user'} readOnly />
+            <Input label="Learner Username" value={form.username} onChange={updateField('username')} placeholder="8-15 chars" required error={validationErrors.username} />
+            <Input label="Name" value={form.name} onChange={updateField('name')} placeholder="5-20 characters" required error={validationErrors.name} />
+            <Input label="Password" type="password" value={form.password} onChange={updateField('password')} placeholder="8-20 characters" showPasswordToggle required error={validationErrors.password} />
+          </div>
+
+          <RadioGroup label="Gender" value={form.gender} onChange={updateField('gender') as (v: string) => void} options={GENDERS} required activeColor={theme.colors.pink} />
+
+          <div style={styles.twoCol}>
+            <Select label="Relationship" value={form.relationship} onChange={updateField('relationship')} options={RELATIONSHIPS} placeholder="Select..." required error={validationErrors.relationship} />
+            <Select label="Grade" value={form.grade} onChange={updateField('grade')} options={GRADES} placeholder="Select grade..." required error={validationErrors.grade} />
+          </div>
+
+          <div style={styles.fullWidth}>
+            <Input label="School Name" value={form.schoolName} onChange={updateField('schoolName')} placeholder="5-30 characters" required error={validationErrors.schoolName} />
+          </div>
+
+          <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${theme.colors.border}` }}>
+            <div style={styles.sectionLabel}>Select Subjects <span style={{ color: theme.colors.red }}>*</span></div>
+            <div style={styles.subjectGrid}>
+              {Object.keys(SUBJECTS).map((subj) => (
+                <SubjectIcon key={subj} subject={subj} selected={selectedSubjects.includes(subj)} onToggle={toggleSubject} showCheck variant="card" />
+              ))}
+            </div>
+            {validationErrors.subjects && <div style={styles.subjectError}>{validationErrors.subjects}</div>}
+          </div>
+
+          <div style={{ marginTop: 16 }}>
+            <Button variant="primary" label={loading ? 'Registering...' : 'Register Learner'} icon="user-graduate" onPress={handleSubmit} fullWidth disabled={loading} />
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

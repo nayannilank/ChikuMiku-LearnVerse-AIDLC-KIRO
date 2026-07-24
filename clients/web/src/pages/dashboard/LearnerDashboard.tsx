@@ -64,6 +64,9 @@ export function LearnerDashboard() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <span style={{ fontSize: 10, color: theme.colors.gold, fontWeight: theme.fonts.weights.semibold }}>🔥 {streak} day streak!</span>
           <span style={{ fontSize: 11, color: theme.colors.text }}>Hi, {learnerName || username}!</span>
+          <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: theme.colors.purple, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <i className="fas fa-user" style={{ color: '#fff', fontSize: 11 }} />
+          </div>
         </div>
       </div>
       <div style={styles.banner}>

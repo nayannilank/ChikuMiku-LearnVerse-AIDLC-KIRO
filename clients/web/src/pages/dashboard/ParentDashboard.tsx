@@ -67,6 +67,10 @@ export function ParentDashboard() {
           <span style={styles.headerSub}>Parent Dashboard</span>
         </div>
         <div style={styles.headerRight}>
+          <button style={{ padding: '6px 14px', border: 'none', borderRadius: 16, background: theme.gradients.primary, color: '#fff', fontSize: 10, fontWeight: theme.fonts.weights.semibold, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4 }} onClick={() => navigate('/register/learner')}>
+            <i className="fas fa-plus" style={{ fontSize: 9 }} /> Add Learner
+          </button>
+          <i className="fas fa-bell" style={{ color: theme.colors.textLight, fontSize: 14, cursor: 'pointer' }} />
           <i className="fas fa-cog" style={{ color: theme.colors.textLight, fontSize: 14, cursor: 'pointer' }} onClick={() => navigate('/parent/settings')} />
           <div style={styles.avatar} onClick={logout}>
             <i className="fas fa-user" style={{ color: '#fff', fontSize: 11 }} />
@@ -137,7 +141,7 @@ const styles: Record<string, React.CSSProperties> = {
   headerLeft: { display: 'flex', alignItems: 'center', gap: 8 },
   headerTitle: { fontSize: 13, fontWeight: theme.fonts.weights.extrabold, color: theme.colors.dark },
   headerSub: { fontSize: 11, color: theme.colors.purple, fontWeight: theme.fonts.weights.semibold, marginLeft: 8 },
-  headerRight: { display: 'flex', alignItems: 'center', gap: 10 },
+  headerRight: { display: 'flex', alignItems: 'center', gap: 12 },
   avatar: { width: 28, height: 28, borderRadius: '50%', backgroundColor: theme.colors.purple, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' },
   main: { display: 'flex', height: 'calc(100vh - 52px)' },
   leftPanel: { width: 260, backgroundColor: '#F3EEF9', borderRight: `1px solid ${theme.colors.border}`, overflowY: 'auto', padding: 12 },
