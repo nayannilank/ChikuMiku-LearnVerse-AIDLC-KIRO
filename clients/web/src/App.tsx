@@ -10,6 +10,7 @@ import { NetworkProvider } from './context/NetworkContext';
 import { OfflineBanner } from './components/OfflineBanner';
 import { SyncIndicator } from './components/SyncIndicator';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AppHeader } from './components/AppHeader';
 import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
 
 // Pages
@@ -55,36 +56,38 @@ function AppContent() {
       <OfflineBanner />
       <SyncIndicator syncState={syncState} />
       <Routes>
-        {/* Public Routes */}
+        {/* Landing has its own navbar — no AppHeader */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register/parent" element={<ParentRegistration />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
+
+        {/* All other routes get the shared AppHeader */}
+        <Route path="/login" element={<><AppHeader /><LoginPage /></>} />
+        <Route path="/register/parent" element={<><AppHeader /><ParentRegistration /></>} />
+        <Route path="/forgot-password" element={<><AppHeader /><ForgotPassword /></>} />
 
         {/* Parent Routes */}
-        <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
-        <Route path="/parent/profile" element={<ProtectedRoute allowedRoles={['parent']}><ParentProfile /></ProtectedRoute>} />
-        <Route path="/parent/settings" element={<ProtectedRoute allowedRoles={['parent']}><ParentProfile /></ProtectedRoute>} />
-        <Route path="/parent/manage-learners" element={<ProtectedRoute allowedRoles={['parent']}><ManageLearners /></ProtectedRoute>} />
-        <Route path="/register/learner" element={<ProtectedRoute allowedRoles={['parent']}><LearnerRegistration /></ProtectedRoute>} />
+        <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><ParentDashboard /></ProtectedRoute>} />
+        <Route path="/parent/profile" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><ParentProfile /></ProtectedRoute>} />
+        <Route path="/parent/settings" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><ParentProfile /></ProtectedRoute>} />
+        <Route path="/parent/manage-learners" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><ManageLearners /></ProtectedRoute>} />
+        <Route path="/register/learner" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><LearnerRegistration /></ProtectedRoute>} />
 
         {/* Learner Routes */}
-        <Route path="/learner/dashboard" element={<ProtectedRoute allowedRoles={['learner']}><LearnerDashboard /></ProtectedRoute>} />
+        <Route path="/learner/dashboard" element={<ProtectedRoute allowedRoles={['learner']}><AppHeader /><LearnerDashboard /></ProtectedRoute>} />
 
         {/* Content Ingestion */}
-        <Route path="/content/add-chapter" element={<ProtectedRoute><SelectSubjectBook /></ProtectedRoute>} />
-        <Route path="/content/capture" element={<ProtectedRoute><PageCapture /></ProtectedRoute>} />
-        <Route path="/content/ocr" element={<ProtectedRoute><TextRecognition /></ProtectedRoute>} />
-        <Route path="/content/explain" element={<ProtectedRoute><ChapterExplanation /></ProtectedRoute>} />
+        <Route path="/content/add-chapter" element={<ProtectedRoute><AppHeader /><SelectSubjectBook /></ProtectedRoute>} />
+        <Route path="/content/capture" element={<ProtectedRoute><AppHeader /><PageCapture /></ProtectedRoute>} />
+        <Route path="/content/ocr" element={<ProtectedRoute><AppHeader /><TextRecognition /></ProtectedRoute>} />
+        <Route path="/content/explain" element={<ProtectedRoute><AppHeader /><ChapterExplanation /></ProtectedRoute>} />
 
         {/* Learning Modes */}
-        <Route path="/learn/pronunciation" element={<ProtectedRoute><PronunciationPractice /></ProtectedRoute>} />
-        <Route path="/learn/grammar" element={<ProtectedRoute><GrammarExercise /></ProtectedRoute>} />
-        <Route path="/learn/comprehension" element={<ProtectedRoute><ComprehensionQA /></ProtectedRoute>} />
-        <Route path="/learn/revision" element={<ProtectedRoute><RevisionQuiz /></ProtectedRoute>} />
+        <Route path="/learn/pronunciation" element={<ProtectedRoute><AppHeader /><PronunciationPractice /></ProtectedRoute>} />
+        <Route path="/learn/grammar" element={<ProtectedRoute><AppHeader /><GrammarExercise /></ProtectedRoute>} />
+        <Route path="/learn/comprehension" element={<ProtectedRoute><AppHeader /><ComprehensionQA /></ProtectedRoute>} />
+        <Route path="/learn/revision" element={<ProtectedRoute><AppHeader /><RevisionQuiz /></ProtectedRoute>} />
 
         {/* Fallback */}
-        <Route path="/404" element={<NotFoundPage />} />
+        <Route path="/404" element={<><AppHeader /><NotFoundPage /></>} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </BrowserRouter>
