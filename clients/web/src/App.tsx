@@ -7,34 +7,36 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider } from './theme';
 import { AuthProvider } from './context/AuthContext';
 import { NetworkProvider } from './context/NetworkContext';
-import { Layout } from './components/Layout';
 import { OfflineBanner } from './components/OfflineBanner';
 import { SyncIndicator } from './components/SyncIndicator';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { useSyncOnReconnect } from './hooks/useSyncOnReconnect';
-import { LoginPage } from './pages/LoginPage';
+
+// Pages
 import { LandingPage } from './pages/LandingPage';
-import { ForgotPassword } from './pages/ForgotPassword';
-import { ParentRegistration } from './pages/ParentRegistration';
-import { LearnerRegistration } from './pages/LearnerRegistration';
-import { ChapterCreation } from './pages/ChapterCreation';
-import { ChapterExplanation } from './pages/ChapterExplanation';
-import { LearnerDashboard } from './pages/LearnerDashboard';
-import { ParentDashboard } from './pages/ParentDashboard';
-import { PageCapture } from './pages/PageCapture';
-import { TranscriptEditor } from './pages/TranscriptEditor';
-import { RevisionQuiz } from './pages/RevisionQuiz';
-import { GrammarExercise } from './pages/GrammarExercise';
-import { ChapterQA } from './pages/ChapterQA';
-import { PronunciationPractice } from './pages/PronunciationPractice';
-import { ParentSettings } from './pages/ParentSettings';
-import { ManageLearners } from './pages/ManageLearners';
+import { LoginPage } from './pages/LoginPage';
+import { ParentRegistration } from './pages/auth/ParentRegistration';
+import { LearnerRegistration } from './pages/auth/LearnerRegistration';
+import { ForgotPassword } from './pages/auth/ForgotPassword';
+import { ParentDashboard } from './pages/dashboard/ParentDashboard';
+import { LearnerDashboard } from './pages/dashboard/LearnerDashboard';
+import { SelectSubjectBook } from './pages/content/SelectSubjectBook';
+import { PageCapture } from './pages/content/PageCapture';
+import { TextRecognition } from './pages/content/TextRecognition';
+import { ChapterExplanation } from './pages/content/ChapterExplanation';
+import { PronunciationPractice } from './pages/learning/PronunciationPractice';
+import { GrammarExercise } from './pages/learning/GrammarExercise';
+import { ComprehensionQA } from './pages/learning/ComprehensionQA';
+import { RevisionQuiz } from './pages/learning/RevisionQuiz';
+import { ParentProfile } from './pages/settings/ParentProfile';
+import { ManageLearners } from './pages/settings/ManageLearners';
 
 /** API server base URL — injected via environment config. */
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 function NotFoundPage() {
   return (
-    <div className="card">
+    <div style={{ padding: 40, textAlign: 'center' }}>
       <h2>Page Not Found</h2>
       <p>The page you are looking for does not exist.</p>
     </div>
@@ -52,29 +54,39 @@ function AppContent() {
     <BrowserRouter>
       <OfflineBanner />
       <SyncIndicator syncState={syncState} />
-      <Layout>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<ParentRegistration />} />
-        <Route path="/register/learner" element={<LearnerRegistration />} />
+        <Route path="/register/parent" element={<ParentRegistration />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route path="/parent/dashboard" element={<ParentDashboard />} />
-        <Route path="/parent/settings" element={<ParentSettings />} />
-        <Route path="/parent/manage-learners" element={<ManageLearners />} />
-        <Route path="/learner/dashboard" element={<LearnerDashboard />} />
-        <Route path="/learner/chapter/create" element={<ChapterCreation />} />
-        <Route path="/learner/chapter/:id/pages" element={<PageCapture />} />
-        <Route path="/learner/chapter/:id/transcript" element={<TranscriptEditor />} />
-        <Route path="/learner/chapter/:id/explanation" element={<ChapterExplanation />} />
-        <Route path="/learner/chapter/:id/revision" element={<RevisionQuiz />} />
-        <Route path="/learner/chapter/:id/exercise" element={<GrammarExercise />} />
-        <Route path="/learner/chapter/:id/qa" element={<ChapterQA />} />
-        <Route path="/learner/chapter/:id/pronunciation" element={<PronunciationPractice />} />
+
+        {/* Parent Routes */}
+        <Route path="/parent/dashboard" element={<ProtectedRoute allowedRoles={['parent']}><ParentDashboard /></ProtectedRoute>} />
+        <Route path="/parent/profile" element={<ProtectedRoute allowedRoles={['parent']}><ParentProfile /></ProtectedRoute>} />
+        <Route path="/parent/settings" element={<ProtectedRoute allowedRoles={['parent']}><ParentProfile /></ProtectedRoute>} />
+        <Route path="/parent/manage-learners" element={<ProtectedRoute allowedRoles={['parent']}><ManageLearners /></ProtectedRoute>} />
+        <Route path="/register/learner" element={<ProtectedRoute allowedRoles={['parent']}><LearnerRegistration /></ProtectedRoute>} />
+
+        {/* Learner Routes */}
+        <Route path="/learner/dashboard" element={<ProtectedRoute allowedRoles={['learner']}><LearnerDashboard /></ProtectedRoute>} />
+
+        {/* Content Ingestion */}
+        <Route path="/content/add-chapter" element={<ProtectedRoute><SelectSubjectBook /></ProtectedRoute>} />
+        <Route path="/content/capture" element={<ProtectedRoute><PageCapture /></ProtectedRoute>} />
+        <Route path="/content/ocr" element={<ProtectedRoute><TextRecognition /></ProtectedRoute>} />
+        <Route path="/content/explain" element={<ProtectedRoute><ChapterExplanation /></ProtectedRoute>} />
+
+        {/* Learning Modes */}
+        <Route path="/learn/pronunciation" element={<ProtectedRoute><PronunciationPractice /></ProtectedRoute>} />
+        <Route path="/learn/grammar" element={<ProtectedRoute><GrammarExercise /></ProtectedRoute>} />
+        <Route path="/learn/comprehension" element={<ProtectedRoute><ComprehensionQA /></ProtectedRoute>} />
+        <Route path="/learn/revision" element={<ProtectedRoute><RevisionQuiz /></ProtectedRoute>} />
+
+        {/* Fallback */}
         <Route path="/404" element={<NotFoundPage />} />
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
-      </Layout>
     </BrowserRouter>
   );
 }

@@ -53,3 +53,13 @@ export type {
   ParentProfile,
   NotificationPrefs,
 } from './exportApi';
+
+export { dashboardApi } from './dashboardApi';
+export type {
+  DashboardChapter,
+  DashboardBook,
+  DashboardSubject,
+  DashboardLearner,
+  ParentDashboardResponse,
+  LearnerDashboardResponse,
+} from './dashboardApi';
