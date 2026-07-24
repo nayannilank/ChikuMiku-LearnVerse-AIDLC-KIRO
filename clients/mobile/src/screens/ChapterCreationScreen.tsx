@@ -17,9 +17,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { validateBookName, validateChapterName } from '@chikumiku/validation';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -295,15 +292,20 @@ export function ChapterCreationScreen({ navigation }: Props): React.ReactElement
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Loading subjects...</Text>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Create New Chapter</Text>
+    <View style={{ flex: 1, backgroundColor: '#F8F5FF' }}>
+      {/* Gold Header */}
+      <View style={styles.goldHeader}>
+        <Text style={styles.goldHeaderBack}>←</Text>
+        <Text style={styles.goldHeaderTitle}>Add Chapter Content</Text>
+      </View>
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
 
       {/* Subject Selection */}
       <View style={styles.fieldGroup}>
@@ -436,7 +438,7 @@ export function ChapterCreationScreen({ navigation }: Props): React.ReactElement
                 }
               }}
               placeholder="Book name (3-50 chars)"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={'#999999'}
               maxLength={50}
               accessibilityLabel="New book name"
             />
@@ -461,7 +463,7 @@ export function ChapterCreationScreen({ navigation }: Props): React.ReactElement
               setErrors((prev) => ({ ...prev, chapterNumber: undefined }));
             }}
             placeholder="1-999"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             keyboardType="number-pad"
             maxLength={3}
             accessibilityLabel="Chapter number"
@@ -497,7 +499,7 @@ export function ChapterCreationScreen({ navigation }: Props): React.ReactElement
               }
             }}
             placeholder="Chapter name (3-100 chars)"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             maxLength={100}
             accessibilityLabel="Chapter name"
           />
@@ -518,139 +520,159 @@ export function ChapterCreationScreen({ navigation }: Props): React.ReactElement
         accessibilityLabel="Create chapter"
       >
         {isSubmitting ? (
-          <ActivityIndicator size="small" color={colors.white} />
+          <ActivityIndicator size="small" color={'#FFFFFF'} />
         ) : (
           <Text style={styles.submitButtonText}>Create Chapter</Text>
         )}
       </TouchableOpacity>
     </ScrollView>
+    </View>
   );
 }
 
 /* --- Styles --- */
 
 const styles = StyleSheet.create({
+  goldHeader: {
+    backgroundColor: '#F7C948',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  goldHeaderBack: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  goldHeaderTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   loadingText: {
-    marginTop: spacing.md,
+    marginTop: 16,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.lg,
+    color: '#333333',
+    marginBottom: 24,
     textAlign: 'center',
   },
   fieldGroup: {
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    color: '#333333',
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    padding: 16,
     fontSize: 16,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
+    color: '#333333',
+    backgroundColor: '#FFFFFF',
     minHeight: 48,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   modeRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
+    gap: 8,
+    marginBottom: 8,
   },
   modeButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadii.button,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modeButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#E94F9B',
+    borderColor: '#E94F9B',
   },
   modeButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.textSecondary,
+    color: '#777777',
   },
   modeButtonTextActive: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   optionButton: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadii.badge,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.xs,
+    borderColor: '#E0D8EC',
+    marginBottom: 4,
     minHeight: 48,
     justifyContent: 'center',
   },
   optionButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#E94F9B',
+    borderColor: '#E94F9B',
   },
   optionButtonText: {
     fontSize: 14,
-    color: colors.textPrimary,
+    color: '#333333',
   },
   optionButtonTextActive: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '600',
   },
   errorText: {
     fontSize: 13,
-    color: colors.error,
-    marginTop: spacing.xs,
+    color: '#E74C3C',
+    marginTop: 4,
   },
   hintText: {
     fontSize: 12,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
+    color: '#999999',
+    marginTop: 4,
   },
   submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-    marginTop: spacing.md,
+    marginTop: 16,
   },
   submitButtonDisabled: {
     opacity: 0.5,
   },
   submitButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

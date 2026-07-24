@@ -17,9 +17,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -204,7 +201,7 @@ export function PronunciationPracticeScreen({ route }: Props): React.ReactElemen
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Loading practice items...</Text>
       </View>
     );
@@ -219,11 +216,18 @@ export function PronunciationPracticeScreen({ route }: Props): React.ReactElemen
   }
 
   return (
+    <View style={{ flex: 1, backgroundColor: '#F8F5FF' }}>
+      {/* Purple/Dark Header */}
+      <View style={styles.purpleHeader}>
+        <View style={styles.headerIconBox}>
+          <Text style={styles.headerIconText}>🗣️</Text>
+        </View>
+        <View>
+          <Text style={styles.headerTitleText}>Pronunciation</Text>
+          <Text style={styles.headerSubText}>Practice</Text>
+        </View>
+      </View>
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Pronunciation Practice</Text>
-      <Text style={styles.subtitle}>
-        {practiceItems.length} items • Page {pageNumber}
-      </Text>
 
       {practiceItems.map((item) => {
         const score = scores[item.id];
@@ -287,7 +291,7 @@ export function PronunciationPracticeScreen({ route }: Props): React.ReactElemen
             {/* Scoring in progress */}
             {isActive && isScoring && (
               <View style={styles.scoringContainer}>
-                <ActivityIndicator size="small" color={colors.primary} />
+                <ActivityIndicator size="small" color={'#E94F9B'} />
                 <Text style={styles.scoringText}>Analyzing pronunciation...</Text>
               </View>
             )}
@@ -355,165 +359,186 @@ export function PronunciationPracticeScreen({ route }: Props): React.ReactElemen
         );
       })}
     </ScrollView>
+    </View>
   );
 }
 
 /* --- Styles --- */
 
 const styles = StyleSheet.create({
+  purpleHeader: {
+    backgroundColor: '#2C2341',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  headerIconBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerIconText: { fontSize: 14 },
+  headerTitleText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+  headerSubText: { color: 'rgba(255,255,255,0.8)', fontSize: 10 },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   loadingText: {
-    marginTop: spacing.md,
+    marginTop: 16,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.lg,
+    backgroundColor: '#F8F5FF',
+    padding: 24,
   },
   errorText: {
     fontSize: 16,
-    color: colors.error,
+    color: '#E74C3C',
     textAlign: 'center',
   },
   title: {
     fontSize: 24,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#333333',
     textAlign: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   itemCard: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   itemText: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
+    color: '#333333',
+    marginBottom: 16,
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 8,
   },
   ttsButton: {
-    backgroundColor: colors.accent,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#5DADE2',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   ttsButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   recordButton: {
-    backgroundColor: colors.error,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#E74C3C',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   recordButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   stopButton: {
-    backgroundColor: colors.dark,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#2C2341',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   stopButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   recordingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: spacing.sm,
+    marginTop: 8,
+    gap: 8,
   },
   recordingDot: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.error,
+    backgroundColor: '#E74C3C',
   },
   recordingText: {
     fontSize: 14,
-    color: colors.error,
+    color: '#E74C3C',
     fontWeight: '500',
   },
   scoringContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sm,
-    gap: spacing.sm,
+    marginTop: 8,
+    gap: 8,
   },
   scoringText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   scoreContainer: {
-    marginTop: spacing.md,
-    padding: spacing.sm,
-    backgroundColor: colors.background,
-    borderRadius: borderRadii.badge,
+    marginTop: 16,
+    padding: 8,
+    backgroundColor: '#F8F5FF',
+    borderRadius: 10,
   },
   overallScore: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    color: '#333333',
+    marginBottom: 8,
   },
   syllableRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.xs,
-    marginBottom: spacing.md,
+    gap: 4,
+    marginBottom: 16,
   },
   syllableBadge: {
-    borderRadius: borderRadii.badge,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    borderRadius: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     alignItems: 'center',
   },
   syllableText: {
@@ -522,29 +547,29 @@ const styles = StyleSheet.create({
   },
   syllableScore: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: '#999999',
   },
   tryAgainButton: {
-    backgroundColor: colors.secondary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#9B59B6',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
     alignSelf: 'flex-start',
   },
   tryAgainText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   itemError: {
-    marginTop: spacing.sm,
+    marginTop: 8,
   },
   itemErrorText: {
     fontSize: 14,
-    color: colors.error,
-    marginBottom: spacing.sm,
+    color: '#E74C3C',
+    marginBottom: 8,
   },
 });

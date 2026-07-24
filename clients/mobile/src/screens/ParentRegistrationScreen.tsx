@@ -1,6 +1,7 @@
 /**
  * ParentRegistrationScreen — Registration form for parent accounts (Android).
  *
+ * Purple header with back arrow + title.
  * Fields: username, fullName, phone, email, password (masked with toggle).
  * Client-side validation using shared validators.
  * On success: shows success message + 5-second countdown, auto-navigates to Login.
@@ -26,13 +27,11 @@ import {
   validatePassword,
 } from '@chikumiku/validation';
 import { apiClient, type ApiError } from '../services/api';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 
 interface ParentRegistrationScreenProps {
   navigation: {
     navigate: (screen: string) => void;
+    goBack: () => void;
   };
 }
 
@@ -80,7 +79,6 @@ export function ParentRegistrationScreen({
   const [countdown, setCountdown] = useState(5);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Cleanup countdown on unmount
   useEffect(() => {
     return () => {
       if (countdownRef.current) {
@@ -89,7 +87,6 @@ export function ParentRegistrationScreen({
     };
   }, []);
 
-  // Countdown timer after successful registration
   useEffect(() => {
     if (success) {
       countdownRef.current = setInterval(() => {
@@ -136,7 +133,6 @@ export function ParentRegistrationScreen({
   const handleChange = useCallback(
     (field: FieldName, value: string) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-
       if (touched[field]) {
         const error = validateField(field, value);
         setErrors((prev) => ({ ...prev, [field]: error }));
@@ -179,7 +175,6 @@ export function ParentRegistrationScreen({
   }, [formData, validateField]);
 
   const handleSubmit = useCallback(async () => {
-    // Requirement 1.3: SHALL NOT submit when validation errors exist
     if (!validateAll()) {
       return;
     }
@@ -195,11 +190,9 @@ export function ParentRegistrationScreen({
         password: formData.password,
       });
 
-      // Requirement 1.2: show success + 5s countdown redirect
       setSuccess(true);
     } catch (err: unknown) {
       const apiError = err as ApiError;
-      // Requirement 1.5: duplicate username — show field error, retain other data
       if (apiError.status === 409 && apiError.field === 'username') {
         setErrors((prev) => ({
           ...prev,
@@ -209,11 +202,12 @@ export function ParentRegistrationScreen({
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, validateAll, navigation]);
+  }, [formData, validateAll]);
 
   if (success) {
     return (
       <View style={styles.successContainer}>
+        <Text style={styles.successEmoji}>✅</Text>
         <Text style={styles.successTitle}>Registration Successful!</Text>
         <Text style={styles.successMessage}>
           Your parent account has been created.
@@ -228,186 +222,285 @@ export function ParentRegistrationScreen({
   }
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.title}>Parent Registration</Text>
-
-      {/* Username */}
-      <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Username</Text>
-        <TextInput
-          style={[styles.input, touched.username && errors.username ? styles.inputError : null]}
-          value={formData.username}
-          onChangeText={(value) => handleChange('username', value)}
-          onBlur={() => handleBlur('username')}
-          placeholder="8-15 chars, lowercase, digits, _ or -"
-          placeholderTextColor={colors.textMuted}
-          autoCapitalize="none"
-          autoCorrect={false}
-          accessibilityLabel="Username"
-        />
-        {touched.username && errors.username && (
-          <Text style={styles.errorText}>{errors.username}</Text>
-        )}
+    <View style={styles.container}>
+      {/* Purple Header */}
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Register as Parent</Text>
       </View>
 
-      {/* Full Name */}
-      <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Full Name</Text>
-        <TextInput
-          style={[styles.input, touched.fullName && errors.fullName ? styles.inputError : null]}
-          value={formData.fullName}
-          onChangeText={(value) => handleChange('fullName', value)}
-          onBlur={() => handleBlur('fullName')}
-          placeholder="5-20 chars, letters and spaces"
-          placeholderTextColor={colors.textMuted}
-          autoCapitalize="words"
-          accessibilityLabel="Full Name"
-        />
-        {touched.fullName && errors.fullName && (
-          <Text style={styles.errorText}>{errors.fullName}</Text>
-        )}
-      </View>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.formContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Info Banner */}
+        <View style={styles.infoBanner}>
+          <Text style={styles.infoBannerIcon}>🛡️</Text>
+          <View style={styles.infoBannerTextContainer}>
+            <Text style={styles.infoBannerTitle}>Parent Account</Text>
+            <Text style={styles.infoBannerSub}>Create first, add children later</Text>
+          </View>
+        </View>
 
-      {/* Phone */}
-      <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Phone</Text>
-        <TextInput
-          style={[styles.input, touched.phone && errors.phone ? styles.inputError : null]}
-          value={formData.phone}
-          onChangeText={(value) => handleChange('phone', value)}
-          onBlur={() => handleBlur('phone')}
-          placeholder="10 digit phone number"
-          placeholderTextColor={colors.textMuted}
-          keyboardType="phone-pad"
-          maxLength={10}
-          accessibilityLabel="Phone number"
-        />
-        {touched.phone && errors.phone && (
-          <Text style={styles.errorText}>{errors.phone}</Text>
-        )}
-      </View>
-
-      {/* Email */}
-      <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={[styles.input, touched.email && errors.email ? styles.inputError : null]}
-          value={formData.email}
-          onChangeText={(value) => handleChange('email', value)}
-          onBlur={() => handleBlur('email')}
-          placeholder="your@email.com"
-          placeholderTextColor={colors.textMuted}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-          accessibilityLabel="Email"
-        />
-        {touched.email && errors.email && (
-          <Text style={styles.errorText}>{errors.email}</Text>
-        )}
-      </View>
-
-      {/* Password */}
-      <View style={styles.fieldGroup}>
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.passwordRow}>
+        {/* Username */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>
+            Parent Username <Text style={styles.required}>*</Text>
+            <Text style={styles.hint}> (8-15 chars)</Text>
+          </Text>
           <TextInput
-            style={[
-              styles.input,
-              styles.passwordInput,
-              touched.password && errors.password ? styles.inputError : null,
-            ]}
-            value={formData.password}
-            onChangeText={(value) => handleChange('password', value)}
-            onBlur={() => handleBlur('password')}
-            placeholder="8-20 chars, upper, lower, digit, special"
-            placeholderTextColor={colors.textMuted}
-            secureTextEntry={!showPassword}
+            style={[styles.input, touched.username && errors.username ? styles.inputError : null]}
+            value={formData.username}
+            onChangeText={(value) => handleChange('username', value)}
+            onBlur={() => handleBlur('username')}
+            placeholder="8-15 chars, lowercase, digits, _ or -"
+            placeholderTextColor="#999"
             autoCapitalize="none"
             autoCorrect={false}
-            accessibilityLabel="Password"
+            accessibilityLabel="Username"
           />
-          <TouchableOpacity
-            style={styles.toggleButton}
-            onPress={() => setShowPassword((prev) => !prev)}
-            accessibilityRole="button"
-            accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
-          >
-            <Text style={styles.toggleButtonText}>
-              {showPassword ? '🙈' : '👁️'}
-            </Text>
-          </TouchableOpacity>
+          {touched.username && errors.username && (
+            <Text style={styles.errorText}>{errors.username}</Text>
+          )}
         </View>
-        {touched.password && errors.password && (
-          <Text style={styles.errorText}>{errors.password}</Text>
-        )}
-      </View>
 
-      {/* Submit Button */}
-      <TouchableOpacity
-        style={[styles.submitButton, isSubmitting ? styles.submitButtonDisabled : null]}
-        onPress={handleSubmit}
-        disabled={isSubmitting}
-        activeOpacity={0.8}
-        accessibilityRole="button"
-        accessibilityLabel="Register"
-      >
-        {isSubmitting ? (
-          <ActivityIndicator color={colors.white} size="small" />
-        ) : (
-          <Text style={styles.submitButtonText}>Register</Text>
-        )}
-      </TouchableOpacity>
-    </ScrollView>
+        {/* Full Name */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>
+            Name <Text style={styles.required}>*</Text>
+            <Text style={styles.hint}> (5-20 chars)</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, touched.fullName && errors.fullName ? styles.inputError : null]}
+            value={formData.fullName}
+            onChangeText={(value) => handleChange('fullName', value)}
+            onBlur={() => handleBlur('fullName')}
+            placeholder="Full name"
+            placeholderTextColor="#999"
+            autoCapitalize="words"
+            accessibilityLabel="Full Name"
+          />
+          {touched.fullName && errors.fullName && (
+            <Text style={styles.errorText}>{errors.fullName}</Text>
+          )}
+        </View>
+
+        {/* Phone */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>
+            Phone <Text style={styles.required}>*</Text>
+            <Text style={styles.hint}> (10 digits)</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, touched.phone && errors.phone ? styles.inputError : null]}
+            value={formData.phone}
+            onChangeText={(value) => handleChange('phone', value)}
+            onBlur={() => handleBlur('phone')}
+            placeholder="10 digit phone number"
+            placeholderTextColor="#999"
+            keyboardType="phone-pad"
+            maxLength={10}
+            accessibilityLabel="Phone number"
+          />
+          {touched.phone && errors.phone && (
+            <Text style={styles.errorText}>{errors.phone}</Text>
+          )}
+        </View>
+
+        {/* Email */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>
+            Email <Text style={styles.required}>*</Text>
+            <Text style={styles.hint}> (≤30 chars)</Text>
+          </Text>
+          <TextInput
+            style={[styles.input, touched.email && errors.email ? styles.inputError : null]}
+            value={formData.email}
+            onChangeText={(value) => handleChange('email', value)}
+            onBlur={() => handleBlur('email')}
+            placeholder="your@email.com"
+            placeholderTextColor="#999"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            accessibilityLabel="Email"
+          />
+          {touched.email && errors.email && (
+            <Text style={styles.errorText}>{errors.email}</Text>
+          )}
+        </View>
+
+        {/* Password */}
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>
+            Password <Text style={styles.required}>*</Text>
+            <Text style={styles.hint}> (8-20, Aa+num+sym)</Text>
+          </Text>
+          <View style={styles.passwordRow}>
+            <TextInput
+              style={[
+                styles.input,
+                styles.passwordInput,
+                touched.password && errors.password ? styles.inputError : null,
+              ]}
+              value={formData.password}
+              onChangeText={(value) => handleChange('password', value)}
+              onBlur={() => handleBlur('password')}
+              placeholder="••••••••"
+              placeholderTextColor="#999"
+              secureTextEntry={!showPassword}
+              autoCapitalize="none"
+              autoCorrect={false}
+              accessibilityLabel="Password"
+            />
+            <TouchableOpacity
+              style={styles.toggleButton}
+              onPress={() => setShowPassword((prev) => !prev)}
+              accessibilityRole="button"
+              accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}
+            >
+              <Text style={styles.toggleButtonText}>
+                {showPassword ? '🙈' : '👁️'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {touched.password && errors.password && (
+            <Text style={styles.errorText}>{errors.password}</Text>
+          )}
+        </View>
+
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+          onPress={handleSubmit}
+          disabled={isSubmitting}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          accessibilityLabel="Register Parent"
+        >
+          {isSubmitting ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <Text style={styles.submitButtonText}>👤 Register Parent</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
-  content: {
-    padding: spacing.lg,
+
+  // Header
+  header: {
+    backgroundColor: '#9B59B6',
+    paddingTop: 44,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
-  title: {
-    fontSize: 22,
+  backButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backArrow: {
+    color: '#FFFFFF',
+    fontSize: 20,
     fontWeight: '700',
-    color: colors.dark,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
   },
+  headerTitle: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+
+  // Form
+  scrollView: {
+    flex: 1,
+  },
+  formContent: {
+    padding: 14,
+    paddingBottom: 32,
+  },
+
+  // Info Banner
+  infoBanner: {
+    backgroundColor: '#F3E8F9',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  infoBannerIcon: {
+    fontSize: 20,
+  },
+  infoBannerTextContainer: {
+    flex: 1,
+  },
+  infoBannerTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2C2341',
+  },
+  infoBannerSub: {
+    fontSize: 10,
+    color: '#777777',
+    marginTop: 1,
+  },
+
+  // Fields
   fieldGroup: {
-    marginBottom: spacing.md,
+    marginBottom: 10,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555555',
+    marginBottom: 4,
+  },
+  required: {
+    color: '#E74C3C',
+  },
+  hint: {
+    color: '#999999',
+    fontWeight: '400',
   },
   input: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.input,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.textPrimary,
-    minHeight: 48,
+    borderColor: '#E0D8EC',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#333333',
+    minHeight: 42,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   errorText: {
-    color: colors.error,
-    fontSize: 13,
-    marginTop: spacing.xs,
+    color: '#E74C3C',
+    fontSize: 11,
+    marginTop: 3,
   },
   passwordRow: {
     flexDirection: 'row',
@@ -418,58 +511,69 @@ const styles = StyleSheet.create({
   },
   toggleButton: {
     position: 'absolute',
-    right: 12,
-    minWidth: 48,
-    minHeight: 48,
+    right: 10,
+    minWidth: 40,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   toggleButtonText: {
-    fontSize: 20,
+    fontSize: 18,
   },
+
+  // Submit
   submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-    marginTop: spacing.md,
+    marginTop: 8,
+    shadowColor: '#E94F9B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 4,
   },
   submitButtonDisabled: {
     opacity: 0.6,
   },
   submitButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 
   // Success state
   successContainer: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: spacing.lg,
+    padding: 24,
+  },
+  successEmoji: {
+    fontSize: 48,
+    marginBottom: 12,
   },
   successTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '700',
-    color: colors.success,
-    marginBottom: spacing.md,
+    color: '#27AE60',
+    marginBottom: 8,
   },
   successMessage: {
-    fontSize: 16,
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    fontSize: 15,
+    color: '#333333',
+    marginBottom: 8,
   },
   countdownText: {
-    fontSize: 14,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: '#777777',
   },
   countdownNumber: {
     fontWeight: '700',
-    color: colors.primary,
+    color: '#E94F9B',
   },
 });

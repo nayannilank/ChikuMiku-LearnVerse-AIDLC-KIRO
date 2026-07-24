@@ -26,11 +26,6 @@ import {
   validatePassword,
   validateSubjectName,
 } from '@chikumiku/validation';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
-import { layout } from '../theme/layout';
 import { apiClient, type ApiError } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -342,7 +337,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading settings" />
+        <ActivityIndicator size="large" color={'#E94F9B'} accessibilityLabel="Loading settings" />
       </View>
     );
   }
@@ -392,7 +387,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
             value={profile.name}
             onChangeText={(text: string) => handleProfileChange('name', text)}
             placeholder="5-20 chars, letters and spaces"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             accessibilityLabel="Full name"
           />
           {profileErrors.name && <Text style={styles.errorText}>{profileErrors.name}</Text>}
@@ -405,7 +400,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
             value={profile.phone}
             onChangeText={(text: string) => handleProfileChange('phone', text)}
             placeholder="10 digits"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             keyboardType="phone-pad"
             accessibilityLabel="Phone number"
           />
@@ -419,7 +414,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
             value={profile.email}
             onChangeText={(text: string) => handleProfileChange('email', text)}
             placeholder="Valid email, max 30 chars"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             keyboardType="email-address"
             autoCapitalize="none"
             accessibilityLabel="Email address"
@@ -455,7 +450,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
           accessibilityLabel="Update profile"
         >
           {isSavingProfile ? (
-            <ActivityIndicator color={colors.white} size="small" />
+            <ActivityIndicator color={'#FFFFFF'} size="small" />
           ) : (
             <Text style={styles.primaryButtonText}>Update Profile</Text>
           )}
@@ -478,7 +473,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
               setPasswordSuccess(false);
             }}
             placeholder="Enter current password"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             secureTextEntry
             autoCapitalize="none"
             accessibilityLabel="Current password"
@@ -499,7 +494,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
               setPasswordSuccess(false);
             }}
             placeholder="8-20 chars, upper, lower, digit, special"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             secureTextEntry
             autoCapitalize="none"
             accessibilityLabel="New password"
@@ -517,7 +512,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
           accessibilityLabel="Change password"
         >
           {isChangingPassword ? (
-            <ActivityIndicator color={colors.white} size="small" />
+            <ActivityIndicator color={'#FFFFFF'} size="small" />
           ) : (
             <Text style={styles.primaryButtonText}>Change Password</Text>
           )}
@@ -534,8 +529,8 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
           <Switch
             value={notifications.progressAlerts}
             onValueChange={() => handleToggleNotification('progressAlerts')}
-            trackColor={{ false: colors.border, true: colors.primary }}
-            thumbColor={colors.white}
+            trackColor={{ false: '#E0D8EC', true: '#E94F9B' }}
+            thumbColor={'#FFFFFF'}
             accessibilityLabel="Toggle progress alerts"
             accessibilityRole="switch"
             accessibilityState={{ checked: notifications.progressAlerts }}
@@ -547,8 +542,8 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
           <Switch
             value={notifications.streakReminders}
             onValueChange={() => handleToggleNotification('streakReminders')}
-            trackColor={{ false: colors.border, true: colors.primary }}
-            thumbColor={colors.white}
+            trackColor={{ false: '#E0D8EC', true: '#E94F9B' }}
+            thumbColor={'#FFFFFF'}
             accessibilityLabel="Toggle streak reminders"
             accessibilityRole="switch"
             accessibilityState={{ checked: notifications.streakReminders }}
@@ -563,7 +558,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
           accessibilityLabel="Save notification preferences"
         >
           {isSavingNotifications ? (
-            <ActivityIndicator color={colors.white} size="small" />
+            <ActivityIndicator color={'#FFFFFF'} size="small" />
           ) : (
             <Text style={styles.primaryButtonText}>Save Preferences</Text>
           )}
@@ -596,7 +591,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
               setSubjectError(null);
             }}
             placeholder="Subject name (1-50 chars)"
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={'#999999'}
             editable={customSubjects.length < MAX_CUSTOM_SUBJECTS}
             accessibilityLabel="New custom subject name"
           />
@@ -608,7 +603,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
             accessibilityLabel="Add custom subject"
           >
             {isAddingSubject ? (
-              <ActivityIndicator color={colors.primary} size="small" />
+              <ActivityIndicator color={'#E94F9B'} size="small" />
             ) : (
               <Text style={styles.addButtonText}>Add</Text>
             )}
@@ -687,7 +682,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
                   setExportError(null);
                 }}
                 placeholder="Enter your password"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={'#999999'}
                 secureTextEntry
                 autoCapitalize="none"
                 accessibilityLabel="Password for export"
@@ -712,7 +707,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
                 accessibilityLabel="Generate export"
               >
                 {isExporting ? (
-                  <ActivityIndicator color={colors.white} size="small" />
+                  <ActivityIndicator color={'#FFFFFF'} size="small" />
                 ) : (
                   <Text style={styles.primaryButtonText}>Export</Text>
                 )}
@@ -747,7 +742,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
                   setDeleteError(null);
                 }}
                 placeholder="Confirm your password"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={'#999999'}
                 secureTextEntry
                 autoCapitalize="none"
                 accessibilityLabel="Password to confirm deletion"
@@ -787,7 +782,7 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
                 accessibilityLabel="Confirm delete account"
               >
                 {isDeleting ? (
-                  <ActivityIndicator color={colors.white} size="small" />
+                  <ActivityIndicator color={'#FFFFFF'} size="small" />
                 ) : (
                   <Text style={styles.dangerButtonText}>Delete</Text>
                 )}
@@ -803,173 +798,175 @@ export function ParentSettingsScreen({ navigation }: Props): React.ReactElement 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.lg,
-    paddingBottom: spacing.xxl,
+    padding: 24,
+    paddingBottom: 48,
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.lg,
+    backgroundColor: '#F8F5FF',
+    padding: 24,
   },
   screenTitle: {
-    fontSize: typography.heading.h2,
-    fontWeight: typography.weight.bold,
-    color: colors.dark,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    paddingTop: 44,
+    paddingBottom: 14,
+    backgroundColor: '#9B59B6',
   },
   errorMessage: {
-    fontSize: typography.bodyFontSize,
-    color: colors.error,
+    fontSize: 14,
+    color: '#E74C3C',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    minHeight: layout.touchTargetMin,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    minHeight: 48,
     justifyContent: 'center',
   },
   retryButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   // Section styles
   section: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   sectionTitle: {
-    fontSize: typography.heading.h3,
-    fontWeight: typography.weight.bold,
-    color: colors.dark,
-    marginBottom: spacing.sm,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2C2341',
+    marginBottom: 8,
   },
   sectionHint: {
     fontSize: 12,
-    color: colors.textMuted,
-    marginBottom: spacing.md,
+    color: '#999999',
+    marginBottom: 16,
   },
   // Field styles
   fieldContainer: {
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   label: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333333',
+    marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 4,
-    fontSize: typography.bodyFontSize,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
-    minHeight: layout.touchTargetMin,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8 + 4,
+    fontSize: 14,
+    color: '#333333',
+    backgroundColor: '#FFFFFF',
+    minHeight: 48,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   inputDisabled: {
-    backgroundColor: colors.background,
-    color: colors.textMuted,
+    backgroundColor: '#F8F5FF',
+    color: '#999999',
   },
   errorText: {
     fontSize: 12,
-    color: colors.error,
-    marginTop: spacing.xs,
+    color: '#E74C3C',
+    marginTop: 4,
   },
   successText: {
     fontSize: 12,
-    color: colors.success,
-    marginTop: spacing.sm,
+    color: '#27AE60',
+    marginTop: 8,
     textAlign: 'center',
   },
   // Relationship picker
   relationshipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   relationshipOption: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadii.badge,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.border,
-    minHeight: layout.touchTargetMin,
+    borderColor: '#E0D8EC',
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   relationshipOptionActive: {
-    borderColor: colors.primary,
+    borderColor: '#E94F9B',
     backgroundColor: 'rgba(233, 79, 155, 0.08)',
   },
   relationshipText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: '#777777',
   },
   relationshipTextActive: {
-    color: colors.primary,
-    fontWeight: typography.weight.medium,
+    color: '#E94F9B',
+    fontWeight: '500',
   },
   // Buttons
   primaryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm + 4,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 8 + 4,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   primaryButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   secondaryButton: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.button,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.primary,
-    paddingVertical: spacing.sm + 4,
+    borderColor: '#E94F9B',
+    paddingVertical: 8 + 4,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   secondaryButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E94F9B',
   },
   dangerButton: {
-    backgroundColor: colors.error,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm + 4,
+    backgroundColor: '#E74C3C',
+    borderRadius: 22,
+    paddingVertical: 8 + 4,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   dangerButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -979,109 +976,109 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
-    minHeight: layout.touchTargetMin,
+    paddingVertical: 8,
+    minHeight: 48,
   },
   toggleLabel: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textPrimary,
+    fontSize: 14,
+    color: '#333333',
   },
   // Custom subjects
   subjectsList: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
+    gap: 8,
+    marginBottom: 16,
   },
   subjectBadge: {
-    backgroundColor: colors.secondary,
-    borderRadius: borderRadii.badge,
-    paddingHorizontal: spacing.sm + 4,
-    paddingVertical: spacing.xs + 2,
+    backgroundColor: '#9B59B6',
+    borderRadius: 10,
+    paddingHorizontal: 8 + 4,
+    paddingVertical: 4 + 2,
   },
   subjectBadgeText: {
     fontSize: 12,
-    color: colors.white,
-    fontWeight: typography.weight.medium,
+    color: '#FFFFFF',
+    fontWeight: '500',
   },
   addSubjectRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 8,
     alignItems: 'flex-start',
   },
   addSubjectInput: {
     flex: 1,
   },
   addButton: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.button,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.primary,
-    paddingHorizontal: spacing.md,
+    borderColor: '#E94F9B',
+    paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   addButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E94F9B',
   },
   subjectCount: {
     fontSize: 12,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
+    color: '#999999',
+    marginTop: 4,
   },
   // Danger section
   dangerWarning: {
-    fontSize: typography.bodyFontSize,
-    color: colors.error,
-    lineHeight: typography.bodyFontSize * typography.lineHeight.normal,
-    marginBottom: spacing.md,
+    fontSize: 14,
+    color: '#E74C3C',
+    lineHeight: 14 * 1.5,
+    marginBottom: 16,
   },
   // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    padding: spacing.lg,
+    padding: 24,
   },
   modalContent: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.lg,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
   },
   modalTitle: {
-    fontSize: typography.heading.h3,
-    fontWeight: typography.weight.bold,
-    color: colors.dark,
-    marginBottom: spacing.sm,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2C2341',
+    marginBottom: 8,
   },
   modalSubtitle: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    fontSize: 14,
+    color: '#777777',
+    marginBottom: 16,
   },
   modalButtons: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.lg,
+    gap: 16,
+    marginTop: 24,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.button,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.border,
-    paddingVertical: spacing.sm,
+    borderColor: '#E0D8EC',
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   cancelButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#777777',
   },
   modalPrimaryBtn: {
     flex: 1,
@@ -1093,31 +1090,31 @@ const styles = StyleSheet.create({
   confirmCheckRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-    minHeight: layout.touchTargetMin,
+    gap: 8,
+    marginTop: 8,
+    minHeight: 48,
   },
   checkbox: {
     width: 24,
     height: 24,
     borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: borderRadii.small,
+    borderColor: '#E0D8EC',
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkboxChecked: {
-    borderColor: colors.error,
-    backgroundColor: colors.error,
+    borderColor: '#E74C3C',
+    backgroundColor: '#E74C3C',
   },
   checkmark: {
     fontSize: 14,
-    color: colors.white,
-    fontWeight: typography.weight.bold,
+    color: '#FFFFFF',
+    fontWeight: '700',
   },
   confirmText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textPrimary,
+    fontSize: 14,
+    color: '#333333',
     flex: 1,
   },
 });

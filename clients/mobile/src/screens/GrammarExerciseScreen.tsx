@@ -17,9 +17,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -144,7 +141,7 @@ export function GrammarExerciseScreen({ route }: Props): React.ReactElement {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Generating grammar exercises...</Text>
       </View>
     );
@@ -210,7 +207,7 @@ export function GrammarExerciseScreen({ route }: Props): React.ReactElement {
                   value={answers[exercise.id] || ''}
                   onChangeText={(text) => handleAnswerChange(exercise.id, text)}
                   placeholder="Type your answer..."
-                  placeholderTextColor={colors.textMuted}
+                  placeholderTextColor={'#999999'}
                   multiline
                   accessibilityLabel={`Answer for exercise ${index + 1}`}
                 />
@@ -225,7 +222,7 @@ export function GrammarExerciseScreen({ route }: Props): React.ReactElement {
                   accessibilityLabel={`Submit answer for exercise ${index + 1}`}
                 >
                   {isSubmitting ? (
-                    <ActivityIndicator size="small" color={colors.white} />
+                    <ActivityIndicator size="small" color={'#FFFFFF'} />
                   ) : (
                     <Text style={styles.submitButtonText}>Submit</Text>
                   )}
@@ -272,119 +269,120 @@ export function GrammarExerciseScreen({ route }: Props): React.ReactElement {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   loadingText: {
-    marginTop: spacing.md,
+    marginTop: 16,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.lg,
+    backgroundColor: '#F8F5FF',
+    padding: 24,
   },
   errorText: {
     fontSize: 16,
-    color: colors.error,
+    color: '#E74C3C',
     textAlign: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#2C2341',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 12,
+    paddingTop: 8,
   },
   limitedBanner: {
-    backgroundColor: colors.warning,
-    borderRadius: borderRadii.badge,
-    padding: spacing.sm,
-    marginBottom: spacing.md,
+    backgroundColor: '#F7C948',
+    borderRadius: 10,
+    padding: 8,
+    marginBottom: 16,
   },
   limitedText: {
     fontSize: 13,
-    color: colors.dark,
+    color: '#2C2341',
     textAlign: 'center',
   },
   scoreSummary: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   scoreText: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#333333',
   },
   scoreSubtext: {
     fontSize: 13,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
+    color: '#999999',
+    marginTop: 4,
   },
   exerciseCard: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   exerciseHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
+    gap: 8,
+    marginBottom: 8,
   },
   exerciseNumber: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.primary,
+    color: '#E94F9B',
   },
   exerciseType: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: '#999999',
     textTransform: 'capitalize',
   },
   questionText: {
     fontSize: 16,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 24,
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   answerInput: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    padding: 16,
     fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.background,
+    color: '#333333',
+    backgroundColor: '#F8F5FF',
     minHeight: 60,
     textAlignVertical: 'top',
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -394,56 +392,56 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   feedbackContainer: {
-    borderRadius: borderRadii.badge,
-    padding: spacing.md,
-    marginTop: spacing.sm,
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 8,
   },
   feedbackCorrect: {
     backgroundColor: '#E8F8F0',
     borderLeftWidth: 4,
-    borderLeftColor: colors.success,
+    borderLeftColor: '#27AE60',
   },
   feedbackIncorrect: {
     backgroundColor: '#FDEDEC',
     borderLeftWidth: 4,
-    borderLeftColor: colors.error,
+    borderLeftColor: '#E74C3C',
   },
   feedbackStatus: {
     fontSize: 16,
     fontWeight: '700',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   correctAnswer: {
     fontSize: 14,
-    color: colors.textPrimary,
+    color: '#333333',
     fontWeight: '500',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   feedbackExplanation: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
     lineHeight: 20,
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   grammarRuleBox: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.small,
-    padding: spacing.sm,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 4,
+    padding: 8,
   },
   grammarRuleLabel: {
     fontSize: 12,
     fontWeight: '700',
-    color: colors.textMuted,
-    marginBottom: spacing.xs,
+    color: '#999999',
+    marginBottom: 4,
   },
   grammarRuleText: {
     fontSize: 13,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 18,
   },
 });

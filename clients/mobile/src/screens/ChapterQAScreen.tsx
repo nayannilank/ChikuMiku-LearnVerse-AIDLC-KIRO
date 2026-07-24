@@ -17,9 +17,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -170,7 +167,7 @@ export function ChapterQAScreen({ route }: Props): React.ReactElement {
         {/* Loading indicator */}
         {isLoading && (
           <View style={styles.loadingBubble}>
-            <ActivityIndicator size="small" color={colors.primary} />
+            <ActivityIndicator size="small" color={'#E94F9B'} />
             <Text style={styles.loadingText}>Thinking...</Text>
           </View>
         )}
@@ -198,7 +195,7 @@ export function ChapterQAScreen({ route }: Props): React.ReactElement {
               value={questionText}
               onChangeText={handleTextChange}
               placeholder={canAskMore ? 'Ask a question...' : 'Session limit reached'}
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor={'#999999'}
               multiline
               maxLength={MAX_QUESTION_LENGTH}
               editable={canAskMore && !isLoading}
@@ -238,160 +235,159 @@ export function ChapterQAScreen({ route }: Props): React.ReactElement {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   title: {
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#FFFFFF',
     textAlign: 'center',
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.white,
+    paddingTop: 44,
+    paddingBottom: 14,
+    backgroundColor: '#2C2341',
   },
   chatArea: {
     flex: 1,
   },
   chatContent: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
+    padding: 16,
+    paddingBottom: 24,
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingVertical: 48,
   },
   emptyText: {
     fontSize: 15,
-    color: colors.textSecondary,
+    color: '#777777',
     textAlign: 'center',
     lineHeight: 22,
   },
   qaPairContainer: {
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   questionBubble: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.card,
-    borderBottomRightRadius: borderRadii.small,
-    padding: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 16,
+    borderBottomRightRadius: 4,
+    padding: 16,
     maxWidth: '80%',
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   questionBubbleText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 15,
     lineHeight: 20,
   },
   answerBubble: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    borderBottomLeftRadius: borderRadii.small,
-    padding: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderBottomLeftRadius: 4,
+    padding: 16,
     maxWidth: '85%',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   answerText: {
     fontSize: 15,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 22,
   },
   stepsContainer: {
-    marginTop: spacing.sm,
-    paddingTop: spacing.sm,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#E0D8EC',
   },
   stepRow: {
     flexDirection: 'row',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   stepNumber: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.primary,
+    color: '#E94F9B',
     width: 24,
   },
   stepText: {
     flex: 1,
     fontSize: 14,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 20,
   },
   loadingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    gap: spacing.sm,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    gap: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   loadingText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   errorBubble: {
     alignSelf: 'flex-start',
     backgroundColor: '#FDEDEC',
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
+    borderRadius: 16,
+    padding: 16,
     borderWidth: 1,
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   errorText: {
     fontSize: 14,
-    color: colors.error,
+    color: '#E74C3C',
   },
   inputArea: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.white,
-    padding: spacing.sm,
+    borderTopColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
+    padding: 8,
   },
   limitReached: {
     fontSize: 12,
-    color: colors.warning,
+    color: '#F7C948',
     textAlign: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: spacing.sm,
+    gap: 8,
   },
   inputWrapper: {
     flex: 1,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    padding: spacing.sm,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    padding: 8,
     fontSize: 15,
-    color: colors.textPrimary,
+    color: '#333333',
     maxHeight: 100,
     minHeight: 48,
   },
   charCounter: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: '#999999',
     textAlign: 'right',
-    marginTop: spacing.xs,
+    marginTop: 4,
   },
   charCounterLimit: {
-    color: colors.error,
+    color: '#E74C3C',
   },
   sendButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -400,7 +396,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   sendButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },

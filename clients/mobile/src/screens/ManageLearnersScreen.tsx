@@ -24,11 +24,6 @@ import {
   validateSchoolName,
   validateSubjectName,
 } from '@chikumiku/validation';
-import { colors } from '../theme/colors';
-import { typography } from '../theme/typography';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
-import { layout } from '../theme/layout';
 import { apiClient, type ApiError } from '../services/api';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -282,7 +277,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
   if (isLoading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primary} accessibilityLabel="Loading learners" />
+        <ActivityIndicator size="large" color={'#E94F9B'} accessibilityLabel="Loading learners" />
       </View>
     );
   }
@@ -335,7 +330,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
                 value={editForm.name}
                 onChangeText={(text: string) => handleEditFieldChange('name', text)}
                 placeholder="5-20 chars, letters and spaces"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={'#999999'}
                 accessibilityLabel="Learner name"
               />
               {editErrors.name && <Text style={styles.errorText}>{editErrors.name}</Text>}
@@ -368,7 +363,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
                 value={editForm.school}
                 onChangeText={(text: string) => handleEditFieldChange('school', text)}
                 placeholder="5-30 chars"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={'#999999'}
                 accessibilityLabel="School name"
               />
               {editErrors.school && <Text style={styles.errorText}>{editErrors.school}</Text>}
@@ -412,7 +407,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
                 accessibilityLabel="Save changes"
               >
                 {isEditing ? (
-                  <ActivityIndicator color={colors.white} size="small" />
+                  <ActivityIndicator color={'#FFFFFF'} size="small" />
                 ) : (
                   <Text style={styles.saveButtonText}>Save</Text>
                 )}
@@ -446,7 +441,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
                   setResetError(null);
                 }}
                 placeholder="8-20 chars, upper, lower, digit, special"
-                placeholderTextColor={colors.textMuted}
+                placeholderTextColor={'#999999'}
                 secureTextEntry
                 autoCapitalize="none"
                 accessibilityLabel="New password"
@@ -471,7 +466,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
                 accessibilityLabel="Reset password"
               >
                 {isResetting ? (
-                  <ActivityIndicator color={colors.white} size="small" />
+                  <ActivityIndicator color={'#FFFFFF'} size="small" />
                 ) : (
                   <Text style={styles.saveButtonText}>Reset</Text>
                 )}
@@ -514,7 +509,7 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
                 accessibilityLabel="Confirm remove learner"
               >
                 {isRemoving ? (
-                  <ActivityIndicator color={colors.white} size="small" />
+                  <ActivityIndicator color={'#FFFFFF'} size="small" />
                 ) : (
                   <Text style={styles.dangerButtonText}>Remove</Text>
                 )}
@@ -530,269 +525,270 @@ export function ManageLearnersScreen({ navigation }: Props): React.ReactElement 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.lg,
+    backgroundColor: '#F8F5FF',
+    padding: 24,
   },
   title: {
-    fontSize: typography.heading.h2,
-    fontWeight: typography.weight.bold,
-    color: colors.dark,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
     textAlign: 'center',
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingTop: 44,
+    paddingBottom: 14,
+    backgroundColor: '#9B59B6',
   },
   listContent: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   emptyText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textMuted,
+    fontSize: 14,
+    color: '#999999',
     textAlign: 'center',
-    marginTop: spacing.xl,
+    marginTop: 32,
   },
   errorMessage: {
-    fontSize: typography.bodyFontSize,
-    color: colors.error,
+    fontSize: 14,
+    color: '#E74C3C',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    minHeight: layout.touchTargetMin,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
+    minHeight: 48,
     justifyContent: 'center',
   },
   retryButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   // Learner card
   learnerCard: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   learnerInfo: {
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   learnerName: {
-    fontSize: typography.heading.h4,
-    fontWeight: typography.weight.semibold,
-    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333333',
   },
   learnerDetail: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textSecondary,
-    marginTop: spacing.xs,
+    fontSize: 14,
+    color: '#777777',
+    marginTop: 4,
   },
   learnerSubjects: {
     fontSize: 12,
-    color: colors.textMuted,
-    marginTop: spacing.xs,
+    color: '#999999',
+    marginTop: 4,
   },
   learnerActions: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
+    gap: 8,
+    marginTop: 8,
   },
   actionButton: {
     flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.button,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.primary,
-    paddingVertical: spacing.sm,
+    borderColor: '#E94F9B',
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   actionButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.primary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E94F9B',
   },
   removeButton: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   removeButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.error,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#E74C3C',
   },
   // Modal styles
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    padding: spacing.lg,
+    padding: 24,
   },
   modalContent: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.lg,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
     maxHeight: '85%',
   },
   modalTitle: {
-    fontSize: typography.heading.h3,
-    fontWeight: typography.weight.bold,
-    color: colors.dark,
-    marginBottom: spacing.sm,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2C2341',
+    marginBottom: 8,
   },
   modalSubtitle: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textSecondary,
-    marginBottom: spacing.md,
+    fontSize: 14,
+    color: '#777777',
+    marginBottom: 16,
   },
   modalButtons: {
     flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.lg,
+    gap: 16,
+    marginTop: 24,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.button,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.border,
-    paddingVertical: spacing.sm,
+    borderColor: '#E0D8EC',
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   cancelButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#777777',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   saveButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   dangerButton: {
     flex: 1,
-    backgroundColor: colors.error,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
+    backgroundColor: '#E74C3C',
+    borderRadius: 22,
+    paddingVertical: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: layout.touchTargetMin,
+    minHeight: 48,
   },
   dangerButtonText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
   buttonDisabled: {
     opacity: 0.6,
   },
   // Form styles
   fieldContainer: {
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   label: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.medium,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#333333',
+    marginBottom: 4,
   },
   input: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 4,
-    fontSize: typography.bodyFontSize,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
-    minHeight: layout.touchTargetMin,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8 + 4,
+    fontSize: 14,
+    color: '#333333',
+    backgroundColor: '#FFFFFF',
+    minHeight: 48,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   errorText: {
     fontSize: 12,
-    color: colors.error,
-    marginTop: spacing.xs,
+    color: '#E74C3C',
+    marginTop: 4,
   },
   warningText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.error,
-    lineHeight: typography.bodyFontSize * typography.lineHeight.normal,
-    marginBottom: spacing.sm,
+    fontSize: 14,
+    color: '#E74C3C',
+    lineHeight: 14 * 1.5,
+    marginBottom: 8,
   },
   gradeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   gradeOption: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadii.badge,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.border,
-    minHeight: layout.touchTargetMin,
+    borderColor: '#E0D8EC',
+    minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   gradeOptionActive: {
-    borderColor: colors.primary,
+    borderColor: '#E94F9B',
     backgroundColor: 'rgba(233, 79, 155, 0.08)',
   },
   gradeOptionText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: '#777777',
   },
   gradeOptionTextActive: {
-    color: colors.primary,
-    fontWeight: typography.weight.medium,
+    color: '#E94F9B',
+    fontWeight: '500',
   },
   subjectsWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   subjectChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadii.badge,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
   },
   subjectChipActive: {
-    borderColor: colors.primary,
+    borderColor: '#E94F9B',
     backgroundColor: 'rgba(233, 79, 155, 0.1)',
   },
   subjectChipText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: '#777777',
   },
   subjectChipTextActive: {
-    color: colors.primary,
-    fontWeight: typography.weight.medium,
+    color: '#E94F9B',
+    fontWeight: '500',
   },
 });

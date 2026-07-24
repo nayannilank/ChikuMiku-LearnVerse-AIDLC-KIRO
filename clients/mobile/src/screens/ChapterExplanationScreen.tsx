@@ -16,9 +16,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -162,7 +159,7 @@ export function ChapterExplanationScreen({ route }: Props): React.ReactElement {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Generating explanation...</Text>
       </View>
     );
@@ -194,6 +191,11 @@ export function ChapterExplanationScreen({ route }: Props): React.ReactElement {
 
   return (
     <View style={styles.container}>
+      {/* Gold Header */}
+      <View style={styles.goldHeader}>
+        <Text style={styles.goldHeaderBack}>←</Text>
+        <Text style={styles.goldHeaderTitle}>Explain — Chapter</Text>
+      </View>
       {/* Mode Toggle */}
       <View style={styles.modeToggleRow}>
         <TouchableOpacity
@@ -356,178 +358,197 @@ export function ChapterExplanationScreen({ route }: Props): React.ReactElement {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
+  },
+  goldHeader: {
+    backgroundColor: '#F7C948',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  goldHeaderBack: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  goldHeaderTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   loadingText: {
-    marginTop: spacing.md,
+    marginTop: 16,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.lg,
+    backgroundColor: '#F8F5FF',
+    padding: 24,
   },
   errorText: {
     fontSize: 16,
-    color: colors.error,
+    color: '#E74C3C',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   retryButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   retryButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
   modeToggleRow: {
     flexDirection: 'row',
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: 16,
+    gap: 8,
   },
   modeButton: {
     flex: 1,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadii.button,
+    paddingVertical: 8,
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   modeButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#E94F9B',
+    borderColor: '#E94F9B',
   },
   modeButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: '#777777',
   },
   modeButtonTextActive: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   scrollContent: {
     flex: 1,
   },
   scrollContentInner: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    color: '#333333',
+    marginBottom: 8,
   },
   summaryText: {
     fontSize: 15,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 22,
   },
   keywordRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
   },
   keywordBadge: {
-    backgroundColor: colors.accent,
-    borderRadius: borderRadii.badge,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    backgroundColor: '#5DADE2',
+    borderRadius: 10,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   keywordText: {
     fontSize: 13,
-    color: colors.white,
+    color: '#FFFFFF',
     fontWeight: '500',
   },
   conceptItem: {
     flexDirection: 'row',
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   conceptBullet: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.primary,
-    marginRight: spacing.sm,
+    color: '#E94F9B',
+    marginRight: 8,
     width: 20,
   },
   conceptText: {
     flex: 1,
     fontSize: 15,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 22,
   },
   audioContainer: {
     alignItems: 'center',
-    paddingVertical: spacing.xl,
+    paddingVertical: 32,
   },
   audioTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    color: '#333333',
+    marginBottom: 8,
   },
   audioPageLabel: {
     fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: spacing.lg,
+    color: '#777777',
+    marginBottom: 24,
   },
   playButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   playButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: '600',
   },
   seekContainer: {
     width: '100%',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: 16,
   },
   seekTrack: {
     height: 8,
-    backgroundColor: colors.border,
+    backgroundColor: '#E0D8EC',
     borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   seekFill: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: '#E94F9B',
     borderRadius: 4,
   },
   seekButtons: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: spacing.lg,
+    gap: 24,
   },
   seekButton: {
     minWidth: 48,
@@ -540,52 +561,52 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
     fontWeight: '500',
   },
   pageNavigation: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.white,
+    borderTopColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
   },
   navButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   navButtonDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: '#E0D8EC',
   },
   navButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   navButtonTextDisabled: {
-    color: colors.textMuted,
+    color: '#999999',
   },
   pageDots: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    gap: 4,
     alignItems: 'center',
   },
   dot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.border,
+    backgroundColor: '#E0D8EC',
   },
   dotActive: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#E94F9B',
     width: 12,
     height: 12,
     borderRadius: 6,

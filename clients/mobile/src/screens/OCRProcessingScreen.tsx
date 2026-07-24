@@ -18,9 +18,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -243,7 +240,7 @@ export function OCRProcessingScreen({ navigation, route }: Props): React.ReactEl
   if (isInitializing) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Preparing OCR processing...</Text>
       </View>
     );
@@ -325,7 +322,7 @@ export function OCRProcessingScreen({ navigation, route }: Props): React.ReactEl
             {page.status === 'processing' && (
               <ActivityIndicator
                 size="small"
-                color={colors.dark}
+                color={'#2C2341'}
                 style={styles.pageBadgeLoader}
               />
             )}
@@ -379,62 +376,66 @@ export function OCRProcessingScreen({ navigation, route }: Props): React.ReactEl
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.md,
+    backgroundColor: '#F8F5FF',
+    padding: 16,
   },
   loadingText: {
-    marginTop: spacing.md,
+    marginTop: 16,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
     textAlign: 'center',
   },
   errorMainText: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.error,
-    marginBottom: spacing.xs,
+    color: '#E74C3C',
+    marginBottom: 4,
   },
   header: {
+    backgroundColor: '#F7C948',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    gap: 8,
   },
   title: {
-    fontSize: 22,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    color: '#FFFFFF',
   },
   progressText: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   progressBar: {
     height: 6,
-    backgroundColor: colors.border,
+    backgroundColor: '#E0D8EC',
     borderRadius: 3,
-    marginBottom: spacing.lg,
+    marginBottom: 24,
     overflow: 'hidden',
   },
   progressFill: {
     height: 6,
-    backgroundColor: colors.success,
+    backgroundColor: '#27AE60',
     borderRadius: 3,
   },
   successBanner: {
     backgroundColor: '#D1FAE5',
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
   },
   successText: {
     color: '#065F46',
@@ -444,51 +445,51 @@ const styles = StyleSheet.create({
   },
   errorBanner: {
     backgroundColor: '#FEE2E2',
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
   },
   errorBannerText: {
-    color: colors.error,
+    color: '#E74C3C',
     fontSize: 14,
     textAlign: 'center',
   },
   pageGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: spacing.sm,
+    gap: 8,
     justifyContent: 'center',
   },
   pageBadge: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadii.badge,
-    backgroundColor: colors.border,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: '#E0D8EC',
     alignItems: 'center',
     minWidth: 90,
   },
   pageBadgeProcessing: {
-    backgroundColor: colors.warning,
+    backgroundColor: '#F7C948',
   },
   pageBadgeSuccess: {
-    backgroundColor: colors.success,
+    backgroundColor: '#27AE60',
   },
   pageBadgeFailed: {
-    backgroundColor: colors.error,
+    backgroundColor: '#E74C3C',
   },
   pageBadgeText: {
     fontSize: 12,
     fontWeight: '500',
-    color: colors.textSecondary,
+    color: '#777777',
   },
   pageBadgeTextLight: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   pageBadgeLoader: {
     marginTop: 4,
   },
   statusIcon: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
     marginTop: 2,
@@ -496,40 +497,40 @@ const styles = StyleSheet.create({
   failedRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 4,
     marginTop: 2,
   },
   retryButton: {
     paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 8,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: colors.white,
+    borderColor: '#FFFFFF',
     minHeight: 24,
     justifyContent: 'center',
   },
   retryButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '500',
   },
   pageErrorText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 10,
     marginTop: 2,
     opacity: 0.8,
   },
   continueButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-    marginTop: spacing.lg,
+    marginTop: 24,
   },
   continueButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },

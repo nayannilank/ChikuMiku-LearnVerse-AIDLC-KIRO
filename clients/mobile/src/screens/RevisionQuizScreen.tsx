@@ -19,9 +19,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -272,7 +269,7 @@ export function RevisionQuizScreen({ route }: Props): React.ReactElement {
           accessibilityLabel="Start quiz"
         >
           {isGenerating ? (
-            <ActivityIndicator size="small" color={colors.white} />
+            <ActivityIndicator size="small" color={'#FFFFFF'} />
           ) : (
             <Text style={styles.startButtonText}>Start Quiz</Text>
           )}
@@ -390,7 +387,7 @@ export function RevisionQuizScreen({ route }: Props): React.ReactElement {
                   value={currentAnswer}
                   onChangeText={(text) => setAnswer(question.id, text)}
                   placeholder="Fill in the blank..."
-                  placeholderTextColor={colors.textMuted}
+                  placeholderTextColor={'#999999'}
                   accessibilityLabel="Fill in the blank answer"
                 />
               )}
@@ -406,7 +403,7 @@ export function RevisionQuizScreen({ route }: Props): React.ReactElement {
                       }
                     }}
                     placeholder="Short answer (max 100 chars)..."
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={'#999999'}
                     maxLength={SHORT_ANSWER_MAX}
                     accessibilityLabel="Short answer"
                   />
@@ -427,7 +424,7 @@ export function RevisionQuizScreen({ route }: Props): React.ReactElement {
                       }
                     }}
                     placeholder="Write your answer (max 1000 chars)..."
-                    placeholderTextColor={colors.textMuted}
+                    placeholderTextColor={'#999999'}
                     multiline
                     maxLength={LONG_ANSWER_MAX}
                     textAlignVertical="top"
@@ -476,7 +473,7 @@ export function RevisionQuizScreen({ route }: Props): React.ReactElement {
               accessibilityLabel="Submit quiz"
             >
               {isSubmitting ? (
-                <ActivityIndicator size="small" color={colors.white} />
+                <ActivityIndicator size="small" color={'#FFFFFF'} />
               ) : (
                 <Text style={styles.submitQuizText}>Submit Quiz</Text>
               )}
@@ -547,101 +544,102 @@ export function RevisionQuizScreen({ route }: Props): React.ReactElement {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.md,
-    paddingBottom: spacing.xxl,
+    padding: 16,
+    paddingBottom: 48,
   },
   title: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#2C2341',
     textAlign: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: 16,
+    paddingTop: 8,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   sectionLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: spacing.sm,
+    color: '#333333',
+    marginBottom: 8,
   },
   optionsRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 8,
   },
   optionChip: {
     flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadii.button,
+    paddingVertical: 16,
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   optionChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#E94F9B',
+    borderColor: '#E94F9B',
   },
   optionChipText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: '#777777',
   },
   optionChipTextActive: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   timerRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingVertical: spacing.xs,
+    gap: 8,
+    paddingVertical: 4,
   },
   timerChip: {
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    borderRadius: borderRadii.button,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   timerChipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    backgroundColor: '#5DADE2',
+    borderColor: '#5DADE2',
   },
   timerChipText: {
     fontSize: 14,
     fontWeight: '500',
-    color: colors.textSecondary,
+    color: '#777777',
   },
   timerChipTextActive: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   errorText: {
     fontSize: 14,
-    color: colors.error,
+    color: '#E74C3C',
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   startButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-    marginTop: spacing.md,
+    marginTop: 16,
   },
   startButtonDisabled: {
     opacity: 0.5,
   },
   startButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
   },
@@ -651,162 +649,162 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.md,
-    backgroundColor: colors.white,
+    padding: 16,
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E0D8EC',
   },
   timerText: {
     fontSize: 18,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#333333',
   },
   timerTextUrgent: {
-    color: colors.error,
+    color: '#E74C3C',
   },
   questionCounter: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
     fontWeight: '500',
   },
   quizContent: {
     flex: 1,
   },
   quizContentInner: {
-    padding: spacing.md,
-    paddingBottom: spacing.lg,
+    padding: 16,
+    paddingBottom: 24,
   },
   questionType: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: '#999999',
     fontWeight: '600',
-    marginBottom: spacing.sm,
+    marginBottom: 8,
     letterSpacing: 0.5,
   },
   questionText: {
     fontSize: 18,
-    color: colors.textPrimary,
+    color: '#333333',
     lineHeight: 26,
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   mcqOptions: {
-    gap: spacing.sm,
+    gap: 8,
   },
   mcqOption: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: borderRadii.badge,
+    padding: 16,
+    borderRadius: 10,
     borderWidth: 2,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
     minHeight: 48,
   },
   mcqOptionSelected: {
-    borderColor: colors.primary,
+    borderColor: '#E94F9B',
     backgroundColor: '#FDF0F6',
   },
   mcqOptionLetter: {
     fontSize: 16,
     fontWeight: '700',
-    color: colors.primary,
-    marginRight: spacing.sm,
+    color: '#E94F9B',
+    marginRight: 8,
     width: 24,
   },
   mcqOptionText: {
     flex: 1,
     fontSize: 15,
-    color: colors.textPrimary,
+    color: '#333333',
   },
   mcqOptionTextSelected: {
     fontWeight: '600',
   },
   trueFalseRow: {
     flexDirection: 'row',
-    gap: spacing.md,
+    gap: 16,
   },
   trueFalseButton: {
     flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: borderRadii.button,
+    paddingVertical: 16,
+    borderRadius: 22,
     borderWidth: 2,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: '#FFFFFF',
   },
   trueFalseButtonSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary,
+    borderColor: '#E94F9B',
+    backgroundColor: '#E94F9B',
   },
   trueFalseText: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: '#333333',
   },
   trueFalseTextSelected: {
-    color: colors.white,
+    color: '#FFFFFF',
   },
   shortInput: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    padding: 16,
     fontSize: 16,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
+    color: '#333333',
+    backgroundColor: '#FFFFFF',
     minHeight: 48,
   },
   longInput: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    padding: 16,
     fontSize: 15,
-    color: colors.textPrimary,
-    backgroundColor: colors.white,
+    color: '#333333',
+    backgroundColor: '#FFFFFF',
     minHeight: 120,
   },
   charHint: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: '#999999',
     textAlign: 'right',
-    marginTop: spacing.xs,
+    marginTop: 4,
   },
   quizNavRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: spacing.md,
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.white,
+    borderTopColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
   },
   navBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: '#5DADE2',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
   },
   navBtnDisabled: {
-    backgroundColor: colors.border,
+    backgroundColor: '#E0D8EC',
   },
   navBtnText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   navBtnTextDisabled: {
-    color: colors.textMuted,
+    color: '#999999',
   },
   submitQuizButton: {
-    backgroundColor: colors.success,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.lg,
+    backgroundColor: '#27AE60',
+    borderRadius: 22,
+    paddingVertical: 8,
+    paddingHorizontal: 24,
     minHeight: 48,
     justifyContent: 'center',
     alignItems: 'center',
@@ -815,55 +813,55 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   submitQuizText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
   },
 
   // Results phase styles
   resultsSummary: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
-    padding: spacing.lg,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
     alignItems: 'center',
-    marginBottom: spacing.lg,
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
   },
   scorePercentage: {
     fontSize: 48,
     fontWeight: '700',
-    color: colors.primary,
+    color: '#E94F9B',
   },
   timeTaken: {
     fontSize: 14,
-    color: colors.textSecondary,
-    marginTop: spacing.sm,
+    color: '#777777',
+    marginTop: 8,
   },
   resultCard: {
-    borderRadius: borderRadii.card,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 8,
     borderLeftWidth: 4,
   },
   resultCorrect: {
     backgroundColor: '#E8F8F0',
-    borderLeftColor: colors.success,
+    borderLeftColor: '#27AE60',
   },
   resultIncorrect: {
     backgroundColor: '#FDEDEC',
-    borderLeftColor: colors.error,
+    borderLeftColor: '#E74C3C',
   },
   resultHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.xs,
+    marginBottom: 4,
   },
   resultNumber: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: '#333333',
   },
   resultIndicator: {
     fontSize: 18,
@@ -871,21 +869,21 @@ const styles = StyleSheet.create({
   },
   resultQuestion: {
     fontSize: 14,
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    color: '#333333',
+    marginBottom: 4,
   },
   resultYourAnswer: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: '#777777',
   },
   resultCorrectAnswer: {
     fontSize: 13,
-    color: colors.success,
+    color: '#27AE60',
     fontWeight: '600',
-    marginTop: spacing.xs,
+    marginTop: 4,
   },
   errorContainer: {
     alignItems: 'center',
-    padding: spacing.lg,
+    padding: 24,
   },
 });

@@ -19,9 +19,6 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 import { apiClient } from '../services/api';
 
 /* --- Types --- */
@@ -156,7 +153,7 @@ export function TranscriptEditorScreen({ navigation, route }: Props): React.Reac
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Loading transcript...</Text>
       </View>
     );
@@ -313,7 +310,7 @@ export function TranscriptEditorScreen({ navigation, route }: Props): React.Reac
           accessibilityLabel="Save transcript"
         >
           {isSaving ? (
-            <ActivityIndicator size="small" color={colors.white} />
+            <ActivityIndicator size="small" color={'#FFFFFF'} />
           ) : (
             <Text style={styles.saveButtonText}>Save Transcript</Text>
           )}
@@ -339,56 +336,60 @@ export function TranscriptEditorScreen({ navigation, route }: Props): React.Reac
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
-    padding: spacing.md,
+    backgroundColor: '#F8F5FF',
+    padding: 16,
   },
   loadingText: {
-    marginTop: spacing.md,
+    marginTop: 16,
     fontSize: 16,
-    color: colors.textSecondary,
+    color: '#777777',
     textAlign: 'center',
   },
   emptyTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    color: '#333333',
+    marginBottom: 4,
   },
   header: {
+    backgroundColor: '#F7C948',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    gap: 8,
+  },
+  titleContainer: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  subtitle: {
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 2,
   },
   headerLeft: {
     flex: 1,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
   warningBanner: {
     backgroundColor: '#FEF3C7',
     borderWidth: 1,
-    borderColor: colors.warning,
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
+    borderColor: '#F7C948',
+    borderRadius: 8,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
   },
   warningText: {
     color: '#92400E',
@@ -396,10 +397,10 @@ const styles = StyleSheet.create({
   },
   successBanner: {
     backgroundColor: '#D1FAE5',
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
+    borderRadius: 8,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
   },
   successText: {
     color: '#065F46',
@@ -408,69 +409,69 @@ const styles = StyleSheet.create({
   },
   errorBanner: {
     backgroundColor: '#FEE2E2',
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginTop: spacing.sm,
+    borderRadius: 8,
+    padding: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
   },
   errorBannerText: {
-    color: colors.error,
+    color: '#E74C3C',
     fontSize: 14,
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: spacing.md,
+    padding: 16,
     paddingBottom: 120,
   },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 17,
     fontWeight: '600',
-    color: colors.textPrimary,
-    marginBottom: spacing.md,
+    color: '#333333',
+    marginBottom: 16,
   },
   pageCard: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.card,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderColor: '#E0D8EC',
+    padding: 16,
+    marginBottom: 16,
   },
   pageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginBottom: 8,
   },
   pageLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: '#333333',
   },
   pageMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
+    gap: 4,
   },
   languageBadge: {
-    backgroundColor: colors.background,
-    borderRadius: borderRadii.badge,
+    backgroundColor: '#F8F5FF',
+    borderRadius: 10,
     paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 8,
   },
   languageBadgeText: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: '#999999',
   },
   statusBadge: {
-    borderRadius: borderRadii.badge,
+    borderRadius: 10,
     paddingVertical: 2,
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 8,
   },
   statusSuccess: {
     backgroundColor: '#D1FAE5',
@@ -487,31 +488,31 @@ const styles = StyleSheet.create({
   },
   textArea: {
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: borderRadii.input,
-    padding: spacing.sm,
+    borderColor: '#E0D8EC',
+    borderRadius: 8,
+    padding: 8,
     fontSize: 14,
     lineHeight: 22,
-    color: colors.textPrimary,
+    color: '#333333',
     minHeight: 120,
-    backgroundColor: colors.white,
+    backgroundColor: '#FFFFFF',
   },
   textAreaDisabled: {
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
     opacity: 0.6,
   },
   bottomBar: {
-    padding: spacing.md,
+    padding: 16,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.background,
+    borderTopColor: '#E0D8EC',
+    backgroundColor: '#F8F5FF',
     alignItems: 'center',
   },
   saveButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
+    backgroundColor: '#27AE60',
+    borderRadius: 22,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
@@ -521,18 +522,18 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   saveButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
   retryLink: {
-    marginTop: spacing.sm,
-    padding: spacing.xs,
+    marginTop: 8,
+    padding: 4,
     minHeight: 48,
     justifyContent: 'center',
   },
   retryLinkText: {
-    color: colors.primary,
+    color: '#E94F9B',
     fontSize: 14,
     fontWeight: '500',
   },

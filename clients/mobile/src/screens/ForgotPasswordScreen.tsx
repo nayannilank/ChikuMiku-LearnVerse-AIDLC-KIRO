@@ -20,13 +20,11 @@ import {
 } from 'react-native';
 import { validatePassword } from '@chikumiku/validation';
 import { apiClient, type ApiError } from '../services/api';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 
 interface ForgotPasswordScreenProps {
   navigation: {
     navigate: (screen: string) => void;
+    goBack: () => void;
   };
 }
 
@@ -196,12 +194,20 @@ export function ForgotPasswordScreen({
   const maxAttemptsReached = otpAttempts >= MAX_OTP_ATTEMPTS;
 
   return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.title}>Reset Password</Text>
+    <View style={styles.outerContainer}>
+      {/* Purple Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}
+          accessibilityRole="button" accessibilityLabel="Go back">
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Reset Password</Text>
+      </View>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
 
       {/* Stage 1: Username Entry */}
       {stage === 'username' && (
@@ -217,7 +223,7 @@ export function ForgotPasswordScreen({
               value={username}
               onChangeText={setUsername}
               placeholder="Enter your username"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor="#999"
               autoCapitalize="none"
               autoCorrect={false}
               accessibilityLabel="Username"
@@ -235,7 +241,7 @@ export function ForgotPasswordScreen({
             accessibilityLabel="Send Verification Code"
           >
             {loading ? (
-              <ActivityIndicator color={colors.white} size="small" />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <Text style={styles.submitButtonText}>Send Verification Code</Text>
             )}
@@ -270,7 +276,7 @@ export function ForgotPasswordScreen({
                 setOtp(value.replace(/\D/g, '').slice(0, 6))
               }
               placeholder="000000"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor="#999"
               keyboardType="number-pad"
               maxLength={6}
               editable={!timerExpired && !maxAttemptsReached}
@@ -300,7 +306,7 @@ export function ForgotPasswordScreen({
               accessibilityLabel="Verify Code"
             >
               {loading ? (
-                <ActivityIndicator color={colors.white} size="small" />
+                <ActivityIndicator color="#FFFFFF" size="small" />
               ) : (
                 <Text style={styles.submitButtonText}>Verify Code</Text>
               )}
@@ -321,7 +327,7 @@ export function ForgotPasswordScreen({
               value={newPassword}
               onChangeText={setNewPassword}
               placeholder="Enter new password"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor="#999"
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -336,7 +342,7 @@ export function ForgotPasswordScreen({
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Confirm new password"
-              placeholderTextColor={colors.textMuted}
+              placeholderTextColor="#999"
               secureTextEntry
               autoCapitalize="none"
               autoCorrect={false}
@@ -358,7 +364,7 @@ export function ForgotPasswordScreen({
             accessibilityLabel="Reset Password"
           >
             {loading ? (
-              <ActivityIndicator color={colors.white} size="small" />
+              <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
               <Text style={styles.submitButtonText}>Reset Password</Text>
             )}
@@ -374,6 +380,7 @@ export function ForgotPasswordScreen({
       {/* Success Stage */}
       {stage === 'success' && (
         <View style={styles.successContainer}>
+          <Text style={styles.successEmoji}>✅</Text>
           <Text style={styles.successTitle}>Password reset successful</Text>
           <Text style={styles.successMessage}>
             Redirecting to login in 3 seconds…
@@ -381,119 +388,46 @@ export function ForgotPasswordScreen({
         </View>
       )}
     </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
+  outerContainer: { flex: 1, backgroundColor: '#F8F5FF' },
+  header: {
+    backgroundColor: '#9B59B6', paddingTop: 44, paddingBottom: 14,
+    paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12,
   },
-  content: {
-    padding: spacing.lg,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.dark,
-    textAlign: 'center',
-    marginBottom: spacing.lg,
-  },
-  description: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginBottom: spacing.lg,
-  },
-  fieldGroup: {
-    marginBottom: spacing.md,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
-  },
+  backButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  backArrow: { color: '#FFFFFF', fontSize: 20, fontWeight: '700' },
+  headerTitle: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  container: { flex: 1, backgroundColor: '#F8F5FF' },
+  content: { padding: 16 },
+  description: { fontSize: 14, color: '#777777', marginBottom: 16 },
+  fieldGroup: { marginBottom: 12 },
+  label: { fontSize: 13, fontWeight: '600', color: '#555555', marginBottom: 4 },
   input: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.input,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: colors.textPrimary,
-    minHeight: 48,
+    backgroundColor: '#FFFFFF', borderRadius: 8, borderWidth: 1, borderColor: '#E0D8EC',
+    paddingHorizontal: 14, paddingVertical: 12, fontSize: 14, color: '#333333', minHeight: 44,
   },
-  otpInput: {
-    textAlign: 'center',
-    fontSize: 24,
-    letterSpacing: 8,
-  },
-  timerText: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.textPrimary,
-    textAlign: 'center',
-    marginBottom: spacing.md,
-  },
-  timerExpired: {
-    color: colors.error,
-  },
-  errorMessage: {
-    color: colors.error,
-    fontSize: 14,
-    marginBottom: spacing.md,
-  },
-  hintText: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginTop: spacing.sm,
-  },
+  otpInput: { textAlign: 'center', fontSize: 24, letterSpacing: 8 },
+  timerText: { fontSize: 20, fontWeight: '600', color: '#2C2341', textAlign: 'center', marginBottom: 16 },
+  timerExpired: { color: '#E74C3C' },
+  errorMessage: { color: '#E74C3C', fontSize: 13, marginBottom: 12 },
+  hintText: { fontSize: 11, color: '#999999', marginTop: 8 },
   submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
+    backgroundColor: '#E94F9B', borderRadius: 22, paddingVertical: 14,
+    alignItems: 'center', justifyContent: 'center', minHeight: 48,
   },
-  submitButtonDisabled: {
-    opacity: 0.6,
-  },
-  submitButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  submitButtonDisabled: { opacity: 0.6 },
+  submitButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
   secondaryButton: {
-    backgroundColor: 'transparent',
-    borderRadius: borderRadii.button,
-    borderWidth: 2,
-    borderColor: colors.primary,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
+    backgroundColor: '#FFFFFF', borderRadius: 22, borderWidth: 2, borderColor: '#9B59B6',
+    paddingVertical: 14, alignItems: 'center', justifyContent: 'center', minHeight: 48,
   },
-  secondaryButtonText: {
-    color: colors.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  // Success state
-  successContainer: {
-    alignItems: 'center',
-    paddingVertical: spacing.xl,
-  },
-  successTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.success,
-    marginBottom: spacing.md,
-  },
-  successMessage: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
+  secondaryButtonText: { color: '#9B59B6', fontSize: 15, fontWeight: '700' },
+  successContainer: { alignItems: 'center', paddingVertical: 32 },
+  successEmoji: { fontSize: 48, marginBottom: 12 },
+  successTitle: { fontSize: 18, fontWeight: '700', color: '#27AE60', marginBottom: 8 },
+  successMessage: { fontSize: 14, color: '#777777' },
 });

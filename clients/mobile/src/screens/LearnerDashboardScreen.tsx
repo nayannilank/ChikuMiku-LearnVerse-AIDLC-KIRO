@@ -19,10 +19,6 @@
  */
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
-import { typography } from '../theme/typography';
 import { apiClient, type ApiError } from '../services/api';
 import {
   calculateLearnerCompletion,
@@ -313,7 +309,7 @@ export function LearnerDashboardScreen(): React.ReactElement {
       {
         label: 'Continue Reading',
         icon: '📖',
-        color: colors.primary,
+        color: '#E94F9B',
         onPress: () => {
           const nav = getNavigationAction('read');
           if (nav) {
@@ -325,7 +321,7 @@ export function LearnerDashboardScreen(): React.ReactElement {
       {
         label: 'Take Exercise',
         icon: '✏️',
-        color: colors.secondary,
+        color: '#9B59B6',
         onPress: () => {
           const nav = getNavigationAction('exercise');
           if (nav) {
@@ -336,7 +332,7 @@ export function LearnerDashboardScreen(): React.ReactElement {
       {
         label: 'Listen',
         icon: '🔊',
-        color: colors.accent,
+        color: '#5DADE2',
         onPress: () => {
           const nav = getNavigationAction('listen');
           if (nav) {
@@ -388,7 +384,7 @@ export function LearnerDashboardScreen(): React.ReactElement {
   if (loading) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+        <ActivityIndicator size="large" color={'#E94F9B'} />
         <Text style={styles.loadingText}>Loading your dashboard...</Text>
       </View>
     );
@@ -483,31 +479,32 @@ export function LearnerDashboardScreen(): React.ReactElement {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.md,
+    paddingHorizontal: 16,
+    paddingTop: 44,
+    paddingBottom: 14,
+    backgroundColor: '#2C2341',
   },
   heading: {
-    fontSize: typography.heading.h2,
-    fontWeight: typography.weight.bold,
-    color: colors.textPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
   streakBadge: {
-    backgroundColor: colors.warning,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    borderRadius: borderRadii.badge,
+    backgroundColor: '#F7C948',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   streakText: {
-    fontSize: typography.bodyFontSize,
-    fontWeight: typography.weight.semibold,
-    color: colors.dark,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2C2341',
   },
   panelsContainer: {
     flex: 1,
@@ -516,15 +513,15 @@ const styles = StyleSheet.create({
   leftPanel: {
     width: 260,
     borderRightWidth: 1,
-    borderRightColor: colors.border,
-    paddingTop: spacing.sm,
+    borderRightColor: '#E0D8EC',
+    paddingTop: 8,
   },
   panelTitle: {
-    fontSize: typography.heading.h4,
-    fontWeight: typography.weight.semibold,
-    color: colors.textPrimary,
-    paddingHorizontal: spacing.md,
-    paddingBottom: spacing.sm,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333333',
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
   rightPanel: {
     flex: 1,
@@ -533,36 +530,36 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xxl,
+    padding: 48,
   },
   loadingText: {
-    marginTop: spacing.md,
-    fontSize: typography.bodyFontSize,
-    color: colors.textMuted,
+    marginTop: 16,
+    fontSize: 14,
+    color: '#999999',
   },
   errorIcon: {
     fontSize: 40,
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   errorText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.error,
+    fontSize: 14,
+    color: '#E74C3C',
     textAlign: 'center',
   },
   emptyStateContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: spacing.xxl,
+    padding: 48,
   },
   emptyStateIcon: {
     fontSize: 40,
-    marginBottom: spacing.md,
+    marginBottom: 16,
   },
   emptyStateText: {
-    fontSize: typography.bodyFontSize,
-    color: colors.textMuted,
+    fontSize: 14,
+    color: '#999999',
     textAlign: 'center',
-    lineHeight: typography.bodyFontSize * typography.lineHeight.normal,
+    lineHeight: 14 * 1.5,
   },
 });

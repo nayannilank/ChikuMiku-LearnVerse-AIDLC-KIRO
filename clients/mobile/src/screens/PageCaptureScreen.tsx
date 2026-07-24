@@ -20,9 +20,6 @@ import {
   StyleSheet,
 } from 'react-native';
 import { validateFileUpload } from '@chikumiku/validation';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 
 /* --- Types --- */
 
@@ -411,7 +408,7 @@ export function PageCaptureScreen({ navigation, route }: Props): React.ReactElem
 
       {isLocked && (
         <View style={styles.lockedBanner}>
-          <ActivityIndicator size="small" color={colors.primary} />
+          <ActivityIndicator size="small" color={'#E94F9B'} />
           <Text style={styles.lockedText}>Pages locked. Navigating to processing...</Text>
         </View>
       )}
@@ -424,80 +421,84 @@ export function PageCaptureScreen({ navigation, route }: Props): React.ReactElem
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   header: {
-    padding: spacing.md,
-    paddingBottom: spacing.sm,
+    backgroundColor: '#F7C948',
+    paddingTop: 44,
+    paddingBottom: 12,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
-    fontSize: 22,
+    fontSize: 14,
     fontWeight: '700',
-    color: colors.textPrimary,
-    marginBottom: spacing.xs,
+    color: '#FFFFFF',
   },
   subtitle: {
-    fontSize: 13,
-    color: colors.textSecondary,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.8)',
   },
   errorBanner: {
     backgroundColor: '#FEE2E2',
     borderWidth: 1,
-    borderColor: colors.error,
-    borderRadius: borderRadii.input,
-    padding: spacing.md,
-    marginHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    borderColor: '#E74C3C',
+    borderRadius: 8,
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 8,
   },
   errorBannerText: {
-    color: colors.error,
+    color: '#E74C3C',
     fontSize: 14,
   },
   inputModes: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.md,
+    gap: 8,
+    paddingHorizontal: 16,
+    marginBottom: 16,
   },
   modeButton: {
     flex: 1,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+    borderRadius: 22,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
   },
   cameraButton: {
-    backgroundColor: colors.primary,
+    backgroundColor: '#E94F9B',
   },
   uploadButton: {
-    backgroundColor: colors.secondary,
+    backgroundColor: '#9B59B6',
   },
   modeButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '600',
   },
   pageCount: {
     fontSize: 13,
-    color: colors.textSecondary,
-    paddingHorizontal: spacing.md,
-    marginBottom: spacing.sm,
+    color: '#777777',
+    paddingHorizontal: 16,
+    marginBottom: 8,
   },
   gridContent: {
-    paddingHorizontal: spacing.sm,
+    paddingHorizontal: 8,
     paddingBottom: 100,
   },
   gridRow: {
-    gap: spacing.sm,
-    marginBottom: spacing.sm,
+    gap: 8,
+    marginBottom: 8,
   },
   thumbnailCard: {
     flex: 1,
-    borderRadius: borderRadii.card,
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.white,
+    borderColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
     overflow: 'hidden',
     maxWidth: '33%',
   },
@@ -514,22 +515,22 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     left: 4,
-    backgroundColor: colors.dark,
+    backgroundColor: '#2C2341',
     borderRadius: 10,
     paddingVertical: 2,
     paddingHorizontal: 8,
   },
   pageNumberText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 11,
     fontWeight: '600',
   },
   classificationBadge: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.background,
+    borderBottomColor: '#E0D8EC',
+    backgroundColor: '#F8F5FF',
     minHeight: 36,
     justifyContent: 'center',
     alignItems: 'center',
@@ -539,7 +540,7 @@ const styles = StyleSheet.create({
   },
   classificationText: {
     fontSize: 11,
-    color: colors.textSecondary,
+    color: '#777777',
     fontWeight: '500',
   },
   classificationTextExercise: {
@@ -547,7 +548,7 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: 'row',
-    padding: spacing.xs,
+    padding: 4,
     gap: 2,
     justifyContent: 'center',
   },
@@ -556,27 +557,27 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E0D8EC',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.white,
+    backgroundColor: '#FFFFFF',
   },
   actionButtonText: {
     fontSize: 12,
   },
   deleteButton: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   deleteText: {
-    color: colors.error,
+    color: '#E74C3C',
   },
   emptyState: {
-    paddingVertical: spacing.xxl,
+    paddingVertical: 48,
     alignItems: 'center',
   },
   emptyStateText: {
     fontSize: 14,
-    color: colors.textMuted,
+    color: '#999999',
     textAlign: 'center',
   },
   bottomBar: {
@@ -584,21 +585,21 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: spacing.md,
-    backgroundColor: colors.background,
+    padding: 16,
+    backgroundColor: '#F8F5FF',
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: '#E0D8EC',
   },
   doneButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
   },
   doneButtonText: {
-    color: colors.white,
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
   },
@@ -606,11 +607,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing.sm,
-    padding: spacing.md,
+    gap: 8,
+    padding: 16,
   },
   lockedText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: '#777777',
   },
 });

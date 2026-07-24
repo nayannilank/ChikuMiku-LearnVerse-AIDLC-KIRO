@@ -2,13 +2,15 @@
  * LoginScreen — Authentication screen with role selector, credentials, and validation.
  *
  * Features:
- * - Role selector (Parent/Learner) via selectable buttons
+ * - Logo icon + brand name at top
+ * - Role selector (Parent/Learner) with icons
  * - Username and masked password fields
  * - Client-side validation: requires role, username, password
  * - Generic error on auth failure (no info leakage)
  * - Account lockout display (15 min after 5 failures)
  * - Redirect to role-appropriate dashboard on success
  * - Forgot Password link
+ * - Create Account outline button
  *
  * Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.5, 3.6
  */
@@ -24,9 +26,6 @@ import {
 } from 'react-native';
 import { useAuth, type UserRole } from '../context/AuthContext';
 import { apiClient, type ApiError } from '../services/api';
-import { colors } from '../theme/colors';
-import { spacing } from '../theme/spacing';
-import { borderRadii } from '../theme/borderRadii';
 
 interface LoginScreenProps {
   navigation: {
@@ -78,7 +77,6 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
     const fieldErrors = validate();
     setErrors(fieldErrors);
 
-    // Requirement 3.3: Don't submit if validation fails
     if (Object.keys(fieldErrors).length > 0) {
       return;
     }
@@ -92,7 +90,6 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
         password,
       });
 
-      // On success, store tokens and navigate to appropriate dashboard
       await login({
         username: response.data.username,
         role: response.data.role,
@@ -101,14 +98,11 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
         refreshToken: response.data.refreshToken,
       });
 
-      // Requirement 3.2: navigate to role-appropriate dashboard
       const dashboardScreen =
         response.data.role === 'parent' ? 'ParentDashboard' : 'LearnerDashboard';
       navigation.navigate(dashboardScreen);
     } catch (err: unknown) {
       const apiErr = err as ApiError;
-      // Requirement 3.4: generic error (no info leakage)
-      // Requirement 3.5: lockout display after 5 failures
       if (apiErr.status === 423) {
         setApiError('Account locked for 15 minutes. Please try again later.');
       } else {
@@ -125,16 +119,23 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={styles.title}>Login</Text>
+      {/* Logo + Brand */}
+      <View style={styles.logoSection}>
+        <View style={styles.logoBox}>
+          <Text style={styles.logoEmoji}>📖</Text>
+        </View>
+        <Text style={styles.brandName}>ChikuMiku LearnVerse</Text>
+        <Text style={styles.brandTagline}>Where Curiosity Comes Alive</Text>
+      </View>
 
-      {/* Role Selector — Requirement 3.1 */}
+      {/* Role Selector */}
       <View style={styles.fieldGroup}>
-        <Text style={styles.label}>I am a</Text>
+        <Text style={styles.label}>I am a...</Text>
         <View style={styles.roleRow}>
           <TouchableOpacity
             style={[
               styles.roleButton,
-              role === 'parent' ? styles.roleButtonActive : null,
+              role === 'parent' && styles.roleButtonActive,
             ]}
             onPress={() => {
               setRole('parent');
@@ -145,10 +146,11 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
             accessibilityState={{ selected: role === 'parent' }}
             accessibilityLabel="Parent"
           >
+            <Text style={styles.roleIcon}>🛡️</Text>
             <Text
               style={[
                 styles.roleButtonText,
-                role === 'parent' ? styles.roleButtonTextActive : null,
+                role === 'parent' && styles.roleButtonTextActive,
               ]}
             >
               Parent
@@ -158,7 +160,7 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
           <TouchableOpacity
             style={[
               styles.roleButton,
-              role === 'learner' ? styles.roleButtonActive : null,
+              role === 'learner' && styles.roleButtonActive,
             ]}
             onPress={() => {
               setRole('learner');
@@ -169,10 +171,11 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
             accessibilityState={{ selected: role === 'learner' }}
             accessibilityLabel="Learner"
           >
+            <Text style={styles.roleIcon}>🧒</Text>
             <Text
               style={[
                 styles.roleButtonText,
-                role === 'learner' ? styles.roleButtonTextActive : null,
+                role === 'learner' && styles.roleButtonTextActive,
               ]}
             >
               Learner
@@ -193,7 +196,7 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
             setErrors((prev) => ({ ...prev, username: undefined }));
           }}
           placeholder="Enter your username"
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor="#999"
           autoCapitalize="none"
           autoCorrect={false}
           accessibilityLabel="Username"
@@ -203,7 +206,7 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
         )}
       </View>
 
-      {/* Password (masked) */}
+      {/* Password */}
       <View style={styles.fieldGroup}>
         <Text style={styles.label}>Password</Text>
         <TextInput
@@ -213,8 +216,8 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
             setPassword(value);
             setErrors((prev) => ({ ...prev, password: undefined }));
           }}
-          placeholder="Enter your password"
-          placeholderTextColor={colors.textMuted}
+          placeholder="••••••••"
+          placeholderTextColor="#999"
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
@@ -225,7 +228,7 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
         )}
       </View>
 
-      {/* API error / lockout message — Requirements 3.4, 3.5 */}
+      {/* API error / lockout message */}
       {apiError && (
         <View style={styles.apiErrorContainer}>
           <Text style={styles.apiErrorText}>{apiError}</Text>
@@ -234,7 +237,7 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
 
       {/* Login Button */}
       <TouchableOpacity
-        style={[styles.submitButton, isSubmitting ? styles.submitButtonDisabled : null]}
+        style={[styles.loginButton, isSubmitting && styles.loginButtonDisabled]}
         onPress={handleSubmit}
         disabled={isSubmitting}
         activeOpacity={0.8}
@@ -242,21 +245,32 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
         accessibilityLabel="Login"
       >
         {isSubmitting ? (
-          <ActivityIndicator color={colors.white} size="small" />
+          <ActivityIndicator color="#FFFFFF" size="small" />
         ) : (
-          <Text style={styles.submitButtonText}>Login</Text>
+          <Text style={styles.loginButtonText}>Login</Text>
         )}
       </TouchableOpacity>
 
       {/* Forgot Password link */}
       <TouchableOpacity
-        style={styles.forgotPasswordLink}
+        style={styles.forgotLink}
         onPress={() => navigation.navigate('ForgotPassword')}
         activeOpacity={0.7}
         accessibilityRole="link"
         accessibilityLabel="Forgot Password?"
       >
-        <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
+        <Text style={styles.forgotLinkText}>Forgot Password?</Text>
+      </TouchableOpacity>
+
+      {/* Create Account button */}
+      <TouchableOpacity
+        style={styles.createAccountButton}
+        onPress={() => navigation.navigate('ParentRegistration')}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Create Account"
+      >
+        <Text style={styles.createAccountText}>Create Account</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -265,120 +279,164 @@ export function LoginScreen({ navigation }: LoginScreenProps): React.ReactElemen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8F5FF',
   },
   content: {
-    padding: spacing.lg,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
   },
-  title: {
+
+  // Logo Section
+  logoSection: {
+    alignItems: 'center',
+    paddingTop: 24,
+    paddingBottom: 12,
+  },
+  logoBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#FDE8F4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  logoEmoji: {
     fontSize: 22,
-    fontWeight: '700',
-    color: colors.primary,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
   },
+  brandName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#2C2341',
+  },
+  brandTagline: {
+    fontSize: 11,
+    color: '#E94F9B',
+    fontStyle: 'italic',
+    marginTop: 2,
+  },
+
+  // Form
   fieldGroup: {
-    marginBottom: spacing.md,
+    marginBottom: 12,
   },
   label: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.textSecondary,
-    marginBottom: spacing.sm,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#555555',
+    marginBottom: 6,
   },
   input: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadii.input,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
+    borderColor: '#E0D8EC',
+    paddingHorizontal: 14,
     paddingVertical: 12,
-    fontSize: 15,
-    color: colors.textPrimary,
-    minHeight: 48,
+    fontSize: 14,
+    color: '#333333',
+    minHeight: 44,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#E74C3C',
   },
   errorText: {
-    color: colors.error,
-    fontSize: 13,
-    marginTop: spacing.xs,
+    color: '#E74C3C',
+    fontSize: 12,
+    marginTop: 4,
   },
 
   // Role selector
   roleRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 8,
   },
   roleButton: {
     flex: 1,
-    backgroundColor: 'transparent',
-    borderRadius: borderRadii.button,
-    borderWidth: 2,
-    borderColor: colors.border,
-    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 48,
+    paddingVertical: 12,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF',
   },
   roleButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    borderColor: '#9B59B6',
+    backgroundColor: '#F3E8F9',
+  },
+  roleIcon: {
+    fontSize: 20,
+    marginBottom: 4,
   },
   roleButtonText: {
-    fontSize: 15,
+    fontSize: 12,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: '#777777',
   },
   roleButtonTextActive: {
-    color: colors.white,
+    color: '#9B59B6',
   },
 
   // API error
   apiErrorContainer: {
     backgroundColor: 'rgba(231, 76, 60, 0.08)',
-    borderRadius: borderRadii.input,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.error,
-    padding: spacing.md,
-    marginBottom: spacing.md,
+    borderColor: '#E74C3C',
+    padding: 12,
+    marginBottom: 12,
   },
   apiErrorText: {
-    color: colors.error,
-    fontSize: 14,
+    color: '#E74C3C',
+    fontSize: 13,
     textAlign: 'center',
   },
 
-  // Submit
-  submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadii.button,
-    paddingVertical: spacing.md,
+  // Login button
+  loginButton: {
+    backgroundColor: '#E94F9B',
+    borderRadius: 22,
+    paddingVertical: 14,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
-    marginTop: spacing.sm,
+    marginTop: 4,
   },
-  submitButtonDisabled: {
+  loginButtonDisabled: {
     opacity: 0.6,
   },
-  submitButtonText: {
-    color: colors.white,
-    fontSize: 16,
-    fontWeight: '600',
+  loginButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 
   // Forgot password
-  forgotPasswordLink: {
+  forgotLink: {
     alignItems: 'center',
-    marginTop: spacing.md,
-    minHeight: 48,
-    justifyContent: 'center',
+    marginTop: 12,
   },
-  forgotPasswordText: {
-    color: colors.primary,
-    fontSize: 14,
-    fontWeight: '500',
+  forgotLinkText: {
+    color: '#E94F9B',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  // Create Account
+  createAccountButton: {
+    borderWidth: 2,
+    borderColor: '#9B59B6',
+    borderRadius: 22,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  createAccountText: {
+    color: '#9B59B6',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
