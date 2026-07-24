@@ -70,7 +70,7 @@ export function LoginPage() {
       {/* Left branding panel */}
       <div style={styles.leftPanel}>
         <div style={styles.brandIcon}>
-          <i className="fas fa-book-open-reader" style={{ fontSize: 28, color: '#fff' }} />
+          <img src="/logo.png" alt="ChikuMiku LearnVerse" style={{ width: 48, height: 48, objectFit: 'contain' }} />
         </div>
         <div style={styles.brandTitle}>ChikuMiku LearnVerse</div>
         <div style={styles.brandTagline}>Where Curiosity Comes Alive ✨</div>

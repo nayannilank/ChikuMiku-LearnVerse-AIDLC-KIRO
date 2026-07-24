@@ -14,7 +14,7 @@ export function AppHeader() {
   return (
     <nav style={styles.navbar}>
       <div style={styles.navLogo} onClick={() => navigate('/')} role="button" tabIndex={0}>
-        <i className="fas fa-book-open-reader" style={{ color: theme.colors.pink, fontSize: 18, marginRight: 8 }} />
+        <img src="/logo.png" alt="ChikuMiku LearnVerse" style={{ height: 26, marginRight: 8 }} />
         <span style={styles.navLogoText}>ChikuMiku LearnVerse</span>
       </div>
       <div style={styles.navRight}>

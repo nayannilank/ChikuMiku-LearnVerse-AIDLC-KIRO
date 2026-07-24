@@ -36,10 +36,15 @@ export function LandingPage() {
 
   return (
     <div style={styles.page}>
+      {/* Background watermark logo */}
+      <div style={styles.watermark} aria-hidden="true">
+        <img src="/logo.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
+
       {/* ─── Navbar ─── */}
       <nav style={styles.navbar}>
         <div style={styles.navLogo}>
-          <i className="fas fa-book-open-reader" style={{ color: theme.colors.pink, fontSize: 20, marginRight: 8 }} />
+          <img src="/logo.png" alt="ChikuMiku LearnVerse" style={{ height: 28, marginRight: 8 }} />
           <span style={styles.navLogoText}>ChikuMiku LearnVerse</span>
         </div>
         <div style={styles.navButtons}>
@@ -123,6 +128,21 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+  },
+
+  /* Watermark */
+  watermark: {
+    position: 'fixed' as const,
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    width: '70%',
+    maxWidth: 700,
+    opacity: 0.06,
+    pointerEvents: 'none' as const,
+    zIndex: 0,
   },
 
   /* Navbar */
@@ -133,6 +153,8 @@ const styles: Record<string, React.CSSProperties> = {
     padding: '12px 32px',
     backgroundColor: theme.colors.white,
     borderBottom: `1px solid ${theme.colors.border}`,
+    position: 'relative' as const,
+    zIndex: 1,
   },
   navLogo: { display: 'flex', alignItems: 'center' },
   navLogoText: { fontSize: 16, fontWeight: '800' as const, color: theme.colors.dark },
@@ -167,6 +189,7 @@ const styles: Record<string, React.CSSProperties> = {
     minHeight: 280,
     position: 'relative' as const,
     overflow: 'hidden' as const,
+    zIndex: 1,
   },
   heroContent: { flex: 1, paddingRight: 32, zIndex: 1 },
   heroTitle: {
@@ -222,7 +245,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
 
   /* Features */
-  featuresSection: { padding: '32px 32px', textAlign: 'center' as const, flex: 1 },
+  featuresSection: { padding: '32px 32px', textAlign: 'center' as const, flex: 1, position: 'relative' as const, zIndex: 1 },
   sectionTitle: {
     fontSize: 18,
     fontWeight: '700' as const,
