@@ -28,11 +28,8 @@ export class ApiStack extends cdk.Stack {
 
     const {
       userPool, authFunction, contentFunction,
-      learningFunction, aiGatewayFunction, exportFunction, cloudFrontDomain,
+      learningFunction, aiGatewayFunction, exportFunction,
     } = props;
-
-    // Web client origin for CORS
-    const webClientOrigin = `https://${cloudFrontDomain}`;
 
     // REST API
     this.restApi = new apigateway.RestApi(this, 'LearnVerseRestApi', {
@@ -44,13 +41,12 @@ export class ApiStack extends cdk.Stack {
         throttlingBurstLimit: 500,
       },
       defaultCorsPreflightOptions: {
-        allowOrigins: [webClientOrigin],
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
         allowMethods: apigateway.Cors.ALL_METHODS,
         allowHeaders: [
           'Content-Type', 'Authorization', 'X-Api-Key',
           'X-Amz-Date', 'X-Amz-Security-Token',
         ],
-        allowCredentials: true,
       },
       policy: new iam.PolicyDocument({
         statements: [
