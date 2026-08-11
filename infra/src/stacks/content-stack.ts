@@ -49,7 +49,24 @@ export class ContentStack extends cdk.Stack {
       functionName: 'learnverse-content',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      code: lambda.Code.fromInline('exports.handler = async () => ({ statusCode: 200 });'),
+      code: lambda.Code.fromInline(`
+        exports.handler = async (event) => {
+          const headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
+            'Content-Type': 'application/json',
+          };
+          if (event.httpMethod === 'OPTIONS') {
+            return { statusCode: 204, headers, body: '' };
+          }
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ message: 'Content service placeholder', path: event.path, method: event.httpMethod }),
+          };
+        };
+      `),
       memorySize: 512,
       timeout: cdk.Duration.seconds(60),
       environment: {

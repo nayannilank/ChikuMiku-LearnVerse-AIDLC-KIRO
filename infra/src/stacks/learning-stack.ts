@@ -38,7 +38,24 @@ export class LearningStack extends cdk.Stack {
       functionName: 'learnverse-learning',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      code: lambda.Code.fromInline('exports.handler = async () => ({ statusCode: 200 });'),
+      code: lambda.Code.fromInline(`
+        exports.handler = async (event) => {
+          const headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
+            'Content-Type': 'application/json',
+          };
+          if (event.httpMethod === 'OPTIONS') {
+            return { statusCode: 204, headers, body: '' };
+          }
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ message: 'Learning service placeholder', path: event.path, method: event.httpMethod }),
+          };
+        };
+      `),
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
       environment: {
@@ -59,7 +76,12 @@ export class LearningStack extends cdk.Stack {
       functionName: 'learnverse-notification-dispatcher',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      code: lambda.Code.fromInline('exports.handler = async (event) => { console.log("Dispatching:", JSON.stringify(event)); return { statusCode: 200 }; }'),
+      code: lambda.Code.fromInline(`
+        exports.handler = async (event) => {
+          console.log("Dispatching notification:", JSON.stringify(event));
+          return { statusCode: 200, body: JSON.stringify({ dispatched: true }) };
+        };
+      `),
       memorySize: 128,
       timeout: cdk.Duration.seconds(30),
       environment: {

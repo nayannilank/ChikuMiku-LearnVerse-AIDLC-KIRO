@@ -51,7 +51,24 @@ export class AiGatewayStack extends cdk.Stack {
       functionName: 'learnverse-ai-gateway',
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'index.handler',
-      code: lambda.Code.fromInline('exports.handler = async () => ({ statusCode: 200 });'),
+      code: lambda.Code.fromInline(`
+        exports.handler = async (event) => {
+          const headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
+            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
+            'Content-Type': 'application/json',
+          };
+          if (event.httpMethod === 'OPTIONS') {
+            return { statusCode: 204, headers, body: '' };
+          }
+          return {
+            statusCode: 200,
+            headers,
+            body: JSON.stringify({ message: 'AI Gateway placeholder', path: event.path, method: event.httpMethod }),
+          };
+        };
+      `),
       memorySize: 1024,
       timeout: cdk.Duration.seconds(120),
       environment: {
