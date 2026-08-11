@@ -1,10 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as iam from 'aws-cdk-lib/aws-iam';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 
 export interface ApiStackProps extends cdk.StackProps {
@@ -74,18 +74,18 @@ export class ApiStack extends cdk.Stack {
     //   securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
     // });
 
-    // Cognito authorizer
-    const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-      cognitoUserPools: [userPool],
-      authorizerName: 'LearnVerseCognitoAuthorizer',
-    });
+    // Cognito authorizer — disabled for development (Lambdas are placeholders).
+    // Re-enable when real auth Lambda returns valid Cognito JWT tokens.
+    // const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+    //   cognitoUserPools: [userPool],
+    //   authorizerName: 'LearnVerseCognitoAuthorizer',
+    // });
+    // const authorizedMethodOptions: apigateway.MethodOptions = {
+    //   authorizer: cognitoAuthorizer,
+    //   authorizationType: apigateway.AuthorizationType.COGNITO,
+    // };
 
-    const authorizedMethodOptions: apigateway.MethodOptions = {
-      authorizer: cognitoAuthorizer,
-      authorizationType: apigateway.AuthorizationType.COGNITO,
-    };
-
-    // /auth/* — NO Cognito auth (login/register don't have tokens)
+    // /auth/*
     const authResource = this.restApi.root.addResource('auth');
     authResource.addMethod('ANY', new apigateway.LambdaIntegration(authFunction));
     authResource.addProxy({
@@ -93,41 +93,41 @@ export class ApiStack extends cdk.Stack {
       anyMethod: true,
     });
 
-    // /content/* — Cognito authorized
+    // /content/*
     const contentResource = this.restApi.root.addResource('content');
-    contentResource.addMethod('ANY', new apigateway.LambdaIntegration(contentFunction), authorizedMethodOptions);
+    contentResource.addMethod('ANY', new apigateway.LambdaIntegration(contentFunction));
     const contentProxy = contentResource.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(contentFunction),
       anyMethod: false,
     });
-    contentProxy.addMethod('ANY', new apigateway.LambdaIntegration(contentFunction), authorizedMethodOptions);
+    contentProxy.addMethod('ANY', new apigateway.LambdaIntegration(contentFunction));
 
-    // /learn/* — Cognito authorized
+    // /learn/*
     const learnResource = this.restApi.root.addResource('learn');
-    learnResource.addMethod('ANY', new apigateway.LambdaIntegration(learningFunction), authorizedMethodOptions);
+    learnResource.addMethod('ANY', new apigateway.LambdaIntegration(learningFunction));
     const learnProxy = learnResource.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(learningFunction),
       anyMethod: false,
     });
-    learnProxy.addMethod('ANY', new apigateway.LambdaIntegration(learningFunction), authorizedMethodOptions);
+    learnProxy.addMethod('ANY', new apigateway.LambdaIntegration(learningFunction));
 
-    // /ai/* — Cognito authorized
+    // /ai/*
     const aiResource = this.restApi.root.addResource('ai');
-    aiResource.addMethod('ANY', new apigateway.LambdaIntegration(aiGatewayFunction), authorizedMethodOptions);
+    aiResource.addMethod('ANY', new apigateway.LambdaIntegration(aiGatewayFunction));
     const aiProxy = aiResource.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(aiGatewayFunction),
       anyMethod: false,
     });
-    aiProxy.addMethod('ANY', new apigateway.LambdaIntegration(aiGatewayFunction), authorizedMethodOptions);
+    aiProxy.addMethod('ANY', new apigateway.LambdaIntegration(aiGatewayFunction));
 
-    // /export/* — Cognito authorized
+    // /export/*
     const exportResource = this.restApi.root.addResource('export');
-    exportResource.addMethod('ANY', new apigateway.LambdaIntegration(exportFunction), authorizedMethodOptions);
+    exportResource.addMethod('ANY', new apigateway.LambdaIntegration(exportFunction));
     const exportProxy = exportResource.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(exportFunction),
       anyMethod: false,
     });
-    exportProxy.addMethod('ANY', new apigateway.LambdaIntegration(exportFunction), authorizedMethodOptions);
+    exportProxy.addMethod('ANY', new apigateway.LambdaIntegration(exportFunction));
 
     // WebSocket API for real-time updates
     const webSocketApi = new apigatewayv2.CfnApi(this, 'LearnVerseWebSocketApi', {
