@@ -14,7 +14,6 @@ export interface ApiStackProps extends cdk.StackProps {
   learningFunction: lambda.Function;
   aiGatewayFunction: lambda.Function;
   exportFunction: lambda.Function;
-  cloudFrontDomain: string;
 }
 
 /**
