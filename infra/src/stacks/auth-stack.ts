@@ -1,8 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as path from 'path';
 import { Construct } from 'constructs';
 
 export interface AuthStackProps extends cdk.StackProps {
@@ -23,28 +25,11 @@ export class AuthStack extends cdk.Stack {
 
     const { databaseSecret, userPool, userPoolClient, apiKeysSecret } = props;
 
-    this.authFunction = new lambda.Function(this, 'AuthFunction', {
+    this.authFunction = new lambdaNodejs.NodejsFunction(this, 'AuthFunction', {
       functionName: 'learnverse-auth',
+      entry: path.join(__dirname, '../../../services/auth/src/lambda.ts'),
+      handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
-            'Content-Type': 'application/json',
-          };
-          if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 204, headers, body: '' };
-          }
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ message: 'Auth service placeholder', path: event.path, method: event.httpMethod }),
-          };
-        };
-      `),
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
       environment: {
@@ -53,6 +38,11 @@ export class AuthStack extends cdk.Stack {
         API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
         USER_POOL_ID: userPool.userPoolId,
         USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
+      },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
       },
     });
 

@@ -2,8 +2,10 @@ import * as cdk from 'aws-cdk-lib';
 import * as sns from 'aws-cdk-lib/aws-sns';
 import * as snsSubscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as path from 'path';
 import { Construct } from 'constructs';
 
 export interface LearningStackProps extends cdk.StackProps {
@@ -34,28 +36,11 @@ export class LearningStack extends cdk.Stack {
       displayName: 'LearnVerse Progress Notifications',
     });
 
-    this.learningFunction = new lambda.Function(this, 'LearningFunction', {
+    this.learningFunction = new lambdaNodejs.NodejsFunction(this, 'LearningFunction', {
       functionName: 'learnverse-learning',
+      entry: path.join(__dirname, '../../../services/learning/src/lambda.ts'),
+      handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
-            'Content-Type': 'application/json',
-          };
-          if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 204, headers, body: '' };
-          }
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ message: 'Learning service placeholder', path: event.path, method: event.httpMethod }),
-          };
-        };
-      `),
       memorySize: 256,
       timeout: cdk.Duration.seconds(30),
       environment: {
@@ -64,6 +49,11 @@ export class LearningStack extends cdk.Stack {
         API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
         STREAK_ALERTS_TOPIC_ARN: this.streakAlertsTopic.topicArn,
         PROGRESS_NOTIFICATIONS_TOPIC_ARN: this.progressNotificationsTopic.topicArn,
+      },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
       },
     });
 

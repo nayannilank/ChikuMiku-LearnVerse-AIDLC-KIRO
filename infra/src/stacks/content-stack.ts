@@ -2,8 +2,10 @@ import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as path from 'path';
 import { Construct } from 'constructs';
 
 export interface ContentStackProps extends cdk.StackProps {
@@ -45,28 +47,11 @@ export class ContentStack extends cdk.Stack {
       },
     });
 
-    this.contentFunction = new lambda.Function(this, 'ContentFunction', {
+    this.contentFunction = new lambdaNodejs.NodejsFunction(this, 'ContentFunction', {
       functionName: 'learnverse-content',
+      entry: path.join(__dirname, '../../../services/content/src/lambda.ts'),
+      handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
-            'Content-Type': 'application/json',
-          };
-          if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 204, headers, body: '' };
-          }
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ message: 'Content service placeholder', path: event.path, method: event.httpMethod }),
-          };
-        };
-      `),
       memorySize: 512,
       timeout: cdk.Duration.seconds(60),
       environment: {
@@ -75,6 +60,11 @@ export class ContentStack extends cdk.Stack {
         API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
         PAGE_IMAGES_BUCKET: this.pageImagesBucket.bucketName,
         OCR_QUEUE_URL: this.ocrProcessingQueue.queueUrl,
+      },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
       },
     });
 

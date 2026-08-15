@@ -1,8 +1,10 @@
 import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as path from 'path';
 import { Construct } from 'constructs';
 
 export interface ExportStackProps extends cdk.StackProps {
@@ -33,28 +35,11 @@ export class ExportStack extends cdk.Stack {
       ],
     });
 
-    this.exportFunction = new lambda.Function(this, 'ExportFunction', {
+    this.exportFunction = new lambdaNodejs.NodejsFunction(this, 'ExportFunction', {
       functionName: 'learnverse-export',
+      entry: path.join(__dirname, '../../../services/export/src/lambda.ts'),
+      handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
-            'Content-Type': 'application/json',
-          };
-          if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 204, headers, body: '' };
-          }
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ message: 'Export service placeholder', path: event.path, method: event.httpMethod }),
-          };
-        };
-      `),
       memorySize: 512,
       timeout: cdk.Duration.seconds(60),
       environment: {
@@ -62,6 +47,11 @@ export class ExportStack extends cdk.Stack {
         DATABASE_SECRET_ARN: databaseSecret.secretArn,
         API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
         EXPORT_FILES_BUCKET: this.exportFilesBucket.bucketName,
+      },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
       },
     });
 

@@ -2,9 +2,11 @@ import * as cdk from 'aws-cdk-lib';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as sqs from 'aws-cdk-lib/aws-sqs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as lambdaEventSources from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
+import * as path from 'path';
 import { Construct } from 'constructs';
 
 export interface AiGatewayStackProps extends cdk.StackProps {
@@ -47,28 +49,11 @@ export class AiGatewayStack extends cdk.Stack {
       },
     });
 
-    this.aiGatewayFunction = new lambda.Function(this, 'AiGatewayFunction', {
+    this.aiGatewayFunction = new lambdaNodejs.NodejsFunction(this, 'AiGatewayFunction', {
       functionName: 'learnverse-ai-gateway',
+      entry: path.join(__dirname, '../../../services/ai-gateway/src/lambda.ts'),
+      handler: 'handler',
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromInline(`
-        exports.handler = async (event) => {
-          const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type,Authorization,X-Api-Key',
-            'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,PUT,DELETE',
-            'Content-Type': 'application/json',
-          };
-          if (event.httpMethod === 'OPTIONS') {
-            return { statusCode: 204, headers, body: '' };
-          }
-          return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ message: 'AI Gateway placeholder', path: event.path, method: event.httpMethod }),
-          };
-        };
-      `),
       memorySize: 1024,
       timeout: cdk.Duration.seconds(120),
       environment: {
@@ -77,6 +62,11 @@ export class AiGatewayStack extends cdk.Stack {
         API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
         AUDIO_ASSETS_BUCKET: this.audioAssetsBucket.bucketName,
         AI_GENERATION_QUEUE_URL: this.aiGenerationQueue.queueUrl,
+      },
+      bundling: {
+        minify: true,
+        sourceMap: true,
+        externalModules: ['@aws-sdk/*'],
       },
     });
 

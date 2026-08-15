@@ -12,5 +12,8 @@
   "dependencies": {
     "@chikumiku/types": "*",
     "@chikumiku/validation": "*"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145"
   }
 }
