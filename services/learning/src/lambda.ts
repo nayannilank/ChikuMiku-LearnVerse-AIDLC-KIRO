@@ -16,23 +16,12 @@ function placeholder(path: string, method: string): APIGatewayProxyResult {
 }
 
 function mockParentDashboard(): APIGatewayProxyResult {
+  // No database wired yet — return an empty dashboard so newly registered
+  // parents see the empty state + "Add Learner" button (per the mock).
   return {
     statusCode: 200,
     headers: CORS_HEADERS,
-    body: JSON.stringify({
-      learners: [
-        {
-          id: 'learner-1',
-          name: 'Chiku',
-          grade: '3rd',
-          streak: 5,
-          lastActivity: new Date().toISOString(),
-          progressPercent: 42,
-        },
-      ],
-      notifications: [],
-      weeklyGoal: { target: 5, completed: 3 },
-    }),
+    body: JSON.stringify({ learners: [] }),
   };
 }
 
@@ -40,15 +29,7 @@ function mockLearnerDashboard(): APIGatewayProxyResult {
   return {
     statusCode: 200,
     headers: CORS_HEADERS,
-    body: JSON.stringify({
-      streak: 5,
-      todayCompleted: false,
-      chaptersInProgress: [
-        { id: 'ch-1', title: 'Solar System', progressPercent: 60 },
-      ],
-      badges: ['first-chapter', 'streak-3'],
-      nextActivity: { type: 'revision', chapterId: 'ch-1' },
-    }),
+    body: JSON.stringify({ learnerName: '', streak: 0, subjects: [] }),
   };
 }
 

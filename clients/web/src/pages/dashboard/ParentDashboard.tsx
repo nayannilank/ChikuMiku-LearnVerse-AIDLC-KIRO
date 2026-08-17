@@ -77,21 +77,37 @@ export function ParentDashboard() {
           </div>
         </div>
       </div>
-      <div style={styles.main}>
-        <div style={styles.leftPanel}>
-          <TreeNavigation data={treeData} onSelect={handleSelect} />
+      {learners.length === 0 ? (
+        <div style={styles.noLearners}>
+          <i className="fas fa-user-plus" style={{ fontSize: 40, color: theme.colors.border }} />
+          <h3 style={{ color: theme.colors.dark, marginTop: 16, marginBottom: 4 }}>No learners yet</h3>
+          <p style={{ color: theme.colors.textLight, marginBottom: 20, textAlign: 'center', maxWidth: 360 }}>
+            Add your first learner to start tracking their reading progress, exercises, and quizzes.
+          </p>
+          <button
+            style={{ padding: '12px 28px', border: 'none', borderRadius: theme.borderRadius.button, background: theme.gradients.primary, color: '#fff', fontSize: 14, fontWeight: theme.fonts.weights.bold, cursor: 'pointer', boxShadow: theme.shadows.button, display: 'flex', alignItems: 'center', gap: 8 }}
+            onClick={() => navigate('/register/learner')}
+          >
+            <i className="fas fa-plus" /> Add Your First Learner
+          </button>
         </div>
-        <div style={styles.rightPanel}>
-          {selectedItem ? (
-            <DetailView item={selectedItem} />
-          ) : (
-            <div style={styles.emptyState}>
-              <i className="fas fa-hand-pointer" style={{ fontSize: 32, color: theme.colors.border }} />
-              <p style={{ color: theme.colors.textLight, marginTop: 12 }}>Select a chapter from the tree to view details</p>
-            </div>
-          )}
+      ) : (
+        <div style={styles.main}>
+          <div style={styles.leftPanel}>
+            <TreeNavigation data={treeData} onSelect={handleSelect} />
+          </div>
+          <div style={styles.rightPanel}>
+            {selectedItem ? (
+              <DetailView item={selectedItem} />
+            ) : (
+              <div style={styles.emptyState}>
+                <i className="fas fa-hand-pointer" style={{ fontSize: 32, color: theme.colors.border }} />
+                <p style={{ color: theme.colors.textLight, marginTop: 12 }}>Select a chapter from the tree to view details</p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -147,4 +163,5 @@ const styles: Record<string, React.CSSProperties> = {
   leftPanel: { width: 260, backgroundColor: '#F3EEF9', borderRight: `1px solid ${theme.colors.border}`, overflowY: 'auto', padding: 12 },
   rightPanel: { flex: 1, padding: 20, overflowY: 'auto' },
   emptyState: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' },
+  noLearners: { display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 'calc(100vh - 52px)', padding: 24 },
 };
