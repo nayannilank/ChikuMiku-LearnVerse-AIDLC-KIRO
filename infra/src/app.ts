@@ -87,7 +87,6 @@ exportStack.addDependency(foundation);
 const api = new ApiStack(app, 'LearnVerse-Api', {
   env,
   description: 'ChikuMiku LearnVerse — API Gateway, routing, alarms',
-  userPool: foundation.userPool,
   authFunction: auth.authFunction,
   contentFunction: content.contentFunction,
   learningFunction: learning.learningFunction,

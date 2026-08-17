@@ -39,7 +39,9 @@ jobs:
 
       - name: CDK Deploy
         working-directory: infra
-        run: npx cdk deploy --all --require-approval never --outputs-file cdk-outputs.json
+        run: |
+          npx cdk deploy LearnVerse-Api --require-approval never
+          npx cdk deploy --all --require-approval never --outputs-file cdk-outputs.json
 
       - name: Upload CDK outputs
         uses: actions/upload-artifact@v4

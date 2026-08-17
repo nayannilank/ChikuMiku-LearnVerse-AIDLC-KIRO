@@ -4,11 +4,9 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
-import * as cognito from 'aws-cdk-lib/aws-cognito';
 import { Construct } from 'constructs';
 
 export interface ApiStackProps extends cdk.StackProps {
-  userPool: cognito.UserPool;
   authFunction: lambda.Function;
   contentFunction: lambda.Function;
   learningFunction: lambda.Function;
@@ -26,7 +24,7 @@ export class ApiStack extends cdk.Stack {
     super(scope, id, props);
 
     const {
-      userPool, authFunction, contentFunction,
+      authFunction, contentFunction,
       learningFunction, aiGatewayFunction, exportFunction,
     } = props;
 
