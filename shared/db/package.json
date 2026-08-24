@@ -1,5 +1,5 @@
 {
-  "name": "@chikumiku/service-auth",
+  "name": "@chikumiku/db",
   "version": "0.1.0",
   "private": true,
   "main": "./dist/index.js",
@@ -10,15 +10,10 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
-    "@chikumiku/db": "*",
-    "@chikumiku/types": "*",
-    "@chikumiku/validation": "*",
-    "bcrypt": "^6.0.0",
-    "react-native": "0.86.0",
-    "vite": "8.1.4"
+    "@aws-sdk/client-secrets-manager": "3.1116.0",
+    "pg": "8.23.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.145",
-    "@types/bcrypt": "^5.0.2"
+    "@types/pg": "8.23.1"
   }
 }

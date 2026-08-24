@@ -18,6 +18,7 @@
     { "path": "shared/types" },
     { "path": "shared/validation" },
     { "path": "shared/security" },
+    { "path": "shared/db" },
     { "path": "infra" },
     { "path": "services/auth" },
     { "path": "services/content" },

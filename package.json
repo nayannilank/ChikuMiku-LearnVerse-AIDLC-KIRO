@@ -6,6 +6,7 @@
   "workspaces": [
     "shared/types",
     "shared/validation",
+    "shared/db",
     "infra",
     "services/auth",
     "services/content",

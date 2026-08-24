@@ -7,6 +7,7 @@
   "include": ["src/**/*"],
   "references": [
     { "path": "../../shared/types" },
-    { "path": "../../shared/validation" }
+    { "path": "../../shared/validation" },
+    { "path": "../../shared/db" }
   ]
 }
