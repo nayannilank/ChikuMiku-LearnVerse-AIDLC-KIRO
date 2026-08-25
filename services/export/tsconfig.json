@@ -8,6 +8,7 @@
   "references": [
     { "path": "../../shared/types" },
     { "path": "../../shared/validation" },
-    { "path": "../../shared/db" }
+    { "path": "../../shared/db" },
+    { "path": "../auth" }
   ]
 }

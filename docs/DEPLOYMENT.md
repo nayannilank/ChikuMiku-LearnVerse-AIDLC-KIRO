@@ -5,16 +5,20 @@ ChikuMiku LearnVerse deploys its backend to **AWS** (via CDK) and its web fronte
 ## Architecture
 
 ```
-┌────────────────┐         ┌─────────────────────────────────┐
-│  Vercel (Web)  │──API──▶ │  AWS (Backend)                  │
-│  React SPA     │         │  API Gateway → Lambda → Aurora  │
-└────────────────┘         │  S3, SQS, SNS, Cognito          │
-                           └─────────────────────────────────┘
+┌────────────────┐         ┌───────────────────────────────────────┐
+│  Vercel (Web)  │──API──▶ │  AWS (Backend)                        │
+│  React SPA     │         │  API Gateway → Lambda → Neon Postgres │
+└────────────────┘         │  S3, SQS, SNS, Cognito, SES           │
+                           └───────────────────────────────────────┘
 ```
+
+> The database is **Neon PostgreSQL** (serverless, external to AWS, reached over
+> the public internet — no VPC or bastion required). Email/SMS for the
+> password-reset flow use **SES** (email) and **SNS** (SMS).
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - AWS CLI configured with appropriate credentials
 - AWS CDK CLI (`npm install -g aws-cdk`)
 - Vercel CLI (`npm install -g vercel`)
@@ -34,7 +38,7 @@ ChikuMiku LearnVerse deploys its backend to **AWS** (via CDK) and its web fronte
 ### CI (`ci.yml`)
 Runs on every push and PR:
 - TypeScript type checking
-- Full test suite (1,416 tests including property-based tests)
+- Full test suite (1,600+ tests including property-based tests)
 - CDK synth validation
 - Web client Vite build
 
@@ -104,7 +108,19 @@ vercel deploy --prod
 
 ### AWS (managed by CDK)
 
-All Lambda environment variables are configured in the CDK stack. Third-party API keys are stored in AWS Secrets Manager (`learnverse/third-party-api-keys`).
+Most Lambda environment variables are configured in the CDK stacks, including
+`DATABASE_SECRET_ARN`, `API_KEYS_SECRET_ARN`, and (for the auth service)
+`COGNITO_USER_POOL_ID` / `COGNITO_CLIENT_ID`. Third-party API keys and the Neon
+connection string live in AWS Secrets Manager (`learnverse/third-party-api-keys`
+and `learnverse/database-url`).
+
+Two auth-service variables are operator-configurable (set them on the auth
+Lambda, e.g. via the console or by extending the auth stack):
+
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `SES_FROM_ADDRESS` | Verified SES sender for password-reset OTP emails | *(required for email OTP)* |
+| `RESET_REQUEST_WINDOW_MINUTES` | Min interval between reset requests per user | `30` |
 
 ## First-Time Setup
 
@@ -131,14 +147,40 @@ All Lambda environment variables are configured in the CDK stack. Third-party AP
    vercel deploy --prod
    ```
 
-5. **Populate Secrets Manager** with actual API keys in the AWS Console.
+5. **Populate Secrets Manager** with actual values in the AWS Console:
+   - `learnverse/third-party-api-keys` — JSON blob with `GOOGLE_VISION_API_KEY`,
+     `GOOGLE_TTS_API_KEY`, `OPENAI_API_KEY` (Whisper uses the OpenAI key).
+   - `learnverse/database-url` — the Neon connection string (`DATABASE_URL`, and
+     optionally `DATABASE_URL_UNPOOLED`).
 
-6. **Run database migrations** against Aurora:
+5a. **Configure Amazon SES/SNS for the password-reset flow**:
+   - Verify a sender identity in **SES** and set `SES_FROM_ADDRESS` on the auth
+     Lambda to that verified address. If your SES account is still in the
+     sandbox, either move it to production or verify each recipient address.
+   - **SNS** SMS requires no identity, but check your account's SMS spending
+     limit / sandbox destination numbers in the target region.
+   - Optionally set `RESET_REQUEST_WINDOW_MINUTES` on the auth Lambda to change
+     the one-request-per-user reset window (defaults to 30 minutes).
+
+   > The auth Lambda also receives `COGNITO_USER_POOL_ID` and `COGNITO_CLIENT_ID`
+   > automatically from the CDK stacks — no manual step needed.
+
+6. **Run database migrations** against Neon. Neon's pooled endpoint is public
+   (no bastion/VPN needed); use the connection string stored in the
+   `learnverse/database-url` secret.
+
+   The simplest path is the single idempotent init script, which creates every
+   table + index and seeds the default subjects:
    ```bash
-   # Connect to Aurora via bastion or VPN, then run:
-   psql -h <cluster-endpoint> -U postgres -d learnverse -f infra/migrations/001_enable_extensions.sql
-   psql -h <cluster-endpoint> -U postgres -d learnverse -f infra/migrations/002_create_tables.sql
-   psql -h <cluster-endpoint> -U postgres -d learnverse -f infra/migrations/003_create_indexes.sql
+   psql "$DATABASE_URL" -f infra/migrations/neon-init.sql
+   ```
+
+   Or apply the numbered migrations in order (equivalent schema):
+   ```bash
+   psql "$DATABASE_URL" -f infra/migrations/001_enable_extensions.sql
+   psql "$DATABASE_URL" -f infra/migrations/002_create_tables.sql
+   psql "$DATABASE_URL" -f infra/migrations/003_create_indexes.sql
+   psql "$DATABASE_URL" -f infra/migrations/004_auth_flow_tables.sql   # parental_consent, otp_record, password_reset_token
    ```
 
 ## Updating the API URL in Vercel

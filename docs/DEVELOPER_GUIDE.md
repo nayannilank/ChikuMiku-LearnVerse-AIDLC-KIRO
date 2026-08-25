@@ -165,16 +165,19 @@ npm test
 
 ### Infrastructure Stacks (CDK)
 
-The CDK app deploys 8 stacks to `ap-south-1`:
+The CDK app (`infra/src/app.ts`) deploys 7 stacks to `ap-south-1`:
 
-1. **LearnVerse-Foundation** — Cognito User Pool, Secrets Manager (Neon DB URL + API keys)
-2. **LearnVerse-Frontend** — S3 + CloudFront for web app hosting
-3. **LearnVerse-Auth** — Authentication Lambda (registration, login, OTP)
-4. **LearnVerse-Content** — Content Lambda, page images S3 bucket, OCR processing queue (SQS)
-5. **LearnVerse-AiGateway** — AI Gateway Lambda, audio assets S3, AI generation queue (SQS)
-6. **LearnVerse-Learning** — Dashboard/progress Lambda, SNS notifications
-7. **LearnVerse-Export** — Report generation Lambda, export files S3
-8. **LearnVerse-Api** — API Gateway (REST + WebSocket), CloudWatch alarms
+1. **LearnVerse-Foundation** — Cognito User Pool (with `custom:role` + `custom:appUserId` attributes), Secrets Manager (Neon DB URL + API keys)
+2. **LearnVerse-Auth** — Authentication Lambda (registration, login, OTP/password reset, logout); Cognito + SES/SNS permissions
+3. **LearnVerse-Content** — Content Lambda, page images S3 bucket, OCR processing queue (SQS)
+4. **LearnVerse-AiGateway** — AI Gateway Lambda, audio assets S3, AI generation queue (SQS)
+5. **LearnVerse-Learning** — Dashboard/progress Lambda, SNS notifications
+6. **LearnVerse-Export** — Report generation Lambda, export files S3
+7. **LearnVerse-Api** — API Gateway (REST + WebSocket) with the Cognito authorizer on protected routes, CloudWatch alarms
+
+> The web frontend is hosted on **Vercel**, not AWS — there is no frontend
+> CDK stack wired into the app. (`infra/src/stacks/frontend-stack.ts` exists but
+> is not instantiated in `app.ts`.)
 
 ### External Services
 
@@ -249,32 +252,35 @@ test('username validation', () => {
 
 ### Service Organization
 
-Each Lambda service follows this pattern:
+Each Lambda service follows this pattern (tests are colocated as `*.test.ts`
+next to the code they cover, not in a separate `tests/` tree):
 
 ```
 services/auth/
 ├── package.json
 ├── tsconfig.json
-├── src/
-│   ├── index.ts          # Lambda handler entry point
-│   ├── routes/           # Route handlers
-│   ├── services/         # Business logic
-│   ├── repositories/     # Database access
-│   └── utils/            # Helpers
-└── tests/
-    ├── unit/             # Unit tests
-    └── property/         # Property-based tests
+└── src/
+    ├── lambda.ts         # Lambda handler entry point (HTTP routing → handlers)
+    ├── index.ts          # Public exports for the package
+    ├── handlers/         # Per-route business logic (+ *.test.ts)
+    ├── clients/          # Concrete adapters: DB (Neon), Cognito, SES/SNS, etc.
+    ├── middleware/        # Auth/token middleware (auth service)
+    └── repositories/      # DB access (present in services that use the term)
 ```
+
+> Some services name their DB-access layer `clients/` (e.g. auth, content) and
+> others `repositories/` (e.g. learning). Shared DB connection/pooling lives in
+> the `@chikumiku/db` package under `shared/db`.
 
 ### Adding a New API Route
 
-1. Add the route handler in the appropriate service under `src/routes/`.
-2. Add business logic in `src/services/`.
-3. Add database queries in `src/repositories/`.
+1. Add the handler (business logic) in the appropriate service under `src/handlers/`.
+2. Add any concrete adapters (DB/Cognito/SES/etc.) under `src/clients/` (or `src/repositories/`).
+3. Wire the new path in the service's `src/lambda.ts` router and construct the handler's dependencies there.
 4. Add shared types to `shared/types/` if needed.
 5. Add validation schemas to `shared/validation/`.
-6. Write tests (unit + property-based).
-7. Update the API Gateway routing in `infra/src/stacks/api-stack.ts` if needed.
+6. Write tests colocated as `*.test.ts` (unit + property-based).
+7. Update the API Gateway routing/authorizer in `infra/src/stacks/api-stack.ts` if the route needs new resources or a different auth requirement.
 
 ---
 
@@ -342,8 +348,8 @@ VITE_API_BASE_URL=http://localhost:3000
 
 Secrets are stored in AWS Secrets Manager and injected into Lambda environments:
 
-- `learnverse/database-url` — Neon PostgreSQL connection string
-- `learnverse/api-keys` — JSON blob with all external API keys
+- `learnverse/database-url` — Neon PostgreSQL connection string (`DATABASE_URL` [+ optional `DATABASE_URL_UNPOOLED`])
+- `learnverse/third-party-api-keys` — JSON blob with `GOOGLE_VISION_API_KEY`, `GOOGLE_TTS_API_KEY`, `OPENAI_API_KEY` (Whisper reuses the OpenAI key)
 
 These are referenced by the Foundation stack and shared with all service stacks.
 

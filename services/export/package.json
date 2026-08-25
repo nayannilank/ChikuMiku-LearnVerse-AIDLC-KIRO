@@ -10,7 +10,10 @@
     "test": "jest --passWithNoTests"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "3.1116.0",
+    "@aws-sdk/s3-request-presigner": "3.1116.0",
     "@chikumiku/db": "*",
+    "@chikumiku/service-auth": "*",
     "@chikumiku/types": "*",
     "@chikumiku/validation": "*"
   },

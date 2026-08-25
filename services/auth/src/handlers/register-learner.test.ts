@@ -58,11 +58,26 @@ function mockConsentRepository(overrides?: Partial<ConsentRepository>): ConsentR
   };
 }
 
-function mockDeps(overrides?: { repository?: LearnerRepository; passwordHasher?: PasswordHasher; consentRepository?: ConsentRepository }): RegisterLearnerDeps {
+function mockCognitoClient() {
+  return {
+    createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'cognito-learner-1' }),
+    authenticate: jest.fn().mockResolvedValue(null),
+    refreshSession: jest.fn().mockResolvedValue(null),
+    terminateSession: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
+function mockDeps(overrides?: {
+  repository?: LearnerRepository;
+  passwordHasher?: PasswordHasher;
+  consentRepository?: ConsentRepository;
+  cognitoClient?: RegisterLearnerDeps['cognitoClient'];
+}): RegisterLearnerDeps {
   return {
     repository: overrides?.repository ?? mockRepository(),
     passwordHasher: overrides?.passwordHasher ?? mockHasher(),
     consentRepository: overrides?.consentRepository ?? mockConsentRepository(),
+    cognitoClient: overrides?.cognitoClient ?? mockCognitoClient(),
   };
 }
 
@@ -219,6 +234,22 @@ describe('handleRegisterLearner', () => {
         passwordHash: '$2b$10$hashedpassword',
       })
     );
+  });
+
+  it('provisions a username-only Cognito account for the learner with the DB id', async () => {
+    const cognitoClient = mockCognitoClient();
+    const deps = mockDeps({ cognitoClient });
+
+    await handleRegisterLearner(validRequest(), authContext, deps);
+
+    // Created with role 'learner', the plaintext password, and appUserId set to
+    // the DB learner id returned by createLearner. No email/phone.
+    expect(cognitoClient.createUser).toHaveBeenCalledWith({
+      username: 'learner-01',
+      password: 'Pass1234!',
+      role: 'learner',
+      appUserId: 'learner-uuid-123',
+    });
   });
 
   it('pre-fills parent username from auth context', async () => {

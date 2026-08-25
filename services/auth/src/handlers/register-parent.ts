@@ -116,12 +116,18 @@ export async function handleRegisterParent(
     passwordHash,
   });
 
-  // 5. Create Cognito user for session management (Req 20.2)
+  // 5. Create Cognito user for session management (Req 20.2). Carry the DB
+  // parent id as custom:appUserId so the JWT authorizer surfaces a stable link
+  // to the application record (Cognito's own `sub` differs from parent.id).
   await deps.cognitoClient.createUser({
     username: request.username,
     email: request.email,
     phone: request.phone,
+    // Plaintext password provisions the Cognito account so the parent can log
+    // in via USER_PASSWORD_AUTH. (The DB stores only the bcrypt hash above.)
+    password: request.password,
     role: 'parent',
+    appUserId: parentId,
   });
 
   // 6. Return success response with auto-redirect countdown (Req 1.2)

@@ -3,6 +3,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as apigatewayv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import { Construct } from 'constructs';
 
@@ -12,6 +13,8 @@ export interface ApiStackProps extends cdk.StackProps {
   learningFunction: lambda.Function;
   aiGatewayFunction: lambda.Function;
   exportFunction: lambda.Function;
+  /** Cognito user pool backing the JWT authorizer for protected routes. */
+  userPool: cognito.IUserPool;
 }
 
 /**
@@ -26,6 +29,7 @@ export class ApiStack extends cdk.Stack {
     const {
       authFunction, contentFunction,
       learningFunction, aiGatewayFunction, exportFunction,
+      userPool,
     } = props;
 
     // REST API
@@ -72,60 +76,80 @@ export class ApiStack extends cdk.Stack {
     //   securityPolicy: apigateway.SecurityPolicy.TLS_1_2,
     // });
 
-    // Cognito authorizer — disabled for development (Lambdas are placeholders).
-    // Re-enable when real auth Lambda returns valid Cognito JWT tokens.
-    // const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
-    //   cognitoUserPools: [userPool],
-    //   authorizerName: 'LearnVerseCognitoAuthorizer',
-    // });
-    // const authorizedMethodOptions: apigateway.MethodOptions = {
-    //   authorizer: cognitoAuthorizer,
-    //   authorizationType: apigateway.AuthorizationType.COGNITO,
-    // };
+    // Cognito authorizer — validates the JWT (from the Authorization header)
+    // against the user pool and injects verified claims into
+    // event.requestContext.authorizer.claims, which the Lambdas read for
+    // identity (sub, cognito:username, custom:role).
+    const cognitoAuthorizer = new apigateway.CognitoUserPoolsAuthorizer(this, 'CognitoAuthorizer', {
+      cognitoUserPools: [userPool],
+      authorizerName: 'LearnVerseCognitoAuthorizer',
+    });
 
-    // /auth/*
+    /** Method options that require a valid Cognito JWT. */
+    const authorized: apigateway.MethodOptions = {
+      authorizer: cognitoAuthorizer,
+      authorizationType: apigateway.AuthorizationType.COGNITO,
+    };
+
+    const authIntegration = new apigateway.LambdaIntegration(authFunction);
+    const contentIntegration = new apigateway.LambdaIntegration(contentFunction);
+    const learnIntegration = new apigateway.LambdaIntegration(learningFunction);
+    const aiIntegration = new apigateway.LambdaIntegration(aiGatewayFunction);
+    const exportIntegration = new apigateway.LambdaIntegration(exportFunction);
+
+    // /auth/* — mostly PUBLIC (login, register/parent, and the password-reset
+    // flow must be reachable without a token). Only the routes that act on an
+    // authenticated session are protected: register/learner and logout.
     const authResource = this.restApi.root.addResource('auth');
-    authResource.addMethod('ANY', new apigateway.LambdaIntegration(authFunction));
+    const registerResource = authResource.addResource('register');
+    // POST /auth/register/parent — public
+    registerResource.addResource('parent').addMethod('POST', authIntegration);
+    // POST /auth/register/learner — requires an authenticated parent
+    registerResource.addResource('learner').addMethod('POST', authIntegration, authorized);
+    // POST /auth/logout — requires an authenticated session
+    authResource.addResource('logout').addMethod('POST', authIntegration, authorized);
+    // All other /auth/* routes (login, forgot-password, verify-otp,
+    // reset-password) stay public via the proxy.
     authResource.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(authFunction),
+      defaultIntegration: authIntegration,
       anyMethod: true,
     });
 
-    // /content/*
+    // /content/* — protected
     const contentResource = this.restApi.root.addResource('content');
-    contentResource.addMethod('ANY', new apigateway.LambdaIntegration(contentFunction));
+    contentResource.addMethod('ANY', contentIntegration, authorized);
     const contentProxy = contentResource.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(contentFunction),
+      defaultIntegration: contentIntegration,
       anyMethod: false,
     });
-    contentProxy.addMethod('ANY', new apigateway.LambdaIntegration(contentFunction));
+    contentProxy.addMethod('ANY', contentIntegration, authorized);
 
-    // /learn/*
+    // /learn/* — protected
     const learnResource = this.restApi.root.addResource('learn');
-    learnResource.addMethod('ANY', new apigateway.LambdaIntegration(learningFunction));
+    learnResource.addMethod('ANY', learnIntegration, authorized);
     const learnProxy = learnResource.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(learningFunction),
+      defaultIntegration: learnIntegration,
       anyMethod: false,
     });
-    learnProxy.addMethod('ANY', new apigateway.LambdaIntegration(learningFunction));
+    learnProxy.addMethod('ANY', learnIntegration, authorized);
 
-    // /ai/*
+    // /ai/* — protected
     const aiResource = this.restApi.root.addResource('ai');
-    aiResource.addMethod('ANY', new apigateway.LambdaIntegration(aiGatewayFunction));
+    aiResource.addMethod('ANY', aiIntegration, authorized);
     const aiProxy = aiResource.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(aiGatewayFunction),
+      defaultIntegration: aiIntegration,
       anyMethod: false,
     });
-    aiProxy.addMethod('ANY', new apigateway.LambdaIntegration(aiGatewayFunction));
+    aiProxy.addMethod('ANY', aiIntegration, authorized);
 
-    // /export/*
+    // /export/* — protected
     const exportResource = this.restApi.root.addResource('export');
-    exportResource.addMethod('ANY', new apigateway.LambdaIntegration(exportFunction));
+    exportResource.addMethod('ANY', exportIntegration, authorized);
     const exportProxy = exportResource.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(exportFunction),
+      defaultIntegration: exportIntegration,
       anyMethod: false,
     });
-    exportProxy.addMethod('ANY', new apigateway.LambdaIntegration(exportFunction));
+    exportProxy.addMethod('ANY', exportIntegration, authorized);
 
     // WebSocket API for real-time updates
     const webSocketApi = new apigatewayv2.CfnApi(this, 'LearnVerseWebSocketApi', {

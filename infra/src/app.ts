@@ -92,6 +92,7 @@ const api = new ApiStack(app, 'LearnVerse-Api', {
   learningFunction: learning.learningFunction,
   aiGatewayFunction: aiGateway.aiGatewayFunction,
   exportFunction: exportStack.exportFunction,
+  userPool: foundation.userPool,
 });
 api.addDependency(auth);
 api.addDependency(content);

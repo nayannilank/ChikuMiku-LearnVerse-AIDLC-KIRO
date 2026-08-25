@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as lambdaNodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -36,8 +37,9 @@ export class AuthStack extends cdk.Stack {
         NODE_OPTIONS: '--enable-source-maps',
         DATABASE_SECRET_ARN: databaseSecret.secretArn,
         API_KEYS_SECRET_ARN: apiKeysSecret.secretArn,
-        USER_POOL_ID: userPool.userPoolId,
-        USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
+        // Names the AwsCognitoClient reads (COGNITO_USER_POOL_ID / COGNITO_CLIENT_ID).
+        COGNITO_USER_POOL_ID: userPool.userPoolId,
+        COGNITO_CLIENT_ID: userPoolClient.userPoolClientId,
       },
       bundling: {
         minify: true,
@@ -47,6 +49,22 @@ export class AuthStack extends cdk.Stack {
     });
 
     databaseSecret.grantRead(this.authFunction);
+
+    // Cognito operations used by the auth service: provisioning users
+    // (AdminCreateUser / AdminSetUserPassword), login (InitiateAuth), and
+    // logout (GlobalSignOut). Scoped to this user pool.
+    this.authFunction.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'cognito-idp:AdminCreateUser',
+          'cognito-idp:AdminSetUserPassword',
+          'cognito-idp:InitiateAuth',
+          'cognito-idp:GlobalSignOut',
+        ],
+        resources: [userPool.userPoolArn],
+      })
+    );
 
     new logs.LogGroup(this, 'AuthLambdaLogGroup', {
       logGroupName: `/aws/lambda/${this.authFunction.functionName}`,

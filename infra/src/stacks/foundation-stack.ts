@@ -34,10 +34,20 @@ export class FoundationStack extends cdk.Stack {
         requireSymbols: false,
       },
       accountRecovery: cognito.AccountRecovery.EMAIL_AND_PHONE_WITHOUT_MFA,
+      // Custom attributes surfaced as JWT claims. `role` distinguishes
+      // parent/learner; `appUserId` carries the application DB id (parent.id /
+      // learner.id) so services can look up records — the Cognito `sub` is a
+      // different value from the DB id. Mutable so they can be set after
+      // creation if needed.
+      customAttributes: {
+        role: new cognito.StringAttribute({ minLen: 1, maxLen: 16, mutable: true }),
+        appUserId: new cognito.StringAttribute({ minLen: 1, maxLen: 64, mutable: true }),
+      },
       removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
 
     this.userPoolClient = this.userPool.addClient('LearnVerseAppClient', {
+      // userPassword enables the USER_PASSWORD_AUTH flow used by /auth/login.
       authFlows: { userPassword: true, userSrp: true },
       accessTokenValidity: cdk.Duration.minutes(60),
       refreshTokenValidity: cdk.Duration.days(30),

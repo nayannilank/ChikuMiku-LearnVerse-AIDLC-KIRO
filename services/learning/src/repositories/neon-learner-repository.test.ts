@@ -56,6 +56,25 @@ describe('NeonLearnerRepository', () => {
     });
   });
 
+  describe('getName', () => {
+    it('returns the learner name from the DB', async () => {
+      const query = jest.fn().mockResolvedValue({ rows: [{ name: 'Aarav' }] });
+      const repo = new NeonLearnerRepository({ pool: mockPool(query) });
+
+      expect(await repo.getName('l-1')).toBe('Aarav');
+
+      const [sql, params] = query.mock.calls[0];
+      expect(sql).toContain('SELECT name FROM learner');
+      expect(sql).toContain('deleted_at IS NULL');
+      expect(params).toEqual(['l-1']);
+    });
+
+    it('returns null when the learner does not exist', async () => {
+      const repo = new NeonLearnerRepository({ pool: mockPool() });
+      expect(await repo.getName('missing')).toBeNull();
+    });
+  });
+
   describe('updateStreakData', () => {
     it('updates the denormalized streak fields with mapped params', async () => {
       const query = jest.fn().mockResolvedValue({ rows: [] });

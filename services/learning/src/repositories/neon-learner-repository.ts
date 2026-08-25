@@ -52,6 +52,20 @@ export class NeonLearnerRepository implements ILearnerRepository {
     return this.injectedPool ?? (await getPool());
   }
 
+  /**
+   * Returns the learner's display name (learner.name), or null when no active
+   * learner has that id. Used by the learner dashboard so it shows the real
+   * name rather than the Cognito username.
+   */
+  async getName(learnerId: string): Promise<string | null> {
+    const db = await this.db();
+    const result = await db.query<{ name: string }>(
+      `SELECT name FROM learner WHERE id = $1 AND deleted_at IS NULL`,
+      [learnerId] as never[]
+    );
+    return result.rows.length > 0 ? result.rows[0].name : null;
+  }
+
   async getStreakData(learnerId: string): Promise<LearnerStreakRecord | null> {
     const db = await this.db();
     const result = await db.query<StreakRow>(

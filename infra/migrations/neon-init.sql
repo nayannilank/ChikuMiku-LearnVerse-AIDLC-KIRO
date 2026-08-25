@@ -184,6 +184,35 @@ CREATE TABLE IF NOT EXISTS qa_session (
     last_active_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
+-- Parental consent: records a parent's consent to create learner profiles.
+CREATE TABLE IF NOT EXISTS parental_consent (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    parent_id UUID NOT NULL REFERENCES parent(id) ON DELETE CASCADE,
+    consent_version VARCHAR(20) NOT NULL,
+    granted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    revoked_at TIMESTAMP WITH TIME ZONE
+);
+
+-- OTP records: one-time passcodes for the forgot-password flow.
+CREATE TABLE IF NOT EXISTS otp_record (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(15) NOT NULL,
+    code VARCHAR(6) NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    invalidated BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Password reset tokens: issued after OTP verification, single-use.
+CREATE TABLE IF NOT EXISTS password_reset_token (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    username VARCHAR(15) NOT NULL,
+    token VARCHAR(128) NOT NULL,
+    used BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL
+);
+
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Indexes
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -247,6 +276,21 @@ CREATE INDEX IF NOT EXISTS idx_embedding_vector_hnsw ON embedding
 CREATE INDEX IF NOT EXISTS idx_qa_session_learner_id ON qa_session(learner_id);
 CREATE INDEX IF NOT EXISTS idx_qa_session_chapter_id ON qa_session(chapter_id);
 CREATE INDEX IF NOT EXISTS idx_qa_session_learner_chapter ON qa_session(learner_id, chapter_id);
+
+-- Parental consent
+CREATE INDEX IF NOT EXISTS idx_parental_consent_parent_id ON parental_consent(parent_id);
+CREATE INDEX IF NOT EXISTS idx_parental_consent_active
+    ON parental_consent(parent_id) WHERE revoked_at IS NULL;
+
+-- OTP record
+CREATE INDEX IF NOT EXISTS idx_otp_record_username ON otp_record(username);
+CREATE INDEX IF NOT EXISTS idx_otp_record_username_created
+    ON otp_record(username, created_at DESC);
+
+-- Password reset token
+CREATE INDEX IF NOT EXISTS idx_password_reset_token_username ON password_reset_token(username);
+CREATE INDEX IF NOT EXISTS idx_password_reset_token_lookup
+    ON password_reset_token(username, token);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Seed default subjects

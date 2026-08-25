@@ -36,6 +36,7 @@ function createMockDeps(overrides: Partial<RegisterParentDependencies> = {}): Re
     },
     cognitoClient: {
       createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'cognito-123' }),
+      authenticate: jest.fn().mockResolvedValue(null),
       refreshSession: jest.fn().mockResolvedValue(null),
       terminateSession: jest.fn().mockResolvedValue(undefined),
     },
@@ -175,11 +176,15 @@ describe('handleRegisterParent', () => {
     const request = validRequest();
     await handleRegisterParent(request, deps);
 
+    // The DB parent id is carried to Cognito as appUserId (custom:appUserId).
+    const createdParentId = (deps.dbClient.createParent as jest.Mock).mock.calls[0][0].id;
     expect(deps.cognitoClient.createUser).toHaveBeenCalledWith({
       username: request.username,
       email: request.email,
       phone: request.phone,
+      password: request.password,
       role: 'parent',
+      appUserId: createdParentId,
     });
   });
 

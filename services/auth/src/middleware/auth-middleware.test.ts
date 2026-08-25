@@ -26,6 +26,7 @@ const validPayload: DecodedToken = {
 function createMockCognitoClient(): CognitoClient {
   return {
     createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'mock-id' }),
+    authenticate: jest.fn().mockResolvedValue(null),
     refreshSession: jest.fn().mockResolvedValue(null),
     terminateSession: jest.fn().mockResolvedValue(undefined),
   };

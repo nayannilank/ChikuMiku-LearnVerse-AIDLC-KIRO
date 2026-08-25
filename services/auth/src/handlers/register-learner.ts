@@ -18,6 +18,7 @@ import {
   validateSubjectName,
 } from '@chikumiku/validation';
 import { requireParentalConsent, type ConsentRepository } from './parental-consent';
+import type { CognitoClient } from '../clients/cognito-client';
 
 // --- Valid domain values ---
 
@@ -78,6 +79,8 @@ export interface RegisterLearnerDeps {
   repository: LearnerRepository;
   passwordHasher: PasswordHasher;
   consentRepository: ConsentRepository;
+  /** Provisions the learner's own Cognito account for login. */
+  cognitoClient: CognitoClient;
 }
 
 /** Result from the handler: either success or error. */
@@ -249,6 +252,17 @@ export async function handleRegisterLearner(
     schoolName: enrichedRequest.schoolName,
     subjectIds: enrichedRequest.subjectIds,
     customSubjects: enrichedRequest.customSubjects ?? [],
+  });
+
+  // Step 6: Provision the learner's own Cognito account so they can log in
+  // (username-only — learners have no email/phone). The DB learner id is
+  // carried as custom:appUserId, exactly like the parent flow, so the learner
+  // dashboard can resolve identity from the JWT claim.
+  await deps.cognitoClient.createUser({
+    username: enrichedRequest.username,
+    password: enrichedRequest.password,
+    role: 'learner',
+    appUserId: learnerId,
   });
 
   return {
