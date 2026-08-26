@@ -40,10 +40,9 @@ jobs:
       - name: CDK Deploy
         working-directory: infra
         run: |
-          # Deploy Api FIRST and exclusively — removes the Cognito UserPool cross-stack
-          # import so Foundation can later drop that export without conflict.
-          npx cdk deploy LearnVerse-Api --exclusively --require-approval never
-          # Then deploy everything (Foundation export can now be removed safely).
+          # Deploy all stacks in dependency order. CDK deploys Foundation first
+          # (it exports the Cognito User Pool ARN that the Api stack's authorizer
+          # imports), then the service stacks, then Api last.
           npx cdk deploy --all --require-approval never --outputs-file cdk-outputs.json
 
       - name: Upload CDK outputs
