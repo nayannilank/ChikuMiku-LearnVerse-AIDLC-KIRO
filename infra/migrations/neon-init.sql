@@ -18,11 +18,20 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Schema
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE SCHEMA IF NOT EXISTS "chikumiku-learnverse";
+
+-- Set search_path so all subsequent objects resolve to this schema by default
+SET search_path TO "chikumiku-learnverse", public;
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Tables
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Parent: registered adult users who manage learner profiles
-CREATE TABLE IF NOT EXISTS parent (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".parent (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(15) NOT NULL UNIQUE,
     full_name VARCHAR(20) NOT NULL,
@@ -36,9 +45,9 @@ CREATE TABLE IF NOT EXISTS parent (
 );
 
 -- Learner: student users linked to a parent account
-CREATE TABLE IF NOT EXISTS learner (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".learner (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_id UUID NOT NULL REFERENCES parent(id) ON DELETE CASCADE,
+    parent_id UUID NOT NULL REFERENCES "chikumiku-learnverse".parent(id) ON DELETE CASCADE,
     username VARCHAR(15) NOT NULL UNIQUE,
     name VARCHAR(20) NOT NULL,
     password_hash TEXT NOT NULL,
@@ -55,26 +64,26 @@ CREATE TABLE IF NOT EXISTS learner (
 );
 
 -- Subject: default or custom subjects created by parents
-CREATE TABLE IF NOT EXISTS subject (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".subject (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(50) NOT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
-    parent_id UUID REFERENCES parent(id) ON DELETE CASCADE
+    parent_id UUID REFERENCES "chikumiku-learnverse".parent(id) ON DELETE CASCADE
 );
 
 -- Book: a book owned by a learner within a subject
-CREATE TABLE IF NOT EXISTS book (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".book (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES learner(id) ON DELETE CASCADE,
-    subject_id UUID NOT NULL REFERENCES subject(id) ON DELETE CASCADE,
+    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
+    subject_id UUID NOT NULL REFERENCES "chikumiku-learnverse".subject(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- Chapter: a unit of content within a book
-CREATE TABLE IF NOT EXISTS chapter (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".chapter (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    book_id UUID NOT NULL REFERENCES book(id) ON DELETE CASCADE,
+    book_id UUID NOT NULL REFERENCES "chikumiku-learnverse".book(id) ON DELETE CASCADE,
     chapter_number INTEGER NOT NULL,
     chapter_name VARCHAR(100) NOT NULL,
     ai_assets_generated BOOLEAN NOT NULL DEFAULT FALSE,
@@ -85,9 +94,9 @@ CREATE TABLE IF NOT EXISTS chapter (
 );
 
 -- Page: an OCR-captured page within a chapter
-CREATE TABLE IF NOT EXISTS page (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".page (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     page_number INTEGER NOT NULL,
     classification VARCHAR(20) NOT NULL DEFAULT 'content',
     image_s3_key VARCHAR(512),
@@ -99,9 +108,9 @@ CREATE TABLE IF NOT EXISTS page (
 );
 
 -- Explanation: AI-generated page-by-page explanations
-CREATE TABLE IF NOT EXISTS explanation (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".explanation (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    page_id UUID NOT NULL REFERENCES page(id) ON DELETE CASCADE,
+    page_id UUID NOT NULL REFERENCES "chikumiku-learnverse".page(id) ON DELETE CASCADE,
     summary TEXT NOT NULL,
     keywords JSONB NOT NULL DEFAULT '[]'::jsonb,
     concepts JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -110,9 +119,9 @@ CREATE TABLE IF NOT EXISTS explanation (
 );
 
 -- Revision question: AI-generated quiz questions per chapter
-CREATE TABLE IF NOT EXISTS revision_question (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".revision_question (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     difficulty VARCHAR(20) NOT NULL,
     question_type VARCHAR(30) NOT NULL,
     question_data JSONB NOT NULL,
@@ -121,10 +130,10 @@ CREATE TABLE IF NOT EXISTS revision_question (
 );
 
 -- Quiz attempt: records a learner's quiz session
-CREATE TABLE IF NOT EXISTS quiz_attempt (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".quiz_attempt (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES learner(id) ON DELETE CASCADE,
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     difficulty VARCHAR(20) NOT NULL,
     total_questions INTEGER NOT NULL,
     correct_answers INTEGER NOT NULL,
@@ -134,9 +143,9 @@ CREATE TABLE IF NOT EXISTS quiz_attempt (
 );
 
 -- Grammar exercise: AI-generated grammar exercises per chapter
-CREATE TABLE IF NOT EXISTS grammar_exercise (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".grammar_exercise (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     exercise_type VARCHAR(30) NOT NULL,
     exercise_data JSONB NOT NULL,
     correct_answer JSONB NOT NULL,
@@ -144,19 +153,19 @@ CREATE TABLE IF NOT EXISTS grammar_exercise (
 );
 
 -- Pronunciation asset: TTS audio for words/sentences in a chapter
-CREATE TABLE IF NOT EXISTS pronunciation_asset (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".pronunciation_asset (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     word_or_sentence TEXT NOT NULL,
     audio_s3_key VARCHAR(512) NOT NULL,
     language VARCHAR(50) NOT NULL
 );
 
 -- Activity log: tracks all learner activities for streaks and analytics
-CREATE TABLE IF NOT EXISTS activity_log (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".activity_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES learner(id) ON DELETE CASCADE,
-    chapter_id UUID REFERENCES chapter(id) ON DELETE SET NULL,
+    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
+    chapter_id UUID REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE SET NULL,
     activity_type VARCHAR(30) NOT NULL,
     local_date DATE NOT NULL,
     "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -164,9 +173,9 @@ CREATE TABLE IF NOT EXISTS activity_log (
 );
 
 -- Embedding: pgvector content chunks for RAG retrieval (text-embedding-3-small = 1536 dimensions)
-CREATE TABLE IF NOT EXISTS embedding (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".embedding (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     page_number INTEGER NOT NULL,
     chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
@@ -174,10 +183,10 @@ CREATE TABLE IF NOT EXISTS embedding (
 );
 
 -- QA session: tracks interactive question-answer sessions
-CREATE TABLE IF NOT EXISTS qa_session (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".qa_session (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES learner(id) ON DELETE CASCADE,
-    chapter_id UUID NOT NULL REFERENCES chapter(id) ON DELETE CASCADE,
+    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
     question_count INTEGER NOT NULL DEFAULT 0,
     context_history JSONB NOT NULL DEFAULT '[]'::jsonb,
     started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -185,16 +194,16 @@ CREATE TABLE IF NOT EXISTS qa_session (
 );
 
 -- Parental consent: records a parent's consent to create learner profiles.
-CREATE TABLE IF NOT EXISTS parental_consent (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".parental_consent (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_id UUID NOT NULL REFERENCES parent(id) ON DELETE CASCADE,
+    parent_id UUID NOT NULL REFERENCES "chikumiku-learnverse".parent(id) ON DELETE CASCADE,
     consent_version VARCHAR(20) NOT NULL,
     granted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMP WITH TIME ZONE
 );
 
 -- OTP records: one-time passcodes for the forgot-password flow.
-CREATE TABLE IF NOT EXISTS otp_record (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".otp_record (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(15) NOT NULL,
     code VARCHAR(6) NOT NULL,
@@ -204,7 +213,7 @@ CREATE TABLE IF NOT EXISTS otp_record (
 );
 
 -- Password reset tokens: issued after OTP verification, single-use.
-CREATE TABLE IF NOT EXISTS password_reset_token (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".password_reset_token (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(15) NOT NULL,
     token VARCHAR(128) NOT NULL,
@@ -218,85 +227,85 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Parent
-CREATE INDEX IF NOT EXISTS idx_parent_deleted_at ON parent(deleted_at) WHERE deleted_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_parent_deleted_at ON "chikumiku-learnverse".parent(deleted_at) WHERE deleted_at IS NOT NULL;
 
 -- Learner
-CREATE INDEX IF NOT EXISTS idx_learner_parent_id ON learner(parent_id);
-CREATE INDEX IF NOT EXISTS idx_learner_deleted_at ON learner(deleted_at) WHERE deleted_at IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_learner_parent_id ON "chikumiku-learnverse".learner(parent_id);
+CREATE INDEX IF NOT EXISTS idx_learner_deleted_at ON "chikumiku-learnverse".learner(deleted_at) WHERE deleted_at IS NOT NULL;
 
 -- Subject
-CREATE INDEX IF NOT EXISTS idx_subject_parent_id ON subject(parent_id);
-CREATE INDEX IF NOT EXISTS idx_subject_is_default ON subject(is_default) WHERE is_default = TRUE;
+CREATE INDEX IF NOT EXISTS idx_subject_parent_id ON "chikumiku-learnverse".subject(parent_id);
+CREATE INDEX IF NOT EXISTS idx_subject_is_default ON "chikumiku-learnverse".subject(is_default) WHERE is_default = TRUE;
 
 -- Book
-CREATE INDEX IF NOT EXISTS idx_book_learner_id ON book(learner_id);
-CREATE INDEX IF NOT EXISTS idx_book_subject_id ON book(subject_id);
+CREATE INDEX IF NOT EXISTS idx_book_learner_id ON "chikumiku-learnverse".book(learner_id);
+CREATE INDEX IF NOT EXISTS idx_book_subject_id ON "chikumiku-learnverse".book(subject_id);
 
 -- Chapter
-CREATE INDEX IF NOT EXISTS idx_chapter_book_id ON chapter(book_id);
-CREATE INDEX IF NOT EXISTS idx_chapter_academic_year ON chapter(academic_year);
+CREATE INDEX IF NOT EXISTS idx_chapter_book_id ON "chikumiku-learnverse".chapter(book_id);
+CREATE INDEX IF NOT EXISTS idx_chapter_academic_year ON "chikumiku-learnverse".chapter(academic_year);
 
 -- Page
-CREATE INDEX IF NOT EXISTS idx_page_chapter_id ON page(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_page_ocr_status ON page(ocr_status) WHERE ocr_status != 'completed';
+CREATE INDEX IF NOT EXISTS idx_page_chapter_id ON "chikumiku-learnverse".page(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_page_ocr_status ON "chikumiku-learnverse".page(ocr_status) WHERE ocr_status != 'completed';
 
 -- Explanation
-CREATE INDEX IF NOT EXISTS idx_explanation_page_id ON explanation(page_id);
+CREATE INDEX IF NOT EXISTS idx_explanation_page_id ON "chikumiku-learnverse".explanation(page_id);
 
 -- Revision question
-CREATE INDEX IF NOT EXISTS idx_revision_question_chapter_id ON revision_question(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_revision_question_difficulty ON revision_question(chapter_id, difficulty);
+CREATE INDEX IF NOT EXISTS idx_revision_question_chapter_id ON "chikumiku-learnverse".revision_question(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_revision_question_difficulty ON "chikumiku-learnverse".revision_question(chapter_id, difficulty);
 
 -- Quiz attempt
-CREATE INDEX IF NOT EXISTS idx_quiz_attempt_learner_id ON quiz_attempt(learner_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempt_chapter_id ON quiz_attempt(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_quiz_attempt_learner_chapter ON quiz_attempt(learner_id, chapter_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempt_learner_id ON "chikumiku-learnverse".quiz_attempt(learner_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempt_chapter_id ON "chikumiku-learnverse".quiz_attempt(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_quiz_attempt_learner_chapter ON "chikumiku-learnverse".quiz_attempt(learner_id, chapter_id);
 
 -- Grammar exercise
-CREATE INDEX IF NOT EXISTS idx_grammar_exercise_chapter_id ON grammar_exercise(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_grammar_exercise_chapter_id ON "chikumiku-learnverse".grammar_exercise(chapter_id);
 
 -- Pronunciation asset
-CREATE INDEX IF NOT EXISTS idx_pronunciation_asset_chapter_id ON pronunciation_asset(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_pronunciation_asset_chapter_id ON "chikumiku-learnverse".pronunciation_asset(chapter_id);
 
 -- Activity log (critical for streak calculations)
-CREATE INDEX IF NOT EXISTS idx_activity_log_learner_id ON activity_log(learner_id);
-CREATE INDEX IF NOT EXISTS idx_activity_log_learner_date ON activity_log(learner_id, local_date);
-CREATE INDEX IF NOT EXISTS idx_activity_log_chapter_id ON activity_log(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_learner_id ON "chikumiku-learnverse".activity_log(learner_id);
+CREATE INDEX IF NOT EXISTS idx_activity_log_learner_date ON "chikumiku-learnverse".activity_log(learner_id, local_date);
+CREATE INDEX IF NOT EXISTS idx_activity_log_chapter_id ON "chikumiku-learnverse".activity_log(chapter_id);
 
 -- Embedding
-CREATE INDEX IF NOT EXISTS idx_embedding_chapter_id ON embedding(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_embedding_chapter_page ON embedding(chapter_id, page_number);
+CREATE INDEX IF NOT EXISTS idx_embedding_chapter_id ON "chikumiku-learnverse".embedding(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_embedding_chapter_page ON "chikumiku-learnverse".embedding(chapter_id, page_number);
 
 -- HNSW index for fast vector similarity search (RAG)
-CREATE INDEX IF NOT EXISTS idx_embedding_vector_hnsw ON embedding
+CREATE INDEX IF NOT EXISTS idx_embedding_vector_hnsw ON "chikumiku-learnverse".embedding
     USING hnsw (embedding vector_cosine_ops)
     WITH (m = 16, ef_construction = 64);
 
 -- QA session
-CREATE INDEX IF NOT EXISTS idx_qa_session_learner_id ON qa_session(learner_id);
-CREATE INDEX IF NOT EXISTS idx_qa_session_chapter_id ON qa_session(chapter_id);
-CREATE INDEX IF NOT EXISTS idx_qa_session_learner_chapter ON qa_session(learner_id, chapter_id);
+CREATE INDEX IF NOT EXISTS idx_qa_session_learner_id ON "chikumiku-learnverse".qa_session(learner_id);
+CREATE INDEX IF NOT EXISTS idx_qa_session_chapter_id ON "chikumiku-learnverse".qa_session(chapter_id);
+CREATE INDEX IF NOT EXISTS idx_qa_session_learner_chapter ON "chikumiku-learnverse".qa_session(learner_id, chapter_id);
 
 -- Parental consent
-CREATE INDEX IF NOT EXISTS idx_parental_consent_parent_id ON parental_consent(parent_id);
+CREATE INDEX IF NOT EXISTS idx_parental_consent_parent_id ON "chikumiku-learnverse".parental_consent(parent_id);
 CREATE INDEX IF NOT EXISTS idx_parental_consent_active
-    ON parental_consent(parent_id) WHERE revoked_at IS NULL;
+    ON "chikumiku-learnverse".parental_consent(parent_id) WHERE revoked_at IS NULL;
 
 -- OTP record
-CREATE INDEX IF NOT EXISTS idx_otp_record_username ON otp_record(username);
+CREATE INDEX IF NOT EXISTS idx_otp_record_username ON "chikumiku-learnverse".otp_record(username);
 CREATE INDEX IF NOT EXISTS idx_otp_record_username_created
-    ON otp_record(username, created_at DESC);
+    ON "chikumiku-learnverse".otp_record(username, created_at DESC);
 
 -- Password reset token
-CREATE INDEX IF NOT EXISTS idx_password_reset_token_username ON password_reset_token(username);
+CREATE INDEX IF NOT EXISTS idx_password_reset_token_username ON "chikumiku-learnverse".password_reset_token(username);
 CREATE INDEX IF NOT EXISTS idx_password_reset_token_lookup
-    ON password_reset_token(username, token);
+    ON "chikumiku-learnverse".password_reset_token(username, token);
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Seed default subjects
 -- ─────────────────────────────────────────────────────────────────────────────
 
-INSERT INTO subject (name, is_default, parent_id) VALUES
+INSERT INTO "chikumiku-learnverse".subject (name, is_default, parent_id) VALUES
     ('English', TRUE, NULL),
     ('Hindi', TRUE, NULL),
     ('Kannada', TRUE, NULL),

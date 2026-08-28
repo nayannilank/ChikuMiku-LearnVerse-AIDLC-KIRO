@@ -2,11 +2,23 @@
 -- Tables supporting learner registration consent and the password-reset flow.
 -- Compatible with Aurora/Neon PostgreSQL 15.4+.
 
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Schema
+-- ─────────────────────────────────────────────────────────────────────────────
+
+CREATE SCHEMA IF NOT EXISTS "chikumiku-learnverse";
+
+SET search_path TO "chikumiku-learnverse", public;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Tables
+-- ─────────────────────────────────────────────────────────────────────────────
+
 -- Parental consent: records a parent's COPPA-style consent to create learners.
 -- One active consent row per parent (version tracks the consent text revision).
-CREATE TABLE IF NOT EXISTS parental_consent (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".parental_consent (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_id UUID NOT NULL REFERENCES parent(id) ON DELETE CASCADE,
+    parent_id UUID NOT NULL REFERENCES "chikumiku-learnverse".parent(id) ON DELETE CASCADE,
     consent_version VARCHAR(20) NOT NULL,
     granted_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     revoked_at TIMESTAMP WITH TIME ZONE
@@ -14,7 +26,7 @@ CREATE TABLE IF NOT EXISTS parental_consent (
 
 -- OTP records: one-time passcodes for the forgot-password flow.
 -- 6-digit code, 5-minute validity, max 3 attempts, single-use (invalidated flag).
-CREATE TABLE IF NOT EXISTS otp_record (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".otp_record (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(15) NOT NULL,
     code VARCHAR(6) NOT NULL,
@@ -24,7 +36,7 @@ CREATE TABLE IF NOT EXISTS otp_record (
 );
 
 -- Password reset tokens: issued after successful OTP verification, single-use.
-CREATE TABLE IF NOT EXISTS password_reset_token (
+CREATE TABLE IF NOT EXISTS "chikumiku-learnverse".password_reset_token (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(15) NOT NULL,
     token VARCHAR(128) NOT NULL,
@@ -33,16 +45,19 @@ CREATE TABLE IF NOT EXISTS password_reset_token (
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
+-- ─────────────────────────────────────────────────────────────────────────────
 -- Indexes
-CREATE INDEX IF NOT EXISTS idx_parental_consent_parent_id ON parental_consent(parent_id);
-CREATE INDEX IF NOT EXISTS idx_parental_consent_active
-    ON parental_consent(parent_id) WHERE revoked_at IS NULL;
+-- ─────────────────────────────────────────────────────────────────────────────
 
-CREATE INDEX IF NOT EXISTS idx_otp_record_username ON otp_record(username);
+CREATE INDEX IF NOT EXISTS idx_parental_consent_parent_id ON "chikumiku-learnverse".parental_consent(parent_id);
+CREATE INDEX IF NOT EXISTS idx_parental_consent_active
+    ON "chikumiku-learnverse".parental_consent(parent_id) WHERE revoked_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_otp_record_username ON "chikumiku-learnverse".otp_record(username);
 -- Latest-active-OTP lookups filter by username + not-invalidated, newest first.
 CREATE INDEX IF NOT EXISTS idx_otp_record_username_created
-    ON otp_record(username, created_at DESC);
+    ON "chikumiku-learnverse".otp_record(username, created_at DESC);
 
-CREATE INDEX IF NOT EXISTS idx_password_reset_token_username ON password_reset_token(username);
+CREATE INDEX IF NOT EXISTS idx_password_reset_token_username ON "chikumiku-learnverse".password_reset_token(username);
 CREATE INDEX IF NOT EXISTS idx_password_reset_token_lookup
-    ON password_reset_token(username, token);
+    ON "chikumiku-learnverse".password_reset_token(username, token);
