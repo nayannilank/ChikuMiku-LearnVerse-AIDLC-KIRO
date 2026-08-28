@@ -98,6 +98,13 @@ export async function getPool(options?: DbPoolOptions): Promise<Pool> {
       idleTimeoutMillis: options?.idleTimeoutMillis ?? 30_000,
     });
 
+    // Set search_path on every new client so unqualified table references
+    // (e.g. `parent`, `learner`) resolve to the application schema first,
+    // then fall back to `public` for extensions like uuid-ossp and vector.
+    created.on('connect', (client) => {
+      client.query(`SET search_path TO chikumiku_learnverse, public`);
+    });
+
     pool = created;
     return created;
   })();
