@@ -6,16 +6,16 @@
 -- Schema
 -- ─────────────────────────────────────────────────────────────────────────────
 
-CREATE SCHEMA IF NOT EXISTS "chikumiku-learnverse";
+CREATE SCHEMA IF NOT EXISTS chikumiku_learnverse;
 
-SET search_path TO "chikumiku-learnverse", public;
+SET search_path TO chikumiku_learnverse, public;
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Tables
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- Parent: registered adult users who manage learner profiles
-CREATE TABLE "chikumiku-learnverse".parent (
+CREATE TABLE chikumiku_learnverse.parent (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(15) NOT NULL UNIQUE,
     full_name VARCHAR(20) NOT NULL,
@@ -29,9 +29,9 @@ CREATE TABLE "chikumiku-learnverse".parent (
 );
 
 -- Learner: student users linked to a parent account
-CREATE TABLE "chikumiku-learnverse".learner (
+CREATE TABLE chikumiku_learnverse.learner (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    parent_id UUID NOT NULL REFERENCES "chikumiku-learnverse".parent(id) ON DELETE CASCADE,
+    parent_id UUID NOT NULL REFERENCES chikumiku_learnverse.parent(id) ON DELETE CASCADE,
     username VARCHAR(15) NOT NULL UNIQUE,
     name VARCHAR(20) NOT NULL,
     password_hash TEXT NOT NULL,
@@ -48,26 +48,26 @@ CREATE TABLE "chikumiku-learnverse".learner (
 );
 
 -- Subject: default or custom subjects created by parents
-CREATE TABLE "chikumiku-learnverse".subject (
+CREATE TABLE chikumiku_learnverse.subject (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(50) NOT NULL,
     is_default BOOLEAN NOT NULL DEFAULT FALSE,
-    parent_id UUID REFERENCES "chikumiku-learnverse".parent(id) ON DELETE CASCADE
+    parent_id UUID REFERENCES chikumiku_learnverse.parent(id) ON DELETE CASCADE
 );
 
 -- Book: a book owned by a learner within a subject
-CREATE TABLE "chikumiku-learnverse".book (
+CREATE TABLE chikumiku_learnverse.book (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
-    subject_id UUID NOT NULL REFERENCES "chikumiku-learnverse".subject(id) ON DELETE CASCADE,
+    learner_id UUID NOT NULL REFERENCES chikumiku_learnverse.learner(id) ON DELETE CASCADE,
+    subject_id UUID NOT NULL REFERENCES chikumiku_learnverse.subject(id) ON DELETE CASCADE,
     name VARCHAR(50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 
 -- Chapter: a unit of content within a book (up to 50 pages)
-CREATE TABLE "chikumiku-learnverse".chapter (
+CREATE TABLE chikumiku_learnverse.chapter (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    book_id UUID NOT NULL REFERENCES "chikumiku-learnverse".book(id) ON DELETE CASCADE,
+    book_id UUID NOT NULL REFERENCES chikumiku_learnverse.book(id) ON DELETE CASCADE,
     chapter_number INTEGER NOT NULL,
     chapter_name VARCHAR(100) NOT NULL,
     ai_assets_generated BOOLEAN NOT NULL DEFAULT FALSE,
@@ -78,9 +78,9 @@ CREATE TABLE "chikumiku-learnverse".chapter (
 );
 
 -- Page: an OCR-captured page within a chapter
-CREATE TABLE "chikumiku-learnverse".page (
+CREATE TABLE chikumiku_learnverse.page (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     page_number INTEGER NOT NULL,
     classification VARCHAR(20) NOT NULL DEFAULT 'content',
     image_s3_key VARCHAR(512),
@@ -92,9 +92,9 @@ CREATE TABLE "chikumiku-learnverse".page (
 );
 
 -- Explanation: AI-generated page-by-page explanations
-CREATE TABLE "chikumiku-learnverse".explanation (
+CREATE TABLE chikumiku_learnverse.explanation (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    page_id UUID NOT NULL REFERENCES "chikumiku-learnverse".page(id) ON DELETE CASCADE,
+    page_id UUID NOT NULL REFERENCES chikumiku_learnverse.page(id) ON DELETE CASCADE,
     summary TEXT NOT NULL,
     keywords JSONB NOT NULL DEFAULT '[]'::jsonb,
     concepts JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -103,9 +103,9 @@ CREATE TABLE "chikumiku-learnverse".explanation (
 );
 
 -- Revision question: AI-generated quiz questions per chapter
-CREATE TABLE "chikumiku-learnverse".revision_question (
+CREATE TABLE chikumiku_learnverse.revision_question (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     difficulty VARCHAR(20) NOT NULL,
     question_type VARCHAR(30) NOT NULL,
     question_data JSONB NOT NULL,
@@ -114,10 +114,10 @@ CREATE TABLE "chikumiku-learnverse".revision_question (
 );
 
 -- Quiz attempt: records a learner's quiz session
-CREATE TABLE "chikumiku-learnverse".quiz_attempt (
+CREATE TABLE chikumiku_learnverse.quiz_attempt (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    learner_id UUID NOT NULL REFERENCES chikumiku_learnverse.learner(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     difficulty VARCHAR(20) NOT NULL,
     total_questions INTEGER NOT NULL,
     correct_answers INTEGER NOT NULL,
@@ -127,9 +127,9 @@ CREATE TABLE "chikumiku-learnverse".quiz_attempt (
 );
 
 -- Grammar exercise: AI-generated grammar exercises per chapter
-CREATE TABLE "chikumiku-learnverse".grammar_exercise (
+CREATE TABLE chikumiku_learnverse.grammar_exercise (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     exercise_type VARCHAR(30) NOT NULL,
     exercise_data JSONB NOT NULL,
     correct_answer JSONB NOT NULL,
@@ -137,19 +137,19 @@ CREATE TABLE "chikumiku-learnverse".grammar_exercise (
 );
 
 -- Pronunciation asset: TTS audio for words/sentences in a chapter
-CREATE TABLE "chikumiku-learnverse".pronunciation_asset (
+CREATE TABLE chikumiku_learnverse.pronunciation_asset (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     word_or_sentence TEXT NOT NULL,
     audio_s3_key VARCHAR(512) NOT NULL,
     language VARCHAR(50) NOT NULL
 );
 
 -- Activity log: tracks all learner activities for streaks and analytics
-CREATE TABLE "chikumiku-learnverse".activity_log (
+CREATE TABLE chikumiku_learnverse.activity_log (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
-    chapter_id UUID REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE SET NULL,
+    learner_id UUID NOT NULL REFERENCES chikumiku_learnverse.learner(id) ON DELETE CASCADE,
+    chapter_id UUID REFERENCES chikumiku_learnverse.chapter(id) ON DELETE SET NULL,
     activity_type VARCHAR(30) NOT NULL,
     local_date DATE NOT NULL,
     "timestamp" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -157,9 +157,9 @@ CREATE TABLE "chikumiku-learnverse".activity_log (
 );
 
 -- Embedding: pgvector-based content chunks for RAG retrieval
-CREATE TABLE "chikumiku-learnverse".embedding (
+CREATE TABLE chikumiku_learnverse.embedding (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     page_number INTEGER NOT NULL,
     chunk_index INTEGER NOT NULL,
     content TEXT NOT NULL,
@@ -167,10 +167,10 @@ CREATE TABLE "chikumiku-learnverse".embedding (
 );
 
 -- QA session: tracks interactive question-answer sessions
-CREATE TABLE "chikumiku-learnverse".qa_session (
+CREATE TABLE chikumiku_learnverse.qa_session (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    learner_id UUID NOT NULL REFERENCES "chikumiku-learnverse".learner(id) ON DELETE CASCADE,
-    chapter_id UUID NOT NULL REFERENCES "chikumiku-learnverse".chapter(id) ON DELETE CASCADE,
+    learner_id UUID NOT NULL REFERENCES chikumiku_learnverse.learner(id) ON DELETE CASCADE,
+    chapter_id UUID NOT NULL REFERENCES chikumiku_learnverse.chapter(id) ON DELETE CASCADE,
     question_count INTEGER NOT NULL DEFAULT 0,
     context_history JSONB NOT NULL DEFAULT '[]'::jsonb,
     started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
