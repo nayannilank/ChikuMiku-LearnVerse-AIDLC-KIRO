@@ -3,16 +3,18 @@
  */
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { theme, PARENT_RELATIONSHIPS } from '../../theme';
+import { theme } from '../../theme';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
-import { Select } from '../../components/common/Select';
 import { Card } from '../../components/common/Card';
 import { authApi } from '../../services/authApi';
 
 export function ParentRegistration() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ username: '', name: '', phone: '', email: '', password: '', relationship: '' });
+  // Field names must match ParentRegistrationRequest exactly (fullName, not
+  // name) — this is passed to authApi.registerParent without a cast so
+  // TypeScript catches any drift at compile time.
+  const [form, setForm] = useState({ username: '', fullName: '', phone: '', email: '', password: '' });
   const [success, setSuccess] = useState(false);
   const [countdown, setCountdown] = useState(5);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -33,12 +35,11 @@ export function ParentRegistration() {
     const errors: Record<string, string> = {};
     if (form.username.length < 8 || form.username.length > 15) errors.username = '8-15 characters required';
     else if (!/^[a-z0-9_-]+$/.test(form.username)) errors.username = 'Only a-z, 0-9, hyphen, underscore';
-    if (form.name.length < 5 || form.name.length > 20) errors.name = '5-20 characters required';
+    if (form.fullName.length < 5 || form.fullName.length > 20) errors.fullName = '5-20 characters required';
     if (!/^\d{10}$/.test(form.phone)) errors.phone = 'Exactly 10 digits required';
     if (form.email.length > 30 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Valid email (≤30 chars)';
     if (form.password.length < 8 || form.password.length > 20) errors.password = '8-20 characters required';
     else if (!/(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[!@#$%^&*])/.test(form.password)) errors.password = 'Need: 1 upper, 1 lower, 1 number, 1 symbol';
-    if (!form.relationship) errors.relationship = 'Please select relationship';
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -48,7 +49,7 @@ export function ParentRegistration() {
     setLoading(true);
     setServerError('');
     try {
-      await authApi.registerParent(form as never);
+      await authApi.registerParent(form);
       setSuccess(true);
     } catch (err: unknown) {
       setServerError((err as { message?: string })?.message || 'Registration failed');
@@ -104,12 +105,11 @@ export function ParentRegistration() {
         {serverError && <div style={styles.error}>{serverError}</div>}
         <div style={styles.twoCol}>
           <Input label="Parent Username" value={form.username} onChange={updateField('username')} placeholder="8-15 chars (a-z, 0-9, -, _)" required hint="Letters, numbers, hyphens, underscores only" error={validationErrors.username} />
-          <Input label="Name" value={form.name} onChange={updateField('name')} placeholder="5-20 characters" required error={validationErrors.name} />
+          <Input label="Name" value={form.fullName} onChange={updateField('fullName')} placeholder="5-20 characters" required error={validationErrors.fullName} />
           <Input label="Phone" type="tel" value={form.phone} onChange={updateField('phone')} placeholder="10 digit phone number" required error={validationErrors.phone} />
           <Input label="Email" type="email" value={form.email} onChange={updateField('email')} placeholder="your@email.com" required error={validationErrors.email} />
         </div>
         <Input label="Password" type="password" value={form.password} onChange={updateField('password')} placeholder="8-20 characters" showPasswordToggle required hint="1 uppercase, 1 lowercase, 1 number, 1 special symbol" error={validationErrors.password} />
-        <Select label="Relationship" value={form.relationship} onChange={updateField('relationship')} options={PARENT_RELATIONSHIPS} placeholder="Select relationship" required error={validationErrors.relationship} />
         <Button variant="primary" label={loading ? 'Registering...' : 'Register Parent'} icon="user-plus" onPress={handleSubmit} fullWidth disabled={loading} />
       </Card>
     </div>
