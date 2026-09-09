@@ -3,7 +3,7 @@
  * Uses real bcrypt and verifies the produced hash round-trips.
  */
 
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { BcryptPasswordHasher } from './bcrypt-password-hasher';
 
 describe('BcryptPasswordHasher', () => {

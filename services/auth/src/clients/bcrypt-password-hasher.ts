@@ -6,7 +6,7 @@
  * factor 10, matching the parent-registration flow (Req 20.2).
  */
 
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import type { PasswordHasher } from '../handlers/register-learner';
 
 /** Minimum bcrypt cost factor per security requirements. */

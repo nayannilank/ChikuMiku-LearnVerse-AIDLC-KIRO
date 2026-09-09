@@ -5,7 +5,7 @@ import {
   RegisterParentResponse,
 } from './register-parent';
 import { ParentRegistrationRequest, APIError } from '@chikumiku/types';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 // Helper to create a valid registration request
 function validRequest(overrides: Partial<ParentRegistrationRequest> = {}): ParentRegistrationRequest {

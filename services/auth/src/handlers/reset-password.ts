@@ -9,7 +9,7 @@
  */
 import { APIError } from '@chikumiku/types';
 import { validatePassword } from '@chikumiku/validation';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 /** Interface for the user repository (dependency injection). */
 export interface UserRepository {
