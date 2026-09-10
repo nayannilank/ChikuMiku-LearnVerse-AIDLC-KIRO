@@ -26,45 +26,53 @@ function normalizeGrade(grade: string): string {
 
 /**
  * Mapping from normalized grade strings to their category.
+ *
+ * Uses a `Map` rather than a plain object literal. A plain object used as a
+ * lookup table is vulnerable to prototype-chain collisions: a lookup key of
+ * `"__proto__"`, `"constructor"`, etc. resolves to an inherited
+ * `Object.prototype` value instead of `undefined` for an unrecognized key
+ * (`{}['__proto__']` returns the prototype object, not `undefined`). A `Map`
+ * has no prototype-chain lookup semantics, so `.get()` on any key that was
+ * never `.set()` always returns `undefined`.
  */
-const GRADE_TO_CATEGORY: Record<string, GradeCategory> = {
+const GRADE_TO_CATEGORY: ReadonlyMap<string, GradeCategory> = new Map([
   // Short forms
-  lkg: 'early',
-  ukg: 'early',
-  '1st': 'early',
-  '2nd': 'early',
-  '3rd': 'middle',
-  '4th': 'middle',
-  '5th': 'middle',
-  '6th': 'senior',
-  '7th': 'senior',
-  '8th': 'senior',
-  '9th': 'senior',
-  '10th': 'senior',
-  '11th': 'senior',
-  '12th': 'senior',
+  ['lkg', 'early'],
+  ['ukg', 'early'],
+  ['1st', 'early'],
+  ['2nd', 'early'],
+  ['3rd', 'middle'],
+  ['4th', 'middle'],
+  ['5th', 'middle'],
+  ['6th', 'senior'],
+  ['7th', 'senior'],
+  ['8th', 'senior'],
+  ['9th', 'senior'],
+  ['10th', 'senior'],
+  ['11th', 'senior'],
+  ['12th', 'senior'],
 
   // Word forms
-  first: 'early',
-  second: 'early',
-  third: 'middle',
-  fourth: 'middle',
-  fifth: 'middle',
-  sixth: 'senior',
-  seventh: 'senior',
-  eighth: 'senior',
-  ninth: 'senior',
-  tenth: 'senior',
-  eleventh: 'senior',
-  twelfth: 'senior',
-};
+  ['first', 'early'],
+  ['second', 'early'],
+  ['third', 'middle'],
+  ['fourth', 'middle'],
+  ['fifth', 'middle'],
+  ['sixth', 'senior'],
+  ['seventh', 'senior'],
+  ['eighth', 'senior'],
+  ['ninth', 'senior'],
+  ['tenth', 'senior'],
+  ['eleventh', 'senior'],
+  ['twelfth', 'senior'],
+]);
 
 /**
  * Returns the grade category for a given grade string.
  * Returns undefined if the grade is not recognized.
  */
 export function getGradeCategory(grade: string): GradeCategory | undefined {
-  return GRADE_TO_CATEGORY[normalizeGrade(grade)];
+  return GRADE_TO_CATEGORY.get(normalizeGrade(grade));
 }
 
 /**
