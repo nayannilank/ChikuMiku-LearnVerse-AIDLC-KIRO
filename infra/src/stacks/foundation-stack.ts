@@ -21,7 +21,19 @@ export class FoundationStack extends cdk.Stack {
     super(scope, id, props);
 
     // Cognito User Pool
-    this.userPool = new cognito.UserPool(this, 'LearnVerseUserPool', {
+    //
+    // NOTE: The construct id was changed from 'LearnVerseUserPool' to
+    // 'LearnVerseUserPoolV2' to fix the signInAliases configuration (adding
+    // `username: true`). Cognito's AliasAttributes/UsernameAttributes cannot
+    // be changed via UpdateUserPool at all — AWS rejects the update outright
+    // ("Updates are not allowed for property - AliasAttributes"), it does not
+    // fall back to replacement. Changing the construct id forces CloudFormation
+    // to CREATE a new pool (new logical id) instead of updating the old one.
+    // The old pool has RemovalPolicy.RETAIN, so it is orphaned in AWS rather
+    // than deleted — no data loss, but its physical id changes. Downstream
+    // stacks (Auth, Api) pick up the new pool/client automatically via CDK's
+    // cross-stack references on the next `cdk deploy --all`.
+    this.userPool = new cognito.UserPool(this, 'LearnVerseUserPoolV2', {
       userPoolName: 'learnverse-users',
       selfSignUpEnabled: true,
       // `username: true` is required alongside email/phone here: without it,
