@@ -24,7 +24,13 @@ export class FoundationStack extends cdk.Stack {
     this.userPool = new cognito.UserPool(this, 'LearnVerseUserPool', {
       userPoolName: 'learnverse-users',
       selfSignUpEnabled: true,
-      signInAliases: { email: true, phone: true },
+      // `username: true` is required alongside email/phone here: without it,
+      // CDK configures email/phone as Cognito's *UsernameAttributes* (the raw
+      // Username value must itself be an email or phone number). With it,
+      // email/phone become optional sign-in *aliases* instead, and the pool
+      // accepts the app's own free-form usernames (8-15 chars) as the primary
+      // identifier — which is what both parent and learner registration send.
+      signInAliases: { username: true, email: true, phone: true },
       autoVerify: { email: true, phone: true },
       passwordPolicy: {
         minLength: 8,
