@@ -13,6 +13,11 @@ on:
         description: 'Type "destroy" to confirm'
         required: true
         type: string
+      stacks:
+        description: 'Space-separated stack names to destroy (e.g. "LearnVerse-Api LearnVerse-Auth"), or "--all" for every stack'
+        required: false
+        default: '--all'
+        type: string
 
 env:
   AWS_REGION: ap-south-1
@@ -66,6 +71,9 @@ jobs:
 
       - name: CDK Destroy
         working-directory: infra
-        run: npx cdk destroy --force
+        # `stacks` defaults to "--all" (destroy every stack). Pass specific
+        # stack names (e.g. "LearnVerse-Api LearnVerse-Auth") to destroy only
+        # those, using the same OIDC-authenticated role as the deploy workflow.
+        run: npx cdk destroy ${{ github.event.inputs.stacks }} --force
         env:
           CDK_DEFAULT_REGION: ap-south-1
