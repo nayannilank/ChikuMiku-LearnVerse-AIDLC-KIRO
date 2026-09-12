@@ -176,6 +176,7 @@ describe('authenticateRequest', () => {
       // Refresh returns a new valid token
       const newToken = createToken(validPayload, TEST_SECRET);
       (deps.cognitoClient.refreshSession as jest.Mock).mockResolvedValue({
+        idToken: newToken,
         accessToken: newToken,
         expiresIn: 3600,
       });

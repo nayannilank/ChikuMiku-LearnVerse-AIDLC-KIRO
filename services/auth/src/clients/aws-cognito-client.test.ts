@@ -233,15 +233,23 @@ describe('AwsCognitoClient.authenticate', () => {
 });
 
 describe('AwsCognitoClient.refreshSession', () => {
-  it('issues InitiateAuth REFRESH_TOKEN_AUTH and returns the new token', async () => {
+  it('issues InitiateAuth REFRESH_TOKEN_AUTH and returns the new tokens', async () => {
     const { client, send } = createFakeSdkClient({
-      AuthenticationResult: { AccessToken: 'new-access-token', ExpiresIn: 3600 },
+      AuthenticationResult: {
+        IdToken: 'new-id-token',
+        AccessToken: 'new-access-token',
+        ExpiresIn: 3600,
+      },
     });
     const cognito = new AwsCognitoClient({ userPoolId: USER_POOL_ID, clientId: CLIENT_ID, client });
 
     const result = await cognito.refreshSession('refresh-token-xyz');
 
-    expect(result).toEqual({ accessToken: 'new-access-token', expiresIn: 3600 });
+    expect(result).toEqual({
+      idToken: 'new-id-token',
+      accessToken: 'new-access-token',
+      expiresIn: 3600,
+    });
     const command = send.mock.calls[0][0];
     expect(command).toBeInstanceOf(InitiateAuthCommand);
     expect(command.input).toEqual({
@@ -253,6 +261,15 @@ describe('AwsCognitoClient.refreshSession', () => {
 
   it('returns null when the refresh yields no authentication result', async () => {
     const { client } = createFakeSdkClient({});
+    const cognito = new AwsCognitoClient({ userPoolId: USER_POOL_ID, clientId: CLIENT_ID, client });
+
+    expect(await cognito.refreshSession('rt')).toBeNull();
+  });
+
+  it('returns null when the result is missing the ID token', async () => {
+    const { client } = createFakeSdkClient({
+      AuthenticationResult: { AccessToken: 'new-access-token', ExpiresIn: 3600 },
+    });
     const cognito = new AwsCognitoClient({ userPoolId: USER_POOL_ID, clientId: CLIENT_ID, client });
 
     expect(await cognito.refreshSession('rt')).toBeNull();

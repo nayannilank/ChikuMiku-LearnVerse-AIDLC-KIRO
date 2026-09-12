@@ -230,7 +230,7 @@ A: Up to 50 books per subject, 100 chapters per book, and 50 pages per chapter.
 A: Yes. Email and phone don't need to be unique — only the username must be unique.
 
 **Q: I forgot my password. What do I do?**
-A: Tap "Forgot Password" on the Login screen. Enter your username, verify with the OTP sent to your email/phone, and set a new password.
+A: Tap "Forgot Password" on the Login screen. Enter your username, verify with the OTP sent to your email/phone, and set a new password. To prevent abuse, you can only request one reset OTP every 30 minutes per account — if you request again sooner, you'll be asked to wait.
 
 **Q: Is there a mobile app?**
 A: Yes! ChikuMiku LearnVerse is available as an Android app and also works in web browsers.

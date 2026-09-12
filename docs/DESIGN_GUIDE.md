@@ -348,47 +348,59 @@ Subject (default, no parent link) ──── shared across all learners
 
 ### REST API
 
-- Base URL: `https://api.chikumiku-learnverse.com/v1/`
-- All endpoints require JWT Bearer token (except `/auth/register/parent`, `/auth/login`, `/auth/forgot-password`)
+- Base URL: `https://{api-id}.execute-api.ap-south-1.amazonaws.com/v1/` (see API Gateway stack output for the live URL)
+- All endpoints require a Cognito ID token as a JWT Bearer token, except the public auth routes: `/auth/register/parent`, `/auth/login`, `/auth/refresh`, `/auth/forgot-password`, `/auth/verify-otp`, `/auth/reset-password`
 - Responses follow standard envelope: `{ "success": boolean, "data": T, "error": string? }`
 
 ### Authentication (Cognito + JWT)
 
-- Cognito User Pool for identity management
-- JWT tokens with 30-day session persistence
-- Role claim embedded in token (`parent` or `learner`)
+- Cognito User Pool for identity management; both parents and learners get their own Cognito user (learner accounts use username-only sign-in, no email/phone required)
+- **The frontend must send the ID token, not the access token, as the bearer credential** — only the ID token carries the `custom:appUserId` and `custom:role` claims the backend and dashboard rely on
+- Login/refresh responses expose `token` (ID token), `accessToken`, and (for login only) `refreshToken`
+- Role claim embedded in the ID token as `custom:role` (`parent` or `learner`); app identity (`sub`/internal id) embedded as `custom:appUserId`; display name comes from `custom:appUserId` lookup or `cognito:username`, not from the raw Cognito username
 - ProtectedRoute component validates role on frontend
-- API Gateway authorizer validates JWT on backend
+- API Gateway Cognito authorizer validates the ID token on backend for all protected routes; verified claims are injected into `event.requestContext.authorizer.claims`
+- `POST /auth/refresh` exchanges a refresh token for a new ID + access token pair (no bearer token required)
+- `POST /auth/logout` requires an authenticated session and a `{ "sessionId": string }` body; it invalidates the Cognito session server-side
+- Forgot-password OTP requests are rate-limited to one per configurable window (default 30 minutes) per username, delivered via SES (email) / SNS (SMS)
 
 ### Key Endpoints
 
 ```
-POST   /auth/register/parent
-POST   /auth/register/learner
-POST   /auth/login
-POST   /auth/forgot-password
-POST   /auth/verify-otp
-POST   /auth/reset-password
+POST   /auth/register/parent          — public
+POST   /auth/register/learner         — requires authenticated parent
+POST   /auth/login                    — public
+POST   /auth/refresh                  — public (refresh token in body)
+POST   /auth/logout                   — requires authenticated session
+POST   /auth/forgot-password          — public, rate-limited
+POST   /auth/verify-otp               — public
+POST   /auth/reset-password           — public
 
-GET    /content/subjects
-GET    /content/books/:subjectId
 POST   /content/chapters
-POST   /content/pages/upload
 GET    /content/chapters/:id
+POST   /content/chapters/:id/pages
+GET    /content/chapters/:id/ocr-status
+PUT    /content/chapters/:id/transcript
 
-POST   /ai/ocr/process
-GET    /ai/explanations/:pageId
+POST   /ai/ocr
+POST   /ai/explain
+POST   /ai/qa
+POST   /ai/grammar
+POST   /ai/revision
+POST   /ai/tts
+POST   /ai/pronunciation/audio
 POST   /ai/pronunciation/score
-POST   /ai/grammar/generate
-POST   /ai/qa/ask
-POST   /ai/revision/generate
+POST   /ai/embed
 
-GET    /learning/dashboard
-GET    /learning/progress/:learnerId
-GET    /learning/streak/:learnerId
+GET    /learn/dashboard/parent
+GET    /learn/dashboard/learner
+POST   /learn/activity
+GET    /learn/streak/:learnerId
+GET    /learn/progress/:learnerId
+GET    /learn/recommendations/:learnerId
 
 POST   /export/report
-GET    /export/download/:reportId
+GET    /export/:id
 ```
 
 ### Error Handling

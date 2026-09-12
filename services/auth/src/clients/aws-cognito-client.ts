@@ -27,7 +27,7 @@ import {
   InitiateAuthCommand,
   GlobalSignOutCommand,
 } from '@aws-sdk/client-cognito-identity-provider';
-import type { CognitoClient, AuthTokens } from './cognito-client';
+import type { CognitoClient, AuthTokens, RefreshedTokens } from './cognito-client';
 
 /**
  * Default country code used to convert the app's bare 10-digit phone numbers
@@ -171,9 +171,7 @@ export class AwsCognitoClient implements CognitoClient {
     }
   }
 
-  async refreshSession(
-    sessionId: string
-  ): Promise<{ accessToken: string; expiresIn: number } | null> {
+  async refreshSession(refreshToken: string): Promise<RefreshedTokens | null> {
     const clientId = this.requireClientId();
 
     try {
@@ -181,16 +179,20 @@ export class AwsCognitoClient implements CognitoClient {
         new InitiateAuthCommand({
           ClientId: clientId,
           AuthFlow: 'REFRESH_TOKEN_AUTH',
-          AuthParameters: { REFRESH_TOKEN: sessionId },
+          AuthParameters: { REFRESH_TOKEN: refreshToken },
         })
       );
 
       const result = response.AuthenticationResult;
-      if (!result?.AccessToken || result.ExpiresIn == null) {
+      if (!result?.IdToken || !result.AccessToken || result.ExpiresIn == null) {
         return null;
       }
 
-      return { accessToken: result.AccessToken, expiresIn: result.ExpiresIn };
+      return {
+        idToken: result.IdToken,
+        accessToken: result.AccessToken,
+        expiresIn: result.ExpiresIn,
+      };
     } catch {
       // A failed/expired refresh is a normal outcome, not an error condition.
       return null;

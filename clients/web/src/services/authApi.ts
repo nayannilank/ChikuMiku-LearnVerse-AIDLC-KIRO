@@ -6,7 +6,7 @@
  *
  * Validates: Requirements 1.1, 1.2, 2.1, 3.1, 4.1, 4.2, 4.3, 4.5, 19.1, 19.2
  */
-import { apiClient, setTokens, clearTokens } from './apiClient';
+import { apiClient, setTokens, setSessionToken, getSessionToken, clearTokens } from './apiClient';
 import type {
   ParentRegistrationRequest,
   LearnerRegistrationRequest,
@@ -16,10 +16,16 @@ import type {
 // ─── Response Types ──────────────────────────────────────────────────────────
 
 export interface LoginResponse {
+  /**
+   * Cognito ID token — carries the custom:role/custom:appUserId claims the
+   * backend's identity resolution depends on. This is what must be sent as
+   * the Authorization bearer token for all authenticated API calls.
+   */
+  token: string;
+  /** Cognito access token — used only for session termination (logout). */
   accessToken: string;
-  refreshToken: string;
-  role: 'parent' | 'learner';
-  username: string;
+  refreshToken?: string;
+  expiresIn: number;
 }
 
 export interface RegisterResponse {
@@ -54,8 +60,12 @@ export const authApi = {
       request,
       { skipAuth: true },
     );
-    // Store tokens for subsequent authenticated requests
-    setTokens(data.accessToken, data.refreshToken);
+    // Store the ID token (not the access token) as the bearer credential —
+    // API Gateway's Cognito authorizer forwards its claims to the backend,
+    // and only the ID token carries custom:role/custom:appUserId. The access
+    // token is stored separately, used only for logout's session termination.
+    setTokens(data.token, data.refreshToken);
+    setSessionToken(data.accessToken);
     return data;
   },
 
@@ -126,10 +136,15 @@ export const authApi = {
 
   /**
    * Log out and clear stored tokens.
+   * Sends the Cognito access token as `sessionId` so the backend can
+   * terminate the session (GlobalSignOut) — the logout endpoint requires it.
    */
   async logout(): Promise<void> {
     try {
-      await apiClient.post('/auth/logout');
+      const sessionId = getSessionToken();
+      if (sessionId) {
+        await apiClient.post('/auth/logout', { sessionId });
+      }
     } finally {
       clearTokens();
     }

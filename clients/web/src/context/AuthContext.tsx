@@ -45,6 +45,32 @@ const INITIAL_STATE: AuthState = {
   username: null,
 };
 
+/**
+ * Decodes a Cognito ID token's JWT payload into an AuthUser.
+ *
+ * Reads the actual Cognito claim names, not plain-English field names:
+ * `cognito:username` (not `username`) for the sign-in username, and the
+ * namespaced custom attributes `custom:role` / `custom:appUserId`. The latter
+ * is the application DB id (parent.id / learner.id) set at registration —
+ * Cognito's own `sub` is a different value and only used as a fallback.
+ *
+ * Returns null if the token is malformed.
+ */
+function decodeAuthUser(token: string): AuthUser | null {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return {
+      id: payload['custom:appUserId'] || payload.sub,
+      username: payload['cognito:username'] || payload.sub || '',
+      name: payload.name,
+      role: payload['custom:role'] as UserRole,
+      token,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AuthState>(INITIAL_STATE);
 
@@ -52,16 +78,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = getAccessToken();
     if (token) {
-      // Decode token payload to get user info (JWT base64)
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        const user: AuthUser = {
-          id: payload.sub || payload.id,
-          username: payload.username || payload.sub || '',
-          name: payload.name,
-          role: payload.role as UserRole,
-          token,
-        };
+      const user = decodeAuthUser(token);
+      if (user) {
         setState({
           user,
           isLoading: false,
@@ -69,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           role: user.role,
           username: user.username,
         });
-      } catch {
+      } else {
         // Token is invalid — clear it
         clearTokens();
         setState({ ...INITIAL_STATE, isLoading: false });
@@ -81,15 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (username: string, password: string, role: UserRole) => {
     const response = await authApi.login({ username, password, role });
-    const token = response.accessToken;
-    const user: AuthUser = {
-      id: undefined,
-      username: response.username || username,
-      name: undefined,
-      role: response.role as UserRole,
-      token,
-    };
-    // Tokens are stored by authApi.login already
+    // Tokens are stored by authApi.login already; decode the ID token it just
+    // stored to populate the user's real identity (role, username, app id).
+    const user = decodeAuthUser(response.token);
+    if (!user) {
+      throw new Error('Received an invalid session token');
+    }
     setState({
       user,
       isLoading: false,

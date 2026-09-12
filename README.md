@@ -40,7 +40,7 @@
 | Database | Neon PostgreSQL + pgvector |
 | Auth | Amazon Cognito (JWT) |
 | AI | GPT-5 Mini, Google Vision OCR, Whisper, Google TTS, OpenAI Embeddings |
-| Infrastructure | AWS CDK (8 stacks), ap-south-1 |
+| Infrastructure | AWS CDK (7 stacks), ap-south-1 |
 | Frontend Hosting | Vercel (Edge CDN) |
 | CI/CD | GitHub Actions → CDK deploy, Vercel auto-deploy |
 | Testing | Jest, fast-check (property-based testing) |

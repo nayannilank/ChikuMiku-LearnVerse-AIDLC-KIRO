@@ -15,8 +15,11 @@ import type { APIError } from '@chikumiku/types';
 
 // ─── Token Storage Keys ──────────────────────────────────────────────────────
 
+/** Stores the Cognito ID token — the bearer credential for authenticated API calls. */
 const ACCESS_TOKEN_KEY = 'chikumiku_access_token';
 const REFRESH_TOKEN_KEY = 'chikumiku_refresh_token';
+/** Stores the Cognito access token — used only for session termination (logout). */
+const SESSION_TOKEN_KEY = 'chikumiku_session_token';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -56,10 +59,21 @@ export function setTokens(accessToken: string, refreshToken?: string): void {
   }
 }
 
+/** Get the stored Cognito access token (used for session termination). */
+export function getSessionToken(): string | null {
+  return localStorage.getItem(SESSION_TOKEN_KEY);
+}
+
+/** Store the Cognito access token, used only for logout's GlobalSignOut call. */
+export function setSessionToken(accessToken: string): void {
+  localStorage.setItem(SESSION_TOKEN_KEY, accessToken);
+}
+
 /** Clear all stored tokens (on logout or refresh failure) */
 export function clearTokens(): void {
   localStorage.removeItem(ACCESS_TOKEN_KEY);
   localStorage.removeItem(REFRESH_TOKEN_KEY);
+  localStorage.removeItem(SESSION_TOKEN_KEY);
 }
 
 /** Get the stored refresh token */
@@ -106,9 +120,18 @@ async function refreshAccessToken(): Promise<string | null> {
       return null;
     }
 
-    const data = (await response.json()) as { accessToken: string; refreshToken?: string };
-    setTokens(data.accessToken, data.refreshToken);
-    return data.accessToken;
+    const data = (await response.json()) as {
+      token: string;
+      accessToken: string;
+      expiresIn: number;
+    };
+    // `token` (ID token) is the bearer credential; `accessToken` is stored
+    // separately for Cognito session termination on logout. The original
+    // refresh token is still valid (Cognito doesn't rotate it by default), so
+    // it's left untouched in storage.
+    setTokens(data.token);
+    setSessionToken(data.accessToken);
+    return data.token;
   } catch {
     clearTokens();
     return null;

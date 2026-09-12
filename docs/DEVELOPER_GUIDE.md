@@ -73,7 +73,7 @@ ChikuMiku-LearnVerse-AIDLC-KIRO/
 │
 ├── infra/
 │   ├── src/
-│   │   ├── app.ts                  # CDK app entry point (8 stacks)
+│   │   ├── app.ts                  # CDK app entry point (7 stacks)
 │   │   └── stacks/                 # Individual CDK stack definitions
 │   └── migrations/
 │       └── neon-init.sql           # Full database schema

@@ -289,6 +289,46 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       };
     }
 
+    // Route: POST /auth/refresh — silently refresh an expired session using
+    // the stored Cognito refresh token. Public (the caller has no valid ID
+    // token by definition when calling this); the refresh token itself is the
+    // credential. Returns a fresh ID token + access token, mirroring /login's
+    // response shape (minus refreshToken, since Cognito does not rotate it).
+    if (httpMethod === 'POST' && path === '/auth/refresh') {
+      const body = JSON.parse(event.body || '{}');
+      const refreshToken = typeof body.refreshToken === 'string' ? body.refreshToken : '';
+
+      if (!refreshToken) {
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({ error: 'refreshToken is required' }),
+        };
+      }
+
+      const refreshed = await getCognitoClient().refreshSession(refreshToken);
+      if (!refreshed) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            errorCode: 'INVALID_REFRESH_TOKEN',
+            message: 'Invalid or expired refresh token',
+          }),
+        };
+      }
+
+      return {
+        statusCode: 200,
+        headers: CORS_HEADERS,
+        body: JSON.stringify({
+          token: refreshed.idToken,
+          accessToken: refreshed.accessToken,
+          expiresIn: refreshed.expiresIn,
+        }),
+      };
+    }
+
     // Route: POST /auth/forgot-password — rate-limit check, then issue an OTP.
     if (httpMethod === 'POST' && path === '/auth/forgot-password') {
       const request = JSON.parse(event.body || '{}');

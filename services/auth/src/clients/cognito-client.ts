@@ -15,6 +15,15 @@ export interface AuthTokens {
   expiresIn: number;
 }
 
+/** Result of a successful silent token refresh. */
+export interface RefreshedTokens {
+  /** Fresh ID token — use as the bearer credential for protected routes. */
+  idToken: string;
+  /** Fresh access token — use for Cognito session termination (logout). */
+  accessToken: string;
+  expiresIn: number;
+}
+
 export interface CognitoClient {
   /**
    * Create a user in the Cognito User Pool for session management.
@@ -49,10 +58,13 @@ export interface CognitoClient {
   ): Promise<AuthTokens | null>;
 
   /**
-   * Attempt a silent token refresh using the session ID.
-   * Returns a new access token and expiry, or null if refresh fails.
+   * Attempts a silent token refresh using the Cognito refresh token. Returns
+   * a fresh ID token (the bearer credential for protected routes) and access
+   * token (for session termination), or null if the refresh token is
+   * invalid/expired. Cognito does not rotate the refresh token by default, so
+   * the original one remains valid and is not returned again.
    */
-  refreshSession(sessionId: string): Promise<{ accessToken: string; expiresIn: number } | null>;
+  refreshSession(refreshToken: string): Promise<RefreshedTokens | null>;
 
   /**
    * Terminate a user session, invalidating all associated tokens.

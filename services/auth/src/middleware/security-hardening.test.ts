@@ -185,6 +185,7 @@ describe('JWT configuration (Req 20.3, 20.7)', () => {
     // Simulate successful refresh
     const refreshedToken = createToken(validPayload, TEST_SECRET);
     (deps.cognitoClient.refreshSession as jest.Mock).mockResolvedValue({
+      idToken: refreshedToken,
       accessToken: refreshedToken,
       expiresIn: 3600,
     });
