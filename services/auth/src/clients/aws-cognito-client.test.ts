@@ -59,7 +59,7 @@ describe('AwsCognitoClient.createUser', () => {
       UserAttributes: [
         { Name: 'email', Value: 'test@example.com' },
         { Name: 'email_verified', Value: 'true' },
-        { Name: 'phone_number', Value: '9876543210' },
+        { Name: 'phone_number', Value: '+919876543210' },
         { Name: 'custom:role', Value: 'parent' },
         { Name: 'custom:appUserId', Value: 'parent-db-uuid' },
       ],
@@ -73,6 +73,44 @@ describe('AwsCognitoClient.createUser', () => {
       Password: 'Str0ngPass!',
       Permanent: true,
     });
+  });
+
+  it('converts a bare 10-digit phone number to E.164 (+91) for Cognito', async () => {
+    const { client, send } = createFakeSdkClient({
+      User: { Attributes: [{ Name: 'sub', Value: 'sub-1' }] },
+    });
+    const cognito = new AwsCognitoClient({ userPoolId: USER_POOL_ID, client });
+
+    await cognito.createUser({
+      username: 'u',
+      phone: '9113804439',
+      password: 'Str0ngPass!',
+      role: 'parent',
+      appUserId: 'id-1',
+    });
+
+    const attrs = send.mock.calls[0][0].input.UserAttributes as { Name: string; Value: string }[];
+    const phoneAttr = attrs.find((a) => a.Name === 'phone_number');
+    expect(phoneAttr?.Value).toBe('+919113804439');
+  });
+
+  it('passes through a phone number that is already E.164', async () => {
+    const { client, send } = createFakeSdkClient({
+      User: { Attributes: [{ Name: 'sub', Value: 'sub-1' }] },
+    });
+    const cognito = new AwsCognitoClient({ userPoolId: USER_POOL_ID, client });
+
+    await cognito.createUser({
+      username: 'u',
+      phone: '+14155552671',
+      password: 'Str0ngPass!',
+      role: 'parent',
+      appUserId: 'id-1',
+    });
+
+    const attrs = send.mock.calls[0][0].input.UserAttributes as { Name: string; Value: string }[];
+    const phoneAttr = attrs.find((a) => a.Name === 'phone_number');
+    expect(phoneAttr?.Value).toBe('+14155552671');
   });
 
   it('omits email/phone attributes for a username-only (learner) account', async () => {

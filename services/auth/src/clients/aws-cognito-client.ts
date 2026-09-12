@@ -29,6 +29,25 @@ import {
 } from '@aws-sdk/client-cognito-identity-provider';
 import type { CognitoClient, AuthTokens } from './cognito-client';
 
+/**
+ * Default country code used to convert the app's bare 10-digit phone numbers
+ * (validated by `validatePhone` — always exactly 10 digits, no country code)
+ * into the E.164 format Cognito's `phone_number` attribute requires
+ * (`+<countrycode><number>`). The app is modeled around Indian mobile numbers
+ * (10-digit format, ap-south-1 deployment), so `+91` is correct today; revisit
+ * if the app ever supports numbers from other countries.
+ */
+const DEFAULT_COUNTRY_CODE = '+91';
+
+/**
+ * Converts a bare local phone number to E.164 format for Cognito. Passes
+ * through unchanged if already E.164 (starts with `+`), so this is safe to
+ * call even if a caller already supplies a fully-qualified number.
+ */
+function toE164Phone(phone: string, countryCode: string = DEFAULT_COUNTRY_CODE): string {
+  return phone.startsWith('+') ? phone : `${countryCode}${phone}`;
+}
+
 /** Options for constructing the AWS Cognito client. */
 export interface AwsCognitoClientOptions {
   /** Cognito User Pool id. Defaults to the COGNITO_USER_POOL_ID env var. */
@@ -74,7 +93,9 @@ export class AwsCognitoClient implements CognitoClient {
       userAttributes.push({ Name: 'email_verified', Value: 'true' });
     }
     if (params.phone) {
-      userAttributes.push({ Name: 'phone_number', Value: params.phone });
+      // Cognito requires E.164 (+<countrycode><number>); the app validates a
+      // bare 10-digit Indian mobile number with no country code.
+      userAttributes.push({ Name: 'phone_number', Value: toE164Phone(params.phone) });
     }
     userAttributes.push({ Name: 'custom:role', Value: params.role });
     // Links the Cognito identity to the application DB row. The JWT authorizer
