@@ -9,6 +9,12 @@ import {
   type RegisterLearnerDeps,
 } from './handlers/register-learner';
 import { handleLogout } from './handlers/logout';
+import {
+  handleGrantConsent,
+  handleCheckConsent,
+  CONSENT_TEXT,
+  type ParentalConsentRequest,
+} from './handlers/parental-consent';
 import { handleForgotPassword } from './handlers/forgot-password';
 import { handleVerifyOTP } from './handlers/verify-otp';
 import { handleResetPassword } from './handlers/reset-password';
@@ -101,6 +107,15 @@ function getParentAuthContext(event: APIGatewayProxyEvent): AuthContext | null {
   }
 
   return { parentId, parentUsername };
+}
+
+let cachedConsentRepository: NeonConsentRepository | null = null;
+/** Shared consent repository, reused across warm invocations. */
+function getConsentRepository(): NeonConsentRepository {
+  if (!cachedConsentRepository) {
+    cachedConsentRepository = new NeonConsentRepository();
+  }
+  return cachedConsentRepository;
 }
 
 let cachedCognitoClient: AwsCognitoClient | null = null;
@@ -248,6 +263,78 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         headers: CORS_HEADERS,
         body: JSON.stringify(result),
       };
+    }
+
+    // Route: POST /auth/consent — authenticated parent grants COPPA consent
+    // before any learner (child) data can be stored. Must be called at least
+    // once per parent before /auth/register/learner will succeed.
+    if (httpMethod === 'POST' && path === '/auth/consent') {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+
+      const body = JSON.parse(event.body || '{}');
+      const request: ParentalConsentRequest = {
+        parentId: authContext.parentId,
+        consentGranted: body.consentGranted === true,
+        consentText: CONSENT_TEXT,
+        learnerUsername:
+          typeof body.learnerUsername === 'string' ? body.learnerUsername : undefined,
+      };
+      const result = await handleGrantConsent(request, {
+        consentRepository: getConsentRepository(),
+      });
+
+      if ('statusCode' in result) {
+        return {
+          statusCode: result.statusCode,
+          headers: CORS_HEADERS,
+          body: JSON.stringify(result),
+        };
+      }
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
+    }
+
+    // Route: GET /auth/consent — authenticated parent checks whether they
+    // have already granted COPPA consent (so the frontend can skip the
+    // checkbox on repeat learner registrations).
+    if (httpMethod === 'GET' && path === '/auth/consent') {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+
+      const result = await handleCheckConsent(authContext.parentId, {
+        consentRepository: getConsentRepository(),
+      });
+
+      if ('statusCode' in result) {
+        return {
+          statusCode: result.statusCode,
+          headers: CORS_HEADERS,
+          body: JSON.stringify(result),
+        };
+      }
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
     }
 
     // Route: POST /auth/login — authenticates against Cognito and returns the

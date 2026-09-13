@@ -48,6 +48,19 @@ export interface ResetPasswordResponse {
   message: string;
 }
 
+export interface ConsentStatusResponse {
+  hasConsented: boolean;
+  consentedAt: string | null;
+  consentVersion: string | null;
+}
+
+export interface GrantConsentResponse {
+  success: boolean;
+  message: string;
+  consentedAt: string;
+  consentVersion: string;
+}
+
 // ─── Auth API Service ────────────────────────────────────────────────────────
 
 export const authApi = {
@@ -131,6 +144,26 @@ export const authApi = {
       { username, newPassword, resetToken },
       { skipAuth: true },
     );
+    return data;
+  },
+
+  /**
+   * Check whether the authenticated parent has already granted COPPA
+   * parental consent. Must be true before a learner can be registered.
+   */
+  async getConsentStatus(): Promise<ConsentStatusResponse> {
+    const { data } = await apiClient.get<ConsentStatusResponse>('/auth/consent');
+    return data;
+  },
+
+  /**
+   * Grant COPPA parental consent for the authenticated parent. Must be
+   * called (once) before /auth/register/learner will succeed.
+   */
+  async grantConsent(): Promise<GrantConsentResponse> {
+    const { data } = await apiClient.post<GrantConsentResponse>('/auth/consent', {
+      consentGranted: true,
+    });
     return data;
   },
 

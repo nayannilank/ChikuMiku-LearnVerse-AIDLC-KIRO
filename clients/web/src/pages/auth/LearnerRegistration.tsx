@@ -1,7 +1,7 @@
 /**
  * LearnerRegistration — Full learner registration form with subject selection.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { theme, SUBJECTS, GRADES, GENDERS, RELATIONSHIPS } from '../../theme';
 import { Button } from '../../components/common/Button';
@@ -13,6 +13,19 @@ import { Card } from '../../components/common/Card';
 import { useAuth } from '../../context/AuthContext';
 import { authApi } from '../../services/authApi';
 
+/**
+ * COPPA parental consent copy shown before a parent's first learner
+ * registration. Must stay in sync with CONSENT_TEXT in
+ * services/auth/src/handlers/parental-consent.ts (the backend is the source
+ * of truth and ignores this copy — it always stores its own constant — but
+ * the two should read the same to the parent).
+ */
+const PARENTAL_CONSENT_TEXT =
+  "I consent to ChikuMiku LearnVerse collecting and processing my child's " +
+  'learning data (including name, grade, and academic progress) solely for ' +
+  'educational purposes within this platform. I understand that no data will ' +
+  'be shared with third parties, and I can request deletion of all data at any time.';
+
 export function LearnerRegistration() {
   const navigate = useNavigate();
   const { username: parentUsername } = useAuth();
@@ -21,6 +34,28 @@ export function LearnerRegistration() {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Parental consent (COPPA) gate — a parent must explicitly consent before
+  // any learner (child) data can be stored. `null` while the initial status
+  // check is in flight.
+  const [hasConsented, setHasConsented] = useState<boolean | null>(null);
+  const [consentChecked, setConsentChecked] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    authApi
+      .getConsentStatus()
+      .then((status) => {
+        if (!cancelled) setHasConsented(status.hasConsented);
+      })
+      .catch(() => {
+        // Fail safe: treat as not-yet-consented so the checkbox is shown
+        // rather than silently blocking registration on a 500 later.
+        if (!cancelled) setHasConsented(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const updateField = (field: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement> | string) => {
     const value = typeof e === 'string' ? e : e.target.value;
@@ -44,6 +79,7 @@ export function LearnerRegistration() {
     if (!form.grade) errors.grade = 'Select grade';
     if (form.schoolName.length < 5 || form.schoolName.length > 30) errors.schoolName = '5-30 characters required';
     if (selectedSubjects.length === 0) errors.subjects = 'Select at least 1 subject';
+    if (!hasConsented && !consentChecked) errors.consent = 'Parental consent is required to register a learner';
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -53,6 +89,12 @@ export function LearnerRegistration() {
     setLoading(true);
     setServerError('');
     try {
+      // Grant COPPA consent first (once) — the backend rejects learner
+      // registration with 403 CONSENT_REQUIRED until this is on record.
+      if (!hasConsented) {
+        await authApi.grantConsent();
+        setHasConsented(true);
+      }
       await authApi.registerLearner({ ...form, subjects: selectedSubjects } as never);
       navigate('/parent/dashboard');
     } catch (err: unknown) {
@@ -134,6 +176,28 @@ export function LearnerRegistration() {
             </div>
             {validationErrors.subjects && <div style={styles.subjectError}>{validationErrors.subjects}</div>}
           </div>
+
+          {hasConsented === false && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${theme.colors.border}` }}>
+              <div style={styles.sectionLabel}>Parental Consent <span style={{ color: theme.colors.red }}>*</span></div>
+              <p style={{ fontSize: theme.fonts.sizes.xs, color: theme.colors.text, lineHeight: 1.5, marginBottom: 8 }}>
+                {PARENTAL_CONSENT_TEXT}
+              </p>
+              <label style={{ display: 'flex', alignItems: 'flex-start', gap: 8, fontSize: theme.fonts.sizes.sm, color: theme.colors.dark, cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={consentChecked}
+                  onChange={(e) => {
+                    setConsentChecked(e.target.checked);
+                    if (validationErrors.consent) setValidationErrors({ ...validationErrors, consent: '' });
+                  }}
+                  style={{ marginTop: 2 }}
+                />
+                <span>I have read and agree to the above, and consent to my child&apos;s data being collected as described.</span>
+              </label>
+              {validationErrors.consent && <div style={styles.subjectError}>{validationErrors.consent}</div>}
+            </div>
+          )}
 
           <div style={{ marginTop: 16 }}>
             <Button variant="primary" label={loading ? 'Registering...' : 'Register Learner'} icon="user-graduate" onPress={handleSubmit} fullWidth disabled={loading} />

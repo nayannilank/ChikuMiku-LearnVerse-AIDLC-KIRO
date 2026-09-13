@@ -108,7 +108,12 @@ export class ApiStack extends cdk.Stack {
     registerResource.addResource('learner').addMethod('POST', authIntegration, authorized);
     // POST /auth/logout — requires an authenticated session
     authResource.addResource('logout').addMethod('POST', authIntegration, authorized);
-    // All other /auth/* routes (login, forgot-password, verify-otp,
+    // /auth/consent — requires an authenticated parent (COPPA consent grant
+    // and status check, gating /auth/register/learner).
+    const consentResource = authResource.addResource('consent');
+    consentResource.addMethod('POST', authIntegration, authorized);
+    consentResource.addMethod('GET', authIntegration, authorized);
+    // All other /auth/* routes (login, refresh, forgot-password, verify-otp,
     // reset-password) stay public via the proxy.
     authResource.addProxy({
       defaultIntegration: authIntegration,

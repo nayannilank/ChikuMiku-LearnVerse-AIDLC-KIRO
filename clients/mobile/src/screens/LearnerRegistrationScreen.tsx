@@ -71,6 +71,23 @@ const DEFAULT_SUBJECTS: DefaultSubject[] = [
 
 const MAX_CUSTOM_SUBJECTS = 5;
 
+/**
+ * COPPA parental consent copy shown before a parent's first learner
+ * registration. Must stay in sync with CONSENT_TEXT in
+ * services/auth/src/handlers/parental-consent.ts (the backend is the source
+ * of truth and ignores this copy — it always stores its own constant — but
+ * the two should read the same to the parent).
+ */
+const PARENTAL_CONSENT_TEXT =
+  "I consent to ChikuMiku LearnVerse collecting and processing my child's " +
+  'learning data (including name, grade, and academic progress) solely for ' +
+  'educational purposes within this platform. I understand that no data will ' +
+  'be shared with third parties, and I can request deletion of all data at any time.';
+
+interface ConsentStatusResponse {
+  hasConsented: boolean;
+}
+
 /* --- Form Types --- */
 interface FormData {
   username: string;
@@ -131,9 +148,24 @@ export function LearnerRegistrationScreen({
   const [showGradePicker, setShowGradePicker] = useState(false);
   const [showRelationshipPicker, setShowRelationshipPicker] = useState(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Parental consent (COPPA) gate — a parent must explicitly consent before
+  // any learner (child) data can be stored. `null` while the initial status
+  // check is in flight.
+  const [hasConsented, setHasConsented] = useState<boolean | null>(null);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentError, setConsentError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
     return () => { if (successTimerRef.current) clearTimeout(successTimerRef.current); };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiClient
+      .get<ConsentStatusResponse>('/auth/consent')
+      .then(({ data }) => { if (!cancelled) setHasConsented(data.hasConsented); })
+      .catch(() => { if (!cancelled) setHasConsented(false); });
+    return () => { cancelled = true; };
   }, []);
 
   const validateField = useCallback(
@@ -214,13 +246,25 @@ export function LearnerRegistrationScreen({
     if (subjectError) { newErrors.subjects = subjectError; hasError = true; }
     setErrors(newErrors);
     setTouched({ username: true, name: true, password: true, school: true });
+    if (!hasConsented && !consentChecked) {
+      setConsentError('Parental consent is required to register a learner');
+      hasError = true;
+    } else {
+      setConsentError(undefined);
+    }
     return !hasError;
-  }, [formData, validateField, validateSubjectsCount]);
+  }, [formData, validateField, validateSubjectsCount, hasConsented, consentChecked]);
 
   const handleSubmit = useCallback(async () => {
     if (!validateAll()) return;
     setIsSubmitting(true);
     try {
+      // Grant COPPA consent first (once) — the backend rejects learner
+      // registration with 403 CONSENT_REQUIRED until this is on record.
+      if (!hasConsented) {
+        await apiClient.post('/auth/consent', { consentGranted: true });
+        setHasConsented(true);
+      }
       const allSelectedSubjects = [...Array.from(selectedSubjects), ...customSubjects];
       await apiClient.post('/auth/register/learner', {
         parentUsername: parentUsername || '',
@@ -250,7 +294,7 @@ export function LearnerRegistrationScreen({
         }));
       }
     } finally { setIsSubmitting(false); }
-  }, [formData, parentUsername, selectedSubjects, customSubjects, validateAll]);
+  }, [formData, parentUsername, selectedSubjects, customSubjects, validateAll, hasConsented]);
 
   if (success) {
     return (
@@ -442,6 +486,29 @@ export function LearnerRegistrationScreen({
           {errors.customSubject && <Text style={styles.errorText}>{errors.customSubject}</Text>}
         </View>
 
+        {/* Parental Consent (COPPA) */}
+        {hasConsented === false && (
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Parental Consent <Text style={styles.required}>*</Text></Text>
+            <Text style={styles.consentText}>{PARENTAL_CONSENT_TEXT}</Text>
+            <TouchableOpacity
+              style={styles.consentRow}
+              onPress={() => { setConsentChecked((prev) => !prev); setConsentError(undefined); }}
+              activeOpacity={0.7}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: consentChecked }}
+            >
+              <View style={[styles.consentCheckbox, consentChecked && styles.consentCheckboxChecked]}>
+                {consentChecked && <Text style={styles.consentCheckmark}>✓</Text>}
+              </View>
+              <Text style={styles.consentLabel}>
+                I have read and agree to the above, and consent to my child's data being collected as described.
+              </Text>
+            </TouchableOpacity>
+            {consentError && <Text style={styles.errorText}>{consentError}</Text>}
+          </View>
+        )}
+
         {/* Submit */}
         <TouchableOpacity
           style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
@@ -482,6 +549,15 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: '#E74C3C' },
   errorText: { color: '#E74C3C', fontSize: 10, marginTop: 3 },
+  consentText: { fontSize: 11, color: '#555555', lineHeight: 16, marginBottom: 8 },
+  consentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  consentCheckbox: {
+    width: 18, height: 18, borderRadius: 4, borderWidth: 2, borderColor: '#E0D8EC',
+    backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginTop: 1,
+  },
+  consentCheckboxChecked: { borderColor: '#E94F9B', backgroundColor: '#E94F9B' },
+  consentCheckmark: { color: '#FFFFFF', fontSize: 11, fontWeight: '700' },
+  consentLabel: { flex: 1, fontSize: 12, color: '#333333', lineHeight: 16 },
 
   readOnlyField: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
