@@ -164,9 +164,17 @@ export class AwsCognitoClient implements CognitoClient {
         refreshToken: result.RefreshToken,
         expiresIn: result.ExpiresIn,
       };
-    } catch {
+    } catch (err: unknown) {
       // Invalid credentials / unconfirmed user are normal auth failures, not
-      // error conditions — surface as null so the route returns 401.
+      // error conditions — surface as null so the route returns a generic
+      // 401 to the client. Still log the Cognito exception name server-side
+      // (CloudWatch) so real misconfigurations (e.g. UserNotFoundException
+      // vs NotAuthorizedException vs PasswordResetRequiredException vs
+      // UserNotConfirmedException) are distinguishable without leaking
+      // anything to the caller.
+      const name = err instanceof Error ? err.name || err.constructor?.name : 'UnknownError';
+      // eslint-disable-next-line no-console
+      console.error(`Cognito authenticate failed for username "${username}": ${name}`);
       return null;
     }
   }
