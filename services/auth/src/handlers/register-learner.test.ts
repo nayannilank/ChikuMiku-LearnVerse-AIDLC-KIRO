@@ -160,6 +160,33 @@ describe('validateLearnerRegistration', () => {
     }
   });
 
+  it('accepts spelled-out (word form) grades used by the grade dropdown', () => {
+    const grades = [
+      'First', 'Second', 'Third', 'Fourth', 'Fifth',
+      'Sixth', 'Seventh', 'Eighth', 'Ninth', 'Tenth',
+      'Eleventh', 'Twelfth',
+    ];
+    for (const grade of grades) {
+      const result = validateLearnerRegistration(validRequest({ grade }));
+      expect(result.errors.grade).toBeUndefined();
+    }
+  });
+
+  it('accepts Title Case gender/relationship sent by the web client', () => {
+    const result = validateLearnerRegistration(
+      validRequest({ gender: 'Female' as never, relationship: 'Other' as never })
+    );
+    expect(result.errors.gender).toBeUndefined();
+    expect(result.errors.relationship).toBeUndefined();
+  });
+
+  it('accepts nephew/niece relationship sent by the mobile client', () => {
+    const nephew = validateLearnerRegistration(validRequest({ relationship: 'nephew' as never }));
+    expect(nephew.errors.relationship).toBeUndefined();
+    const niece = validateLearnerRegistration(validRequest({ relationship: 'niece' as never }));
+    expect(niece.errors.relationship).toBeUndefined();
+  });
+
   it('rejects school name too short', () => {
     const result = validateLearnerRegistration(validRequest({ schoolName: 'ABC' }));
     expect(result.valid).toBe(false);

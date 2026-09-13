@@ -16,7 +16,7 @@ import {
   validateSchoolName,
   validatePassword,
 } from '@chikumiku/validation';
-import { VALID_GRADES } from './register-learner';
+import { VALID_GRADES, normalizeEnum } from './register-learner';
 
 // --- Constants ---
 
@@ -102,7 +102,7 @@ export function validateEditLearnerRequest(body: EditLearnerRequest): Validation
   }
 
   if (body.grade !== undefined) {
-    if (!VALID_GRADES.includes(body.grade as typeof VALID_GRADES[number])) {
+    if (!VALID_GRADES.includes(normalizeEnum(body.grade) as typeof VALID_GRADES[number])) {
       errors.grade = 'Grade must be a valid value from LKG to 12th';
     }
   }

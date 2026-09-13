@@ -95,7 +95,7 @@ export function LearnerRegistration() {
         await authApi.grantConsent();
         setHasConsented(true);
       }
-      await authApi.registerLearner({ ...form, subjects: selectedSubjects } as never);
+      await authApi.registerLearner({ ...form, subjectIds: selectedSubjects } as never);
       navigate('/parent/dashboard');
     } catch (err: unknown) {
       setServerError((err as { message?: string })?.message || 'Registration failed');

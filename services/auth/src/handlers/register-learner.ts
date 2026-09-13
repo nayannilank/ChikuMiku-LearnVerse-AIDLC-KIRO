@@ -21,15 +21,40 @@ import { requireParentalConsent, type ConsentRepository } from './parental-conse
 import type { CognitoClient } from '../clients/cognito-client';
 
 // --- Valid domain values ---
+//
+// Comparisons against these lists are case-insensitive (see `normalizeEnum`
+// below) because the two clients disagree on casing: the web app sends
+// Title Case ("Female", "Other") per the original requirements doc, while
+// the mobile app sends lowercase ("female", "other"). Rather than force one
+// client's convention onto the other, validation normalizes both to
+// lowercase before comparing.
 
 export const VALID_GENDERS = ['male', 'female', 'other'] as const;
-export const VALID_RELATIONSHIPS = ['son', 'daughter', 'other'] as const;
+// Includes 'nephew'/'niece' — offered by the mobile app's relationship
+// picker in addition to the three options in the original requirements doc.
+export const VALID_RELATIONSHIPS = ['son', 'daughter', 'nephew', 'niece', 'other'] as const;
+// Both the ordinal short form ('1st') and the spelled-out word form
+// ('first') are accepted — the web/mobile grade dropdowns use word forms
+// ("First".."Twelfth") while short forms are used elsewhere in the app
+// (e.g. font-size categorization), and both should register successfully.
 export const VALID_GRADES = [
-  'LKG', 'UKG',
+  'lkg', 'ukg',
   '1st', '2nd', '3rd', '4th', '5th',
   '6th', '7th', '8th', '9th', '10th',
   '11th', '12th',
+  'first', 'second', 'third', 'fourth', 'fifth',
+  'sixth', 'seventh', 'eighth', 'ninth', 'tenth',
+  'eleventh', 'twelfth',
 ] as const;
+
+/**
+ * Lowercases and trims a value for case-insensitive enum comparison.
+ * Exported so other handlers validating the same domain values (e.g.
+ * manage-learners.ts's grade check) stay consistent with this normalization.
+ */
+export function normalizeEnum(value: unknown): string {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+}
 
 export const MAX_LEARNERS_PER_PARENT = 10;
 export const MAX_CUSTOM_SUBJECTS = 5;
@@ -118,18 +143,22 @@ export function validateLearnerRegistration(
     errors.password = passwordResult.errors.password;
   }
 
-  // Validate gender
-  if (!VALID_GENDERS.includes(request.gender as typeof VALID_GENDERS[number])) {
+  // Validate gender (case-insensitive — see VALID_GENDERS comment above)
+  if (!VALID_GENDERS.includes(normalizeEnum(request.gender) as typeof VALID_GENDERS[number])) {
     errors.gender = 'Gender must be one of: male, female, other';
   }
 
-  // Validate relationship
-  if (!VALID_RELATIONSHIPS.includes(request.relationship as typeof VALID_RELATIONSHIPS[number])) {
-    errors.relationship = 'Relationship must be one of: son, daughter, other';
+  // Validate relationship (case-insensitive — see VALID_RELATIONSHIPS comment above)
+  if (
+    !VALID_RELATIONSHIPS.includes(
+      normalizeEnum(request.relationship) as typeof VALID_RELATIONSHIPS[number]
+    )
+  ) {
+    errors.relationship = 'Relationship must be one of: son, daughter, nephew, niece, other';
   }
 
-  // Validate grade
-  if (!VALID_GRADES.includes(request.grade as typeof VALID_GRADES[number])) {
+  // Validate grade (case-insensitive, short or word form — see VALID_GRADES comment above)
+  if (!VALID_GRADES.includes(normalizeEnum(request.grade) as typeof VALID_GRADES[number])) {
     errors.grade = 'Grade must be a valid value from LKG to 12th';
   }
 

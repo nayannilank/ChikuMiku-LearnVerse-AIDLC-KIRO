@@ -274,8 +274,8 @@ export function LearnerRegistrationScreen({
         gender: formData.gender,
         relationship: formData.relationship,
         grade: formData.grade,
-        school: formData.school,
-        subjects: allSelectedSubjects,
+        schoolName: formData.school,
+        subjectIds: allSelectedSubjects,
       });
       setSuccess(true);
       successTimerRef.current = setTimeout(() => {
