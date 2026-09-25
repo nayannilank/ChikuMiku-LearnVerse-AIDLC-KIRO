@@ -25,6 +25,12 @@ export interface DashboardTreeNode {
   type: 'learner' | 'subject' | 'book' | 'chapter' | 'exercise' | 'quiz';
   name: string;
   completionPercentage: number;
+  /**
+   * Learner's grade (e.g. "First", "5th"). Only set on `type: 'learner'`
+   * nodes; undefined for all other node types. Carried here so the parent
+   * dashboard adapter can surface it without a second DB round-trip.
+   */
+  grade?: string;
   children?: DashboardTreeNode[];
 }
 

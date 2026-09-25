@@ -118,4 +118,13 @@ export class NeonLearnerRepository implements LearnerRepository {
       return learnerResult.rows[0].id;
     });
   }
+
+  async deleteLearner(learnerId: string): Promise<void> {
+    const db = await this.db();
+    // Hard delete — this only ever runs to roll back a row whose Cognito
+    // account provisioning failed, i.e. a row that should never have existed
+    // as a real account. Not the soft-delete used for genuine account
+    // removal (see manage-learners.ts's softDeleteLearner).
+    await db.query(`DELETE FROM learner WHERE id = $1`, [learnerId] as never[]);
+  }
 }

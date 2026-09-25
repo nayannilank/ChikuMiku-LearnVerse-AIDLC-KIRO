@@ -69,10 +69,20 @@ interface QuizAttemptSummaryRow {
 /**
  * Parses the denormalized `learner.subjects` JSONB column into SubjectRecord[].
  *
- * ASSUMPTION: `learner.subjects` is a JSONB array whose elements are objects of
- * the shape `{ id, name }` (the per-learner subject enrollment list). pg returns
- * JSONB as an already-parsed JS value, but we defensively handle a raw string.
- * Elements that don't carry both `id` and `name` are skipped.
+ * The column is a JSONB array. Two element shapes are supported, because the
+ * learner registration handler (services/auth) writes the *string* form while
+ * some data / tests use the object form:
+ *   - string:  "Maths"           -> { id: "Maths", name: "Maths" }
+ *   - object:  { id, name }       -> { id, name } (both required)
+ * For the string form the value doubles as id and name — the enrollment list
+ * stores subject names, not subject-table UUIDs (the `subject` table is keyed
+ * by parent, and default subjects are shared by name across the app). Using the
+ * name as the id keeps the dashboard tree stable and human-readable; it is not
+ * a foreign key into the `subject` table.
+ *
+ * pg returns JSONB already parsed, but we defensively handle a raw string.
+ * Elements that are neither a non-empty string nor an `{id,name}` object are
+ * skipped.
  */
 function parseSubjectsJsonb(value: unknown): SubjectRecord[] {
   let parsed: unknown = value;
@@ -88,7 +98,13 @@ function parseSubjectsJsonb(value: unknown): SubjectRecord[] {
   }
   const subjects: SubjectRecord[] = [];
   for (const element of parsed) {
-    if (element && typeof element === 'object') {
+    if (typeof element === 'string') {
+      // String form: the subject name is both id and display name.
+      if (element.length > 0) {
+        subjects.push({ id: element, name: element });
+      }
+    } else if (element && typeof element === 'object') {
+      // Object form: require both id and name.
       const obj = element as Record<string, unknown>;
       if (obj.id !== undefined && obj.name !== undefined) {
         subjects.push({ id: String(obj.id), name: String(obj.name) });

@@ -89,6 +89,8 @@ describe('handleParentDashboard', () => {
     const learnerNode = tree[0];
     expect(learnerNode.type).toBe('learner');
     expect(learnerNode.name).toBe('Alice');
+    // grade is carried on the learner node for the adapter to surface.
+    expect(learnerNode.grade).toBe('5th');
 
     // Subject node
     const subjectNode = learnerNode.children![0];

@@ -71,6 +71,14 @@ export interface LearnerRepository {
   countLearnersByParent(parentUsername: string): Promise<number>;
   /** Create a new learner record. Returns the created learner ID. */
   createLearner(data: CreateLearnerData): Promise<string>;
+  /**
+   * Hard-deletes a learner record. Used to roll back `createLearner` when the
+   * subsequent Cognito account provisioning fails — without this, the row
+   * stays behind, `isUsernameTaken` blocks every retry with the same
+   * username, and the learner never gets a usable Cognito account (i.e.
+   * never gets to log in) either.
+   */
+  deleteLearner(learnerId: string): Promise<void>;
 }
 
 /** Data passed to the repository for learner creation. */
@@ -287,12 +295,31 @@ export async function handleRegisterLearner(
   // (username-only — learners have no email/phone). The DB learner id is
   // carried as custom:appUserId, exactly like the parent flow, so the learner
   // dashboard can resolve identity from the JWT claim.
-  await deps.cognitoClient.createUser({
-    username: enrichedRequest.username,
-    password: enrichedRequest.password,
-    role: 'learner',
-    appUserId: learnerId,
-  });
+  try {
+    await deps.cognitoClient.createUser({
+      username: enrichedRequest.username,
+      password: enrichedRequest.password,
+      role: 'learner',
+      appUserId: learnerId,
+    });
+  } catch {
+    // Roll back the DB row. Without this, the learner row survives with no
+    // matching Cognito account: `isUsernameTaken` would block every retry
+    // with the same username (409 forever), yet there is no usable account
+    // to log into either — a permanently stuck username, and exactly the
+    // kind of split-brain state that surfaces later as "login always fails
+    // with invalid credentials" for an account that looks registered.
+    await deps.repository.deleteLearner(learnerId);
+    return {
+      success: false,
+      error: {
+        statusCode: 500,
+        errorCode: 'ACCOUNT_PROVISIONING_FAILED',
+        message: 'Learner registration could not be completed. Please try again.',
+        retryable: true,
+      },
+    };
+  }
 
   return {
     success: true,

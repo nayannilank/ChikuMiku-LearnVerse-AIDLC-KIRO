@@ -167,14 +167,20 @@ export class AwsCognitoClient implements CognitoClient {
     } catch (err: unknown) {
       // Invalid credentials / unconfirmed user are normal auth failures, not
       // error conditions — surface as null so the route returns a generic
-      // 401 to the client. Still log the Cognito exception name server-side
-      // (CloudWatch) so real misconfigurations (e.g. UserNotFoundException
-      // vs NotAuthorizedException vs PasswordResetRequiredException vs
-      // UserNotConfirmedException) are distinguishable without leaking
-      // anything to the caller.
-      const name = err instanceof Error ? err.name || err.constructor?.name : 'UnknownError';
+      // 401 to the client. Still log details server-side (CloudWatch) so real
+      // misconfigurations (e.g. UserNotFoundException vs NotAuthorizedException
+      // vs PasswordResetRequiredException vs UserNotConfirmedException) are
+      // distinguishable without leaking anything to the caller. Logs name,
+      // message, and $metadata (AWS SDK v3 exceptions carry an HTTP status +
+      // request id there) rather than a single field, in case any one of them
+      // is unexpectedly empty.
       // eslint-disable-next-line no-console
-      console.error(`Cognito authenticate failed for username "${username}": ${name}`);
+      console.error(`Cognito authenticate failed for username "${username}":`, {
+        name: err instanceof Error ? err.name : typeof err,
+        message: err instanceof Error ? err.message : undefined,
+        metadata: (err as { $metadata?: unknown })?.$metadata,
+        raw: err instanceof Error ? undefined : err,
+      });
       return null;
     }
   }

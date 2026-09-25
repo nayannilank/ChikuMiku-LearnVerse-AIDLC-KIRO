@@ -88,6 +88,36 @@ describe('NeonLearningRepository', () => {
       const repo = new NeonLearningRepository({ pool: mockPool() });
       expect(await repo.getSubjectsByLearnerId('missing')).toEqual([]);
     });
+
+    it('parses the string-array subjects form written at registration', async () => {
+      // The learner registration handler stores subjects as a JSONB array of
+      // names, e.g. ["Maths","Science"] — not {id,name} objects. Each name
+      // becomes both id and display name.
+      const query = jest.fn().mockResolvedValue({
+        rows: [{ subjects: ['Maths', 'Science', 'English'] }],
+      });
+      const repo = new NeonLearningRepository({ pool: mockPool(query) });
+
+      const subjects = await repo.getSubjectsByLearnerId('l-1');
+      expect(subjects).toEqual([
+        { id: 'Maths', name: 'Maths' },
+        { id: 'Science', name: 'Science' },
+        { id: 'English', name: 'English' },
+      ]);
+    });
+
+    it('parses the string-array subjects form when it arrives as a raw JSON string', async () => {
+      const query = jest.fn().mockResolvedValue({
+        rows: [{ subjects: '["Maths","Science"]' }],
+      });
+      const repo = new NeonLearningRepository({ pool: mockPool(query) });
+
+      const subjects = await repo.getSubjectsByLearnerId('l-1');
+      expect(subjects).toEqual([
+        { id: 'Maths', name: 'Maths' },
+        { id: 'Science', name: 'Science' },
+      ]);
+    });
   });
 
   describe('getBooksBySubjectAndLearner', () => {

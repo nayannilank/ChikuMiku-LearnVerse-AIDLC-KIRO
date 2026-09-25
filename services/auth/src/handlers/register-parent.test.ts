@@ -33,6 +33,7 @@ function createMockDeps(overrides: Partial<RegisterParentDependencies> = {}): Re
         passwordHash: 'hashed',
         createdAt: new Date().toISOString(),
       }),
+      deleteParent: jest.fn().mockResolvedValue(undefined),
     },
     cognitoClient: {
       createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'cognito-123' }),
@@ -127,6 +128,7 @@ describe('handleRegisterParent', () => {
       dbClient: {
         parentUsernameExists: jest.fn().mockResolvedValue(true),
         createParent: jest.fn(),
+        deleteParent: jest.fn(),
       },
     });
     const response = await handleRegisterParent(validRequest(), deps);
@@ -195,5 +197,42 @@ describe('handleRegisterParent', () => {
 
     const createParentCall = (deps.dbClient.createParent as jest.Mock).mock.calls[0][0];
     expect(createParentCall.id).toBe(customId);
+  });
+
+  it('rolls back the DB row when Cognito account provisioning fails', async () => {
+    const deleteParent = jest.fn().mockResolvedValue(undefined);
+    const deps = createMockDeps({
+      dbClient: {
+        parentUsernameExists: jest.fn().mockResolvedValue(false),
+        createParent: jest.fn().mockResolvedValue({
+          id: 'mock-id',
+          username: 'testparent1',
+          fullName: 'Test Parent',
+          phone: '9876543210',
+          email: 'test@example.com',
+          passwordHash: 'hashed',
+          createdAt: new Date().toISOString(),
+        }),
+        deleteParent,
+      },
+      cognitoClient: {
+        createUser: jest.fn().mockRejectedValue(new Error('Cognito unavailable')),
+        authenticate: jest.fn().mockResolvedValue(null),
+        refreshSession: jest.fn().mockResolvedValue(null),
+        terminateSession: jest.fn().mockResolvedValue(undefined),
+      },
+    });
+
+    const response = await handleRegisterParent(validRequest(), deps);
+
+    // The rollback uses the id handleRegisterParent generated for the parent
+    // (deps.generateId()), not whatever createParent's mock happens to echo
+    // back — the default mock's 'generated-uuid'.
+    expect(deleteParent).toHaveBeenCalledWith('generated-uuid');
+    expect(isAPIError(response)).toBe(true);
+    const errorResponse = response as APIError;
+    expect(errorResponse.statusCode).toBe(500);
+    expect(errorResponse.errorCode).toBe('ACCOUNT_PROVISIONING_FAILED');
+    expect(errorResponse.retryable).toBe(true);
   });
 });

@@ -39,6 +39,7 @@ function mockRepository(overrides?: Partial<LearnerRepository>): LearnerReposito
     isUsernameTaken: jest.fn().mockResolvedValue(false),
     countLearnersByParent: jest.fn().mockResolvedValue(0),
     createLearner: jest.fn().mockResolvedValue('learner-uuid-123'),
+    deleteLearner: jest.fn().mockResolvedValue(undefined),
     ...overrides,
   };
 }
@@ -369,6 +370,7 @@ describe('handleRegisterLearner', () => {
         return MAX_LEARNERS_PER_PARENT;
       }),
       createLearner: jest.fn().mockResolvedValue('id'),
+      deleteLearner: jest.fn().mockResolvedValue(undefined),
     };
     const deps = mockDeps({ repository: repo });
 
@@ -411,5 +413,22 @@ describe('handleRegisterLearner', () => {
     expect(repo.createLearner).toHaveBeenCalledWith(
       expect.objectContaining({ customSubjects: [] })
     );
+  });
+
+  it('rolls back the DB row when Cognito account provisioning fails', async () => {
+    const repo = mockRepository();
+    const cognitoClient = mockCognitoClient();
+    (cognitoClient.createUser as jest.Mock).mockRejectedValue(new Error('Cognito unavailable'));
+    const deps = mockDeps({ repository: repo, cognitoClient });
+
+    const result = await handleRegisterLearner(validRequest(), authContext, deps);
+
+    expect(repo.deleteLearner).toHaveBeenCalledWith('learner-uuid-123');
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.statusCode).toBe(500);
+      expect(result.error.errorCode).toBe('ACCOUNT_PROVISIONING_FAILED');
+      expect(result.error.retryable).toBe(true);
+    }
   });
 });

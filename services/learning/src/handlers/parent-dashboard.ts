@@ -47,6 +47,7 @@ export async function handleParentDashboard(
       id: learner.id,
       type: 'learner',
       name: learner.name,
+      grade: learner.grade,
       completionPercentage: 0,
       children: [],
     };

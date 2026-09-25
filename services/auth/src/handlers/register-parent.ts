@@ -119,16 +119,31 @@ export async function handleRegisterParent(
   // 5. Create Cognito user for session management (Req 20.2). Carry the DB
   // parent id as custom:appUserId so the JWT authorizer surfaces a stable link
   // to the application record (Cognito's own `sub` differs from parent.id).
-  await deps.cognitoClient.createUser({
-    username: request.username,
-    email: request.email,
-    phone: request.phone,
-    // Plaintext password provisions the Cognito account so the parent can log
-    // in via USER_PASSWORD_AUTH. (The DB stores only the bcrypt hash above.)
-    password: request.password,
-    role: 'parent',
-    appUserId: parentId,
-  });
+  try {
+    await deps.cognitoClient.createUser({
+      username: request.username,
+      email: request.email,
+      phone: request.phone,
+      // Plaintext password provisions the Cognito account so the parent can
+      // log in via USER_PASSWORD_AUTH. (The DB stores only the bcrypt hash
+      // above.)
+      password: request.password,
+      role: 'parent',
+      appUserId: parentId,
+    });
+  } catch {
+    // Roll back the DB row. Without this, the parent row survives with no
+    // matching Cognito account: `parentUsernameExists` would block every
+    // retry with the same username (409 forever), yet there is no usable
+    // account to log into either — a permanently stuck username.
+    await deps.dbClient.deleteParent(parentId);
+    return {
+      statusCode: 500,
+      errorCode: 'ACCOUNT_PROVISIONING_FAILED',
+      message: 'Registration could not be completed. Please try again.',
+      retryable: true,
+    };
+  }
 
   // 6. Return success response with auto-redirect countdown (Req 1.2)
   return {

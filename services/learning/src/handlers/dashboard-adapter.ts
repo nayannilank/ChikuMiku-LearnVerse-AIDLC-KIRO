@@ -211,9 +211,9 @@ function adaptLearner(learnerNode: DashboardTreeNode): DashboardLearner {
   return {
     id: learnerNode.id,
     name: learnerNode.name,
-    // TODO(dashboard): the tree does not carry the learner's grade; default to
-    // '' until the handler/tree exposes it.
-    grade: '',
+    // `grade` is carried on the learner node by handleParentDashboard; fall
+    // back to '' for any node that doesn't set it.
+    grade: learnerNode.grade ?? '',
     subjects: childrenOf(learnerNode)
       .filter((child) => child.type === 'subject')
       .map(adaptSubject),

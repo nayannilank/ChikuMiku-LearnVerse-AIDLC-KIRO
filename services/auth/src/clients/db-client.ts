@@ -24,4 +24,13 @@ export interface DBClient {
    * Returns the created record.
    */
   createParent(parent: Omit<ParentRecord, 'createdAt'>): Promise<ParentRecord>;
+
+  /**
+   * Hard-deletes a parent record. Used to roll back `createParent` when the
+   * subsequent Cognito account provisioning fails — without this, the row
+   * stays behind, `parentUsernameExists` blocks every retry with the same
+   * username, and the parent never gets a usable Cognito account (i.e. never
+   * gets to log in) either.
+   */
+  deleteParent(parentId: string): Promise<void>;
 }

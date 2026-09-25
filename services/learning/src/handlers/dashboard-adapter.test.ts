@@ -76,6 +76,7 @@ describe('adaptParentTree', () => {
         id: 'learner-1',
         type: 'learner',
         name: 'Ava',
+        grade: 'First',
         completionPercentage: 60,
         children: [
           buildSubject('subj-math', 'Maths', 55, [
@@ -92,8 +93,8 @@ describe('adaptParentTree', () => {
     const learner = result.learners[0];
     expect(learner.id).toBe('learner-1');
     expect(learner.name).toBe('Ava');
-    // grade is not carried by the tree -> default-filled empty string.
-    expect(learner.grade).toBe('');
+    // grade is carried on the learner node and surfaced by the adapter.
+    expect(learner.grade).toBe('First');
 
     expect(learner.subjects).toHaveLength(1);
     const subject = learner.subjects[0];
@@ -163,6 +164,20 @@ describe('adaptParentTree', () => {
 
     const learner = adaptParentTree(tree).learners[0];
     expect(learner.subjects).toEqual([]);
+  });
+
+  it("defaults grade to '' when the learner node does not carry one", () => {
+    const tree: DashboardTreeNode[] = [
+      {
+        id: 'learner-1',
+        type: 'learner',
+        name: 'Cara',
+        completionPercentage: 0,
+        children: [],
+      },
+    ];
+
+    expect(adaptParentTree(tree).learners[0].grade).toBe('');
   });
 
   it('resolves subject styling case-insensitively', () => {

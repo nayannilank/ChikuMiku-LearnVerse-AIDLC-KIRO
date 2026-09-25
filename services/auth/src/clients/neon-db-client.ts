@@ -77,4 +77,12 @@ export class NeonDBClient implements DBClient {
       createdAt: toIso(row.created_at),
     };
   }
+
+  async deleteParent(parentId: string): Promise<void> {
+    const db = await this.db();
+    // Hard delete — this only ever runs to roll back a row whose Cognito
+    // account provisioning failed, i.e. a row that should never have existed
+    // as a real account. Not the soft-delete used for genuine account removal.
+    await db.query(`DELETE FROM parent WHERE id = $1`, [parentId] as never[]);
+  }
 }
