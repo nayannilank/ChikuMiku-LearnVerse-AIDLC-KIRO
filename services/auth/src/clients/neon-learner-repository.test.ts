@@ -94,61 +94,98 @@ describe('NeonLearnerRepository', () => {
   });
 
   describe('createLearner', () => {
-    it('resolves the parent, inserts the learner, and returns the new id', async () => {
+    it('resolves each subject NAME to an existing subject.id and stores the ids', async () => {
+      // Flow per name: parent lookup, then a SELECT that finds an existing
+      // (default/owned) subject, then the learner insert. With one subject
+      // name that resolves, that's: parent + 1 select + insert = 3 queries.
       const clientQuery = jest
         .fn()
         .mockResolvedValueOnce({ rows: [{ id: 'parent-uuid' }] }) // parent lookup
-        .mockResolvedValueOnce({ rows: [{ id: 'learner-uuid' }] }); // learner insert
-      const client = fakeClient(clientQuery);
-      mockedWithTransaction.mockImplementation(async (fn: any) => fn(client));
-
-      const repo = new NeonLearnerRepository();
-      const id = await repo.createLearner(createData());
-
-      expect(id).toBe('learner-uuid');
-      expect(mockedWithTransaction).toHaveBeenCalledTimes(1);
-      expect(clientQuery).toHaveBeenCalledTimes(2);
-
-      const [parentSql, parentParams] = clientQuery.mock.calls[0];
-      expect(parentSql).toContain('FROM parent');
-      expect(parentParams).toEqual(['parent-user']);
-
-      const [learnerSql, learnerParams] = clientQuery.mock.calls[1];
-      expect(learnerSql).toContain('INSERT INTO learner');
-      expect(learnerSql).toContain('RETURNING id');
-      // parent_id is the resolved id, and subjects JSONB holds the selected ids.
-      expect(learnerParams[0]).toBe('parent-uuid');
-      expect(learnerParams[learnerParams.length - 1]).toBe(
-        JSON.stringify(['math-101'])
-      );
-    });
-
-    it('creates a subject row per custom subject and includes their ids', async () => {
-      const clientQuery = jest
-        .fn()
-        .mockResolvedValueOnce({ rows: [{ id: 'parent-uuid' }] }) // parent lookup
-        .mockResolvedValueOnce({ rows: [{ id: 'sub-a' }] }) // custom subject 1
-        .mockResolvedValueOnce({ rows: [{ id: 'sub-b' }] }) // custom subject 2
+        .mockResolvedValueOnce({ rows: [{ id: 'subject-maths-uuid' }] }) // resolve "Maths"
         .mockResolvedValueOnce({ rows: [{ id: 'learner-uuid' }] }); // learner insert
       const client = fakeClient(clientQuery);
       mockedWithTransaction.mockImplementation(async (fn: any) => fn(client));
 
       const repo = new NeonLearnerRepository();
       const id = await repo.createLearner(
-        createData({ subjectIds: ['math-101'], customSubjects: ['Art', 'Music'] })
+        createData({ subjectIds: ['Maths'], customSubjects: [] })
       );
 
       expect(id).toBe('learner-uuid');
-      expect(clientQuery).toHaveBeenCalledTimes(4);
+      expect(mockedWithTransaction).toHaveBeenCalledTimes(1);
+      expect(clientQuery).toHaveBeenCalledTimes(3);
 
-      const [subjectSql, subjectParams] = clientQuery.mock.calls[1];
-      expect(subjectSql).toContain('INSERT INTO subject');
-      expect(subjectSql).toContain('FALSE');
-      expect(subjectParams).toEqual(['Art', 'parent-uuid']);
+      const [parentSql, parentParams] = clientQuery.mock.calls[0];
+      expect(parentSql).toContain('FROM parent');
+      expect(parentParams).toEqual(['parent-user']);
 
-      const learnerParams = clientQuery.mock.calls[3][1];
+      // The subject-resolution SELECT matches by name against default/owned rows.
+      const [resolveSql, resolveParams] = clientQuery.mock.calls[1];
+      expect(resolveSql).toContain('FROM subject');
+      expect(resolveSql).toContain('LOWER(name) = LOWER($1)');
+      expect(resolveParams).toEqual(['Maths', 'parent-uuid']);
+
+      const [learnerSql, learnerParams] = clientQuery.mock.calls[2];
+      expect(learnerSql).toContain('INSERT INTO learner');
+      expect(learnerSql).toContain('RETURNING id');
+      expect(learnerParams[0]).toBe('parent-uuid');
+      // subjects JSONB holds the RESOLVED subject.id, not the name.
       expect(learnerParams[learnerParams.length - 1]).toBe(
-        JSON.stringify(['math-101', 'sub-a', 'sub-b'])
+        JSON.stringify(['subject-maths-uuid'])
+      );
+    });
+
+    it('creates a custom subject row when a name has no existing match', async () => {
+      const clientQuery = jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [{ id: 'parent-uuid' }] }) // parent lookup
+        .mockResolvedValueOnce({ rows: [{ id: 'subject-maths-uuid' }] }) // resolve "Maths" (exists)
+        .mockResolvedValueOnce({ rows: [] }) // resolve "Art" (no match)
+        .mockResolvedValueOnce({ rows: [{ id: 'subject-art-uuid' }] }) // insert custom "Art"
+        .mockResolvedValueOnce({ rows: [{ id: 'learner-uuid' }] }); // learner insert
+      const client = fakeClient(clientQuery);
+      mockedWithTransaction.mockImplementation(async (fn: any) => fn(client));
+
+      const repo = new NeonLearnerRepository();
+      const id = await repo.createLearner(
+        createData({ subjectIds: ['Maths'], customSubjects: ['Art'] })
+      );
+
+      expect(id).toBe('learner-uuid');
+      expect(clientQuery).toHaveBeenCalledTimes(5);
+
+      // "Art" had no match -> a custom subject is inserted for this parent.
+      const [insertSql, insertParams] = clientQuery.mock.calls[3];
+      expect(insertSql).toContain('INSERT INTO subject');
+      expect(insertSql).toContain('FALSE');
+      expect(insertParams).toEqual(['Art', 'parent-uuid']);
+
+      const learnerParams = clientQuery.mock.calls[4][1];
+      expect(learnerParams[learnerParams.length - 1]).toBe(
+        JSON.stringify(['subject-maths-uuid', 'subject-art-uuid'])
+      );
+    });
+
+    it('de-duplicates subject names case-insensitively', async () => {
+      // "Maths" and "maths" collapse to one resolution + one enrollment id.
+      const clientQuery = jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [{ id: 'parent-uuid' }] }) // parent lookup
+        .mockResolvedValueOnce({ rows: [{ id: 'subject-maths-uuid' }] }) // resolve "Maths"
+        .mockResolvedValueOnce({ rows: [{ id: 'learner-uuid' }] }); // learner insert
+      const client = fakeClient(clientQuery);
+      mockedWithTransaction.mockImplementation(async (fn: any) => fn(client));
+
+      const repo = new NeonLearnerRepository();
+      await repo.createLearner(
+        createData({ subjectIds: ['Maths', 'maths'], customSubjects: [] })
+      );
+
+      // Only one resolution query ran (the duplicate was skipped).
+      expect(clientQuery).toHaveBeenCalledTimes(3);
+      const learnerParams = clientQuery.mock.calls[2][1];
+      expect(learnerParams[learnerParams.length - 1]).toBe(
+        JSON.stringify(['subject-maths-uuid'])
       );
     });
 

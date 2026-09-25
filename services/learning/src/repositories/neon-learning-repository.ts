@@ -22,6 +22,14 @@ import type {
   QuizAttemptRecord,
 } from './learning-repository';
 
+/**
+ * Matches a canonical UUID (any version). Used to tell a real `subject.id`
+ * apart from a subject *name* carried by the denormalized enrollment list,
+ * so a name is never passed into a UUID-typed column.
+ */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Options for the Neon learning repository (test seam). */
 export interface NeonLearningRepositoryOptions {
   /** Inject a pool/client for testing; defaults to the shared pool. */
@@ -67,22 +75,26 @@ interface QuizAttemptSummaryRow {
 }
 
 /**
- * Parses the denormalized `learner.subjects` JSONB column into SubjectRecord[].
+ * Parses the denormalized `learner.subjects` JSONB column into raw enrollment
+ * entries. The column is a JSONB array whose elements may be, in order of how
+ * the data has evolved:
+ *   - string (current):  a `subject.id` UUID, e.g. "11111111-...."
+ *     (learner registration now resolves names to real subject ids and stores
+ *     the UUIDs — see services/auth NeonLearnerRepository.createLearner).
+ *   - string (legacy):   a subject *name*, e.g. "Maths" (older rows written
+ *     before name->id resolution existed).
+ *   - object (legacy):   `{ id, name }`.
  *
- * The column is a JSONB array. Two element shapes are supported, because the
- * learner registration handler (services/auth) writes the *string* form while
- * some data / tests use the object form:
- *   - string:  "Maths"           -> { id: "Maths", name: "Maths" }
- *   - object:  { id, name }       -> { id, name } (both required)
- * For the string form the value doubles as id and name — the enrollment list
- * stores subject names, not subject-table UUIDs (the `subject` table is keyed
- * by parent, and default subjects are shared by name across the app). Using the
- * name as the id keeps the dashboard tree stable and human-readable; it is not
- * a foreign key into the `subject` table.
+ * This returns each entry as `{ id, name }` WITHOUT touching the DB:
+ *   - object form keeps its id and name,
+ *   - string form uses the value as id, and (provisionally) as name too.
+ * The provisional name is a placeholder: `resolveSubjectNames` below replaces
+ * it with the real `subject.name` for entries whose id is a UUID. A legacy
+ * name-string entry has no matching `subject.id`, so its provisional name (the
+ * name itself) is kept — which is exactly right.
  *
  * pg returns JSONB already parsed, but we defensively handle a raw string.
- * Elements that are neither a non-empty string nor an `{id,name}` object are
- * skipped.
+ * Empty strings and malformed objects are skipped.
  */
 function parseSubjectsJsonb(value: unknown): SubjectRecord[] {
   let parsed: unknown = value;
@@ -99,12 +111,10 @@ function parseSubjectsJsonb(value: unknown): SubjectRecord[] {
   const subjects: SubjectRecord[] = [];
   for (const element of parsed) {
     if (typeof element === 'string') {
-      // String form: the subject name is both id and display name.
       if (element.length > 0) {
         subjects.push({ id: element, name: element });
       }
     } else if (element && typeof element === 'object') {
-      // Object form: require both id and name.
       const obj = element as Record<string, unknown>;
       if (obj.id !== undefined && obj.name !== undefined) {
         subjects.push({ id: String(obj.id), name: String(obj.name) });
@@ -128,10 +138,36 @@ export class NeonLearningRepository implements ILearningRepository {
     return this.injectedPool ?? (await getPool());
   }
 
+  /**
+   * Replaces the provisional names on parsed enrollment entries with the real
+   * `subject.name`, for every entry whose id is a UUID (a real `subject.id`).
+   * Entries whose id is not a UUID (legacy name-string enrollments) keep their
+   * provisional name, which already IS the name. A single batched query keeps
+   * this O(1) round-trips regardless of subject count.
+   */
+  private async resolveSubjectNames(
+    entries: SubjectRecord[]
+  ): Promise<SubjectRecord[]> {
+    const uuidIds = entries.filter((e) => UUID_RE.test(e.id)).map((e) => e.id);
+    if (uuidIds.length === 0) {
+      return entries;
+    }
+    const db = await this.db();
+    const result = await db.query<{ id: string; name: string }>(
+      `SELECT id, name FROM subject WHERE id = ANY($1::uuid[])`,
+      [uuidIds] as never[]
+    );
+    const nameById = new Map(result.rows.map((r) => [r.id, r.name]));
+    return entries.map((e) =>
+      nameById.has(e.id) ? { id: e.id, name: nameById.get(e.id)! } : e
+    );
+  }
+
   async getLearnersByParentId(parentId: string): Promise<LearnerRecord[]> {
     const db = await this.db();
     // Only active (non-deleted) learners. `subjects` is the denormalized
-    // per-learner enrollment JSONB (see parseSubjectsJsonb assumption).
+    // per-learner enrollment JSONB (a list of subject.id UUIDs on current
+    // data; see parseSubjectsJsonb for the legacy forms).
     const result = await db.query<LearnerRow>(
       `SELECT id, name, grade, subjects
        FROM learner
@@ -139,19 +175,21 @@ export class NeonLearningRepository implements ILearningRepository {
        ORDER BY name`,
       [parentId] as never[]
     );
-    return result.rows.map((row) => ({
-      id: row.id,
-      name: row.name,
-      grade: row.grade,
-      subjects: parseSubjectsJsonb(row.subjects),
-    }));
+    return Promise.all(
+      result.rows.map(async (row) => ({
+        id: row.id,
+        name: row.name,
+        grade: row.grade,
+        subjects: await this.resolveSubjectNames(parseSubjectsJsonb(row.subjects)),
+      }))
+    );
   }
 
   async getSubjectsByLearnerId(learnerId: string): Promise<SubjectRecord[]> {
     const db = await this.db();
-    // ASSUMPTION: a learner's subjects come from the denormalized
-    // `learner.subjects` JSONB column (single source of truth), since the
-    // `subject` table is keyed by parent, not learner.
+    // A learner's subjects come from the denormalized `learner.subjects` JSONB
+    // column (the enrollment list of subject.id UUIDs on current data). The ids
+    // are resolved to real subject names via the `subject` table.
     const result = await db.query<{ subjects: unknown }>(
       `SELECT subjects
        FROM learner
@@ -161,7 +199,7 @@ export class NeonLearningRepository implements ILearningRepository {
     if (result.rows.length === 0) {
       return [];
     }
-    return parseSubjectsJsonb(result.rows[0].subjects);
+    return this.resolveSubjectNames(parseSubjectsJsonb(result.rows[0].subjects));
   }
 
   async getBooksBySubjectAndLearner(
@@ -169,13 +207,40 @@ export class NeonLearningRepository implements ILearningRepository {
     learnerId: string
   ): Promise<BookRecord[]> {
     const db = await this.db();
-    const result = await db.query<BookRow>(
-      `SELECT id, subject_id, name
-       FROM book
-       WHERE subject_id = $1 AND learner_id = $2
-       ORDER BY name`,
-      [subjectId, learnerId] as never[]
-    );
+    // `subjectId` here is the id carried on the dashboard's subject tree node.
+    // That node is built from the learner's denormalized `subjects` enrollment
+    // list, which stores subject *names* (e.g. "Maths"), not `subject`-table
+    // UUIDs — so the value may be either a real UUID (object-form enrollment /
+    // future data) or a plain name (the string-form data written at
+    // registration).
+    //
+    // `book.subject_id` is a UUID column, so passing a bare name straight into
+    // it makes Postgres raise `invalid input syntax for type uuid`. We branch
+    // on whether the value looks like a UUID:
+    //   - UUID  -> match books directly by book.subject_id.
+    //   - name  -> resolve via the `subject` table (name -> subject.id) scoped
+    //              to this learner's books; casting book.subject_id to text
+    //              avoids any UUID coercion of the literal.
+    // A name with no matching `subject` row (e.g. a default subject that was
+    // never inserted into the table) simply yields no books, which is correct:
+    // there is no content for it yet.
+    const isUuid = UUID_RE.test(subjectId);
+    const result = isUuid
+      ? await db.query<BookRow>(
+          `SELECT id, subject_id, name
+           FROM book
+           WHERE subject_id = $1 AND learner_id = $2
+           ORDER BY name`,
+          [subjectId, learnerId] as never[]
+        )
+      : await db.query<BookRow>(
+          `SELECT b.id, b.subject_id, b.name
+           FROM book b
+           JOIN subject s ON s.id = b.subject_id
+           WHERE s.name = $1 AND b.learner_id = $2
+           ORDER BY b.name`,
+          [subjectId, learnerId] as never[]
+        );
     return result.rows.map((row) => ({
       id: row.id,
       subjectId: row.subject_id,

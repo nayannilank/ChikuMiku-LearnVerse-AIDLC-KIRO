@@ -66,9 +66,9 @@ export class NeonLearnerRepository implements LearnerRepository {
   }
 
   async createLearner(data: CreateLearnerData): Promise<string> {
-    // The parent lookup, custom-subject inserts, and learner insert all commit
-    // together (or roll back together) so we never leave orphan subject rows
-    // behind if the learner insert fails.
+    // The parent lookup, subject resolution/creation, and learner insert all
+    // commit together (or roll back together) so we never leave orphan subject
+    // rows behind if the learner insert fails.
     return withTransaction(async (client) => {
       // Resolve the parent username to its id (scoped to active parents).
       const parentResult = await client.query<{ id: string }>(
@@ -80,21 +80,59 @@ export class NeonLearnerRepository implements LearnerRepository {
         throw new Error(`Parent not found for username: ${data.parentUsername}`);
       }
 
-      // Create a subject row per custom subject name and collect their ids.
-      const customSubjectIds: string[] = [];
-      for (const name of data.customSubjects) {
-        const subjectResult = await client.query<{ id: string }>(
+      // The frontend sends the selected default subjects and any custom
+      // subjects both as *names* (`subjectIds` is a misnomer — it carries the
+      // SUBJECTS keys, e.g. "Maths"). We resolve every name to a real
+      // `subject.id` UUID and store those, so downstream services (books,
+      // chapters, dashboards) can join on `subject.id` without a name<->UUID
+      // impedance mismatch.
+      //
+      // Resolution order per name:
+      //   1. an existing default subject (is_default = TRUE, parent_id NULL), or
+      //   2. an existing custom subject already owned by this parent, or
+      //   3. a newly created custom subject owned by this parent.
+      // Names are de-duplicated (case-insensitively) so selecting the same
+      // subject twice — or a custom subject that duplicates a default — never
+      // creates duplicate rows or duplicate enrollment ids.
+      const requestedNames = [...data.subjectIds, ...data.customSubjects];
+      const resolvedSubjectIds: string[] = [];
+      const seenNames = new Set<string>();
+
+      for (const rawName of requestedNames) {
+        const name = String(rawName).trim();
+        if (name.length === 0) {
+          continue;
+        }
+        const key = name.toLowerCase();
+        if (seenNames.has(key)) {
+          continue;
+        }
+        seenNames.add(key);
+
+        // 1 & 2: match a default subject or one this parent already owns,
+        // case-insensitively.
+        const existing = await client.query<{ id: string }>(
+          `SELECT id FROM subject
+           WHERE LOWER(name) = LOWER($1)
+             AND (is_default = TRUE OR parent_id = $2)
+           ORDER BY is_default DESC
+           LIMIT 1`,
+          [name, parentId] as never[]
+        );
+        if (existing.rows[0]?.id) {
+          resolvedSubjectIds.push(existing.rows[0].id);
+          continue;
+        }
+
+        // 3: create a custom subject owned by this parent.
+        const created = await client.query<{ id: string }>(
           `INSERT INTO subject (name, is_default, parent_id)
            VALUES ($1, FALSE, $2)
            RETURNING id`,
           [name, parentId] as never[]
         );
-        customSubjectIds.push(subjectResult.rows[0].id);
+        resolvedSubjectIds.push(created.rows[0].id);
       }
-
-      // The learner's enrolled subjects are the selected default/existing
-      // subject ids plus the newly created custom subject ids.
-      const subjectIds = [...data.subjectIds, ...customSubjectIds];
 
       const learnerResult = await client.query<{ id: string }>(
         `INSERT INTO learner
@@ -111,7 +149,7 @@ export class NeonLearnerRepository implements LearnerRepository {
           data.relationship,
           data.grade,
           data.schoolName,
-          JSON.stringify(subjectIds),
+          JSON.stringify(resolvedSubjectIds),
         ] as never[]
       );
 
