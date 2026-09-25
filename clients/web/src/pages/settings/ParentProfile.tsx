@@ -1,15 +1,46 @@
 /**
  * ParentProfile — Parent account settings page.
  */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { theme } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
+import { authApi } from '../../services/authApi';
 
 export function ParentProfile() {
   const navigate = useNavigate();
   const { logout, username } = useAuth();
-  const [parent] = useState({ username: username || 'parent_user', name: 'Parent User', phone: '9876543210', email: 'parent@example.com', relationship: 'Father' });
+  // Real profile loaded from the backend. `name/phone/email` are empty until
+  // the fetch resolves; `username` falls back to the auth context so the
+  // header shows immediately.
+  const [parent, setParent] = useState({
+    username: username || '',
+    name: '',
+    phone: '',
+    email: '',
+  });
+  const [loadError, setLoadError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+    authApi
+      .getProfile()
+      .then((p) => {
+        if (cancelled) return;
+        setParent({
+          username: p.username,
+          name: p.fullName,
+          phone: p.phone,
+          email: p.email,
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError('Could not load your profile. Please try again.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div style={{ fontFamily: theme.fonts.family, backgroundColor: theme.colors.bg, minHeight: '100vh', padding: 20 }}>
@@ -23,11 +54,14 @@ export function ParentProfile() {
             <i className="fas fa-user" style={{ color: '#fff', fontSize: 20 }} />
           </div>
           <div>
-            <div style={{ fontSize: 14, fontWeight: '700', color: theme.colors.dark }}>{parent.name}</div>
+            <div style={{ fontSize: 14, fontWeight: '700', color: theme.colors.dark }}>{parent.name || '—'}</div>
             <div style={{ fontSize: 11, color: theme.colors.textLight }}>@{parent.username}</div>
           </div>
         </div>
-        {[{ icon: 'phone', label: 'Phone', value: parent.phone }, { icon: 'envelope', label: 'Email', value: parent.email }, { icon: 'heart', label: 'Relationship', value: parent.relationship }].map((row) => (
+        {loadError && (
+          <div style={{ fontSize: 11, color: theme.colors.red, marginBottom: 10 }}>{loadError}</div>
+        )}
+        {[{ icon: 'phone', label: 'Phone', value: parent.phone || '—' }, { icon: 'envelope', label: 'Email', value: parent.email || '—' }].map((row) => (
           <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
             <i className={`fas fa-${row.icon}`} style={{ color: theme.colors.purple, fontSize: 12, width: 20 }} />
             <div>

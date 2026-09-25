@@ -61,6 +61,16 @@ export interface GrantConsentResponse {
   consentVersion: string;
 }
 
+export interface ParentProfileResponse {
+  username: string;
+  fullName: string;
+  phone: string;
+  email: string;
+  relationship?: string;
+  progressAlertsEnabled: boolean;
+  streakRemindersEnabled: boolean;
+}
+
 // ─── Auth API Service ────────────────────────────────────────────────────────
 
 export const authApi = {
@@ -143,6 +153,29 @@ export const authApi = {
       '/auth/reset-password',
       { username, newPassword, resetToken },
       { skipAuth: true },
+    );
+    return data;
+  },
+
+  /**
+   * Fetch the authenticated parent's own profile (settings page).
+   */
+  async getProfile(): Promise<ParentProfileResponse> {
+    const { data } = await apiClient.get<ParentProfileResponse>('/auth/profile');
+    return data;
+  },
+
+  /**
+   * Update the authenticated parent's editable profile fields.
+   */
+  async updateProfile(updates: {
+    fullName?: string;
+    phone?: string;
+    email?: string;
+  }): Promise<{ success: boolean; message: string }> {
+    const { data } = await apiClient.put<{ success: boolean; message: string }>(
+      '/auth/profile',
+      updates,
     );
     return data;
   },

@@ -113,6 +113,11 @@ export class ApiStack extends cdk.Stack {
     const consentResource = authResource.addResource('consent');
     consentResource.addMethod('POST', authIntegration, authorized);
     consentResource.addMethod('GET', authIntegration, authorized);
+    // /auth/profile — requires an authenticated parent (read + edit their own
+    // profile for the settings page).
+    const profileResource = authResource.addResource('profile');
+    profileResource.addMethod('GET', authIntegration, authorized);
+    profileResource.addMethod('PUT', authIntegration, authorized);
     // All other /auth/* routes (login, refresh, forgot-password, verify-otp,
     // reset-password) stay public via the proxy.
     authResource.addProxy({

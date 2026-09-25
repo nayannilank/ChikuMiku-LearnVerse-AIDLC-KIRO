@@ -6,3 +6,5 @@ export { NeonLearnerRepository } from './neon-learner-repository';
 export type { NeonLearnerRepositoryOptions } from './neon-learner-repository';
 export { NeonConsentRepository } from './neon-consent-repository';
 export type { NeonConsentRepositoryOptions } from './neon-consent-repository';
+export { NeonParentProfileRepository } from './neon-parent-profile-repository';
+export type { NeonParentProfileRepositoryOptions } from './neon-parent-profile-repository';

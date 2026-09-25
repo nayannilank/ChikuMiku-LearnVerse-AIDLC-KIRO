@@ -15,6 +15,12 @@ import {
   CONSENT_TEXT,
   type ParentalConsentRequest,
 } from './handlers/parental-consent';
+import {
+  handleGetProfile,
+  handleUpdateProfile,
+  type ParentProfileDeps,
+} from './handlers/parent-profile';
+import { NeonParentProfileRepository } from './clients/neon-parent-profile-repository';
 import { handleForgotPassword } from './handlers/forgot-password';
 import { handleVerifyOTP } from './handlers/verify-otp';
 import { handleResetPassword } from './handlers/reset-password';
@@ -116,6 +122,46 @@ function getConsentRepository(): NeonConsentRepository {
     cachedConsentRepository = new NeonConsentRepository();
   }
   return cachedConsentRepository;
+}
+
+let cachedParentProfileRepository: NeonParentProfileRepository | null = null;
+/** Shared parent-profile repository, reused across warm invocations. */
+function getParentProfileRepository(): NeonParentProfileRepository {
+  if (!cachedParentProfileRepository) {
+    cachedParentProfileRepository = new NeonParentProfileRepository();
+  }
+  return cachedParentProfileRepository;
+}
+
+/**
+ * Dependencies for the profile GET/PUT routes wired below. Only
+ * `parentProfileRepository` is exercised by handleGetProfile /
+ * handleUpdateProfile; the handler type also declares `subjectRepository` and
+ * `passwordHasher` (used by other, not-yet-wired profile handlers like
+ * add-custom-subject and change-password). Those are provided as throwing
+ * stubs so any future route that reaches for them fails loudly at the call
+ * site rather than silently no-opping.
+ */
+function getParentProfileDeps(): ParentProfileDeps {
+  return {
+    parentProfileRepository: getParentProfileRepository(),
+    subjectRepository: {
+      countByParentId: () => {
+        throw new Error('subjectRepository is not wired for this route');
+      },
+      addSubject: () => {
+        throw new Error('subjectRepository is not wired for this route');
+      },
+    },
+    passwordHasher: {
+      compare: () => {
+        throw new Error('profile passwordHasher is not wired for this route');
+      },
+      hash: () => {
+        throw new Error('profile passwordHasher is not wired for this route');
+      },
+    },
+  };
 }
 
 let cachedCognitoClient: AwsCognitoClient | null = null;
@@ -333,6 +379,60 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
           headers: CORS_HEADERS,
           body: JSON.stringify(result),
         };
+      }
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
+    }
+
+    // Route: GET /auth/profile — authenticated parent's own profile.
+    // Sources the settings page (full name, phone, email, notification prefs)
+    // from the real parent DB row instead of client-side placeholders.
+    if (httpMethod === 'GET' && path === '/auth/profile') {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+
+      const result = await handleGetProfile(authContext.parentId, getParentProfileDeps());
+      if ('statusCode' in result) {
+        return { statusCode: result.statusCode, headers: CORS_HEADERS, body: JSON.stringify(result) };
+      }
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
+    }
+
+    // Route: PUT /auth/profile — update the authenticated parent's editable
+    // fields (full name, phone, email).
+    if (httpMethod === 'PUT' && path === '/auth/profile') {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+
+      const body = JSON.parse(event.body || '{}');
+      const result = await handleUpdateProfile(
+        authContext.parentId,
+        body,
+        getParentProfileDeps()
+      );
+      if ('statusCode' in result) {
+        return { statusCode: result.statusCode, headers: CORS_HEADERS, body: JSON.stringify(result) };
       }
       return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
     }
