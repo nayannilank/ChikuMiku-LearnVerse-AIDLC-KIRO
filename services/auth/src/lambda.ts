@@ -21,6 +21,15 @@ import {
   type ParentProfileDeps,
 } from './handlers/parent-profile';
 import { NeonParentProfileRepository } from './clients/neon-parent-profile-repository';
+import {
+  handleListLearners,
+  handleEditLearner,
+  handleResetLearnerPassword,
+  handleDeleteLearner,
+  type ManageLearnerDeps,
+} from './handlers/manage-learners';
+import { NeonManageLearnerRepository } from './clients/neon-manage-learner-repository';
+import * as bcrypt from 'bcryptjs';
 import { handleForgotPassword } from './handlers/forgot-password';
 import { handleVerifyOTP } from './handlers/verify-otp';
 import { handleResetPassword } from './handlers/reset-password';
@@ -122,6 +131,24 @@ function getConsentRepository(): NeonConsentRepository {
     cachedConsentRepository = new NeonConsentRepository();
   }
   return cachedConsentRepository;
+}
+
+let cachedManageLearnerDeps: ManageLearnerDeps | null = null;
+/**
+ * Dependencies for the manage-learners routes. The repository is Neon-backed;
+ * the password hasher adapts bcryptjs to the handler's
+ * `hash(password, costFactor)` signature (used only by reset-password).
+ */
+function getManageLearnerDeps(): ManageLearnerDeps {
+  if (!cachedManageLearnerDeps) {
+    cachedManageLearnerDeps = {
+      repository: new NeonManageLearnerRepository(),
+      passwordHasher: {
+        hash: (password: string, costFactor: number) => bcrypt.hash(password, costFactor),
+      },
+    };
+  }
+  return cachedManageLearnerDeps;
 }
 
 let cachedParentProfileRepository: NeonParentProfileRepository | null = null;
@@ -379,6 +406,102 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
           headers: CORS_HEADERS,
           body: JSON.stringify(result),
         };
+      }
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
+    }
+
+    // Route: GET /auth/learners — list the authenticated parent's learners.
+    if (httpMethod === 'GET' && path === '/auth/learners') {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+      const result = await handleListLearners(authContext.parentId, getManageLearnerDeps());
+      if ('statusCode' in result) {
+        return { statusCode: result.statusCode, headers: CORS_HEADERS, body: JSON.stringify(result) };
+      }
+      // The frontend expects a bare array of learners.
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result.learners) };
+    }
+
+    // Routes on a specific learner: /auth/learners/:id and
+    // /auth/learners/:id/reset-password (all require an authenticated parent
+    // who owns the learner — ownership is enforced inside the handlers).
+    const resetPwMatch = path.match(/^\/auth\/learners\/([^/]+)\/reset-password$/);
+    if (httpMethod === 'POST' && resetPwMatch) {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+      const body = JSON.parse(event.body || '{}');
+      const result = await handleResetLearnerPassword(
+        resetPwMatch[1],
+        authContext.parentId,
+        body,
+        getManageLearnerDeps()
+      );
+      if ('statusCode' in result) {
+        return { statusCode: result.statusCode, headers: CORS_HEADERS, body: JSON.stringify(result) };
+      }
+      return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
+    }
+
+    const learnerIdMatch = path.match(/^\/auth\/learners\/([^/]+)$/);
+    if (learnerIdMatch && (httpMethod === 'PUT' || httpMethod === 'PATCH' || httpMethod === 'DELETE')) {
+      const authContext = getParentAuthContext(event);
+      if (!authContext) {
+        return {
+          statusCode: 401,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            statusCode: 401,
+            errorCode: 'UNAUTHORIZED',
+            message: 'Authenticated parent session is required',
+            retryable: false,
+          }),
+        };
+      }
+
+      if (httpMethod === 'DELETE') {
+        const result = await handleDeleteLearner(
+          learnerIdMatch[1],
+          authContext.parentId,
+          getManageLearnerDeps()
+        );
+        if ('statusCode' in result) {
+          return { statusCode: result.statusCode, headers: CORS_HEADERS, body: JSON.stringify(result) };
+        }
+        return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
+      }
+
+      // PUT / PATCH — edit learner fields.
+      const body = JSON.parse(event.body || '{}');
+      const result = await handleEditLearner(
+        learnerIdMatch[1],
+        authContext.parentId,
+        body,
+        getManageLearnerDeps()
+      );
+      if ('statusCode' in result) {
+        return { statusCode: result.statusCode, headers: CORS_HEADERS, body: JSON.stringify(result) };
       }
       return { statusCode: 200, headers: CORS_HEADERS, body: JSON.stringify(result) };
     }

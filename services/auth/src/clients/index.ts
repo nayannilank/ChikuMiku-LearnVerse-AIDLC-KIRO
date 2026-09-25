@@ -8,3 +8,5 @@ export { NeonConsentRepository } from './neon-consent-repository';
 export type { NeonConsentRepositoryOptions } from './neon-consent-repository';
 export { NeonParentProfileRepository } from './neon-parent-profile-repository';
 export type { NeonParentProfileRepositoryOptions } from './neon-parent-profile-repository';
+export { NeonManageLearnerRepository } from './neon-manage-learner-repository';
+export type { NeonManageLearnerRepositoryOptions } from './neon-manage-learner-repository';

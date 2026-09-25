@@ -118,6 +118,16 @@ export class ApiStack extends cdk.Stack {
     const profileResource = authResource.addResource('profile');
     profileResource.addMethod('GET', authIntegration, authorized);
     profileResource.addMethod('PUT', authIntegration, authorized);
+    // /auth/learners (+ /:id, /:id/reset-password) — Manage Learners CRUD for
+    // the authenticated parent. The proxy covers the /:id and nested
+    // reset-password subpaths; ownership is enforced inside the handlers.
+    const learnersResource = authResource.addResource('learners');
+    learnersResource.addMethod('GET', authIntegration, authorized);
+    const learnersProxy = learnersResource.addProxy({
+      defaultIntegration: authIntegration,
+      anyMethod: false,
+    });
+    learnersProxy.addMethod('ANY', authIntegration, authorized);
     // All other /auth/* routes (login, refresh, forgot-password, verify-otp,
     // reset-password) stay public via the proxy.
     authResource.addProxy({

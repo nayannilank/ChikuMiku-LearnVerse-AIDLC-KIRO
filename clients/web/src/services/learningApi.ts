@@ -26,6 +26,34 @@ export interface LearnerProfile {
   subjects: string[];
 }
 
+/**
+ * Shape returned by the auth service's list-learners endpoint
+ * (handlers/manage-learners.ts LearnerRecord): uses schoolName/subjectIds
+ * where this client's view model uses school/subjects.
+ */
+interface RawLearner {
+  id: string;
+  username: string;
+  name: string;
+  gender: 'male' | 'female' | 'other';
+  grade: string;
+  schoolName: string;
+  subjectIds: string[];
+}
+
+/** Maps the auth-service learner record to the client's LearnerProfile shape. */
+function toLearnerProfile(raw: RawLearner): LearnerProfile {
+  return {
+    id: raw.id,
+    username: raw.username,
+    name: raw.name,
+    gender: raw.gender,
+    grade: raw.grade,
+    school: raw.schoolName,
+    subjects: raw.subjectIds,
+  };
+}
+
 export interface UpdateLearnerRequest {
   name?: string;
   grade?: string;
@@ -121,8 +149,11 @@ export const learningApi = {
    * Get all learner profiles under the parent account.
    */
   async getLearners(): Promise<LearnerProfile[]> {
-    const { data } = await apiClient.get<LearnerProfile[]>('/learning/learners');
-    return data;
+    // Learner CRUD is owned by the auth service (it owns learner identity),
+    // served under /auth/learners. The handler returns schoolName/subjectIds;
+    // map them to the view shape (school/subjects) this client uses.
+    const { data } = await apiClient.get<RawLearner[]>('/auth/learners');
+    return data.map(toLearnerProfile);
   },
 
   /**
@@ -132,8 +163,8 @@ export const learningApi = {
     learnerId: string,
     updates: UpdateLearnerRequest,
   ): Promise<{ success: boolean }> {
-    const { data } = await apiClient.patch<{ success: boolean }>(
-      `/learning/learners/${learnerId}`,
+    const { data } = await apiClient.put<{ success: boolean }>(
+      `/auth/learners/${learnerId}`,
       updates,
     );
     return data;
@@ -147,7 +178,7 @@ export const learningApi = {
     newPassword: string,
   ): Promise<{ success: boolean }> {
     const { data } = await apiClient.post<{ success: boolean }>(
-      `/learning/learners/${learnerId}/reset-password`,
+      `/auth/learners/${learnerId}/reset-password`,
       { newPassword },
     );
     return data;
@@ -158,7 +189,7 @@ export const learningApi = {
    */
   async removeLearner(learnerId: string): Promise<{ success: boolean }> {
     const { data } = await apiClient.delete<{ success: boolean }>(
-      `/learning/learners/${learnerId}`,
+      `/auth/learners/${learnerId}`,
     );
     return data;
   },
