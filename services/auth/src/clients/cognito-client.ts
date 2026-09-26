@@ -67,6 +67,15 @@ export interface CognitoClient {
   refreshSession(refreshToken: string): Promise<RefreshedTokens | null>;
 
   /**
+   * Sets a user's password in Cognito to a new PERMANENT value (admin
+   * operation — no current-password check). This is the source of truth for
+   * authentication, so any password reset MUST go through here; updating only
+   * the application DB hash leaves Cognito with the old password and every
+   * subsequent login fails with NotAuthorizedException.
+   */
+  setPassword(username: string, newPassword: string): Promise<void>;
+
+  /**
    * Terminate a user session, invalidating all associated tokens.
    */
   terminateSession(sessionId: string): Promise<void>;

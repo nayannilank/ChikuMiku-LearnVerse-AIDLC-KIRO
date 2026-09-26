@@ -55,10 +55,21 @@ function mockPasswordHasher(): ManageLearnerPasswordHasher {
   };
 }
 
+function mockCognitoClient() {
+  return {
+    createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'cognito-1' }),
+    authenticate: jest.fn().mockResolvedValue(null),
+    refreshSession: jest.fn().mockResolvedValue(null),
+    setPassword: jest.fn().mockResolvedValue(undefined),
+    terminateSession: jest.fn().mockResolvedValue(undefined),
+  };
+}
+
 function makeDeps(overrides?: Partial<ManageLearnerDeps>): ManageLearnerDeps {
   return {
     repository: mockRepository(),
     passwordHasher: mockPasswordHasher(),
+    cognitoClient: mockCognitoClient(),
     ...overrides,
   };
 }
@@ -297,6 +308,9 @@ describe('handleResetLearnerPassword', () => {
       expect(result.success).toBe(true);
       expect(result.message).toContain('reset');
     }
+    // Cognito is the source of truth for login — the reset MUST update it,
+    // keyed by the learner's username.
+    expect(deps.cognitoClient.setPassword).toHaveBeenCalledWith('learner-01', 'NewPass1!');
     expect(deps.passwordHasher.hash).toHaveBeenCalledWith('NewPass1!', 10);
     expect(deps.repository.updateLearnerPassword).toHaveBeenCalledWith(
       LEARNER_ID,

@@ -39,6 +39,7 @@ function createMockDeps(overrides: Partial<RegisterParentDependencies> = {}): Re
       createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'cognito-123' }),
       authenticate: jest.fn().mockResolvedValue(null),
       refreshSession: jest.fn().mockResolvedValue(null),
+      setPassword: jest.fn().mockResolvedValue(undefined),
       terminateSession: jest.fn().mockResolvedValue(undefined),
     },
     generateId: () => 'generated-uuid',
@@ -219,6 +220,7 @@ describe('handleRegisterParent', () => {
         createUser: jest.fn().mockRejectedValue(new Error('Cognito unavailable')),
         authenticate: jest.fn().mockResolvedValue(null),
         refreshSession: jest.fn().mockResolvedValue(null),
+        setPassword: jest.fn().mockResolvedValue(undefined),
         terminateSession: jest.fn().mockResolvedValue(undefined),
       },
     });

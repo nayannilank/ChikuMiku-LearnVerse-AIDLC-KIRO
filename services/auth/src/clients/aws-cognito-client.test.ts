@@ -284,6 +284,24 @@ describe('AwsCognitoClient.refreshSession', () => {
   });
 });
 
+describe('AwsCognitoClient.setPassword', () => {
+  it('issues AdminSetUserPassword with Permanent=true', async () => {
+    const { client, send } = createFakeSdkClient({});
+    const cognito = new AwsCognitoClient({ userPoolId: USER_POOL_ID, clientId: CLIENT_ID, client });
+
+    await cognito.setPassword('learner-01', 'NewStr0ng!');
+
+    const command = send.mock.calls[0][0];
+    expect(command).toBeInstanceOf(AdminSetUserPasswordCommand);
+    expect(command.input).toEqual({
+      UserPoolId: USER_POOL_ID,
+      Username: 'learner-01',
+      Password: 'NewStr0ng!',
+      Permanent: true,
+    });
+  });
+});
+
 describe('AwsCognitoClient.terminateSession', () => {
   it('issues GlobalSignOut with the access token', async () => {
     const { client, send } = createFakeSdkClient({});

@@ -17,6 +17,7 @@ import {
   validatePassword,
 } from '@chikumiku/validation';
 import { VALID_GRADES, normalizeEnum } from './register-learner';
+import type { CognitoClient } from '../clients/cognito-client';
 
 // --- Constants ---
 
@@ -75,6 +76,12 @@ export interface ManageLearnerPasswordHasher {
 export interface ManageLearnerDeps {
   repository: ManageLearnerRepository;
   passwordHasher: ManageLearnerPasswordHasher;
+  /**
+   * Cognito client — the source of truth for learner authentication. A
+   * password reset MUST update Cognito (via setPassword); updating only the
+   * DB hash leaves Cognito with the old password and breaks login.
+   */
+  cognitoClient: CognitoClient;
 }
 
 // --- Result Types ---
@@ -261,10 +268,16 @@ export async function handleResetLearnerPassword(
     };
   }
 
-  // Step 3: Hash new password with bcrypt (cost factor ≥ 10)
-  const passwordHash = await deps.passwordHasher.hash(body.newPassword, BCRYPT_COST_FACTOR);
+  // Step 3: Set the new password in Cognito FIRST — Cognito is the source of
+  // truth for login (authenticate() uses USER_PASSWORD_AUTH). Doing this
+  // before the DB write means that if the Cognito call fails, we don't end up
+  // with a DB hash that disagrees with the still-current Cognito password.
+  await deps.cognitoClient.setPassword(learner.username, body.newPassword);
 
-  // Step 4: Update password in repository
+  // Step 4: Mirror the change into the DB hash. The learner.password_hash
+  // column is not read during login (that goes through Cognito), but is kept
+  // in sync for completeness / potential future use.
+  const passwordHash = await deps.passwordHasher.hash(body.newPassword, BCRYPT_COST_FACTOR);
   await deps.repository.updateLearnerPassword(learnerId, passwordHash);
 
   return {

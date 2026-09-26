@@ -83,6 +83,7 @@ function createMockCognitoClient(): CognitoClient {
     createUser: jest.fn().mockResolvedValue({ cognitoUserId: 'mock-id' }),
     authenticate: jest.fn().mockResolvedValue(null),
     refreshSession: jest.fn().mockResolvedValue(null),
+    setPassword: jest.fn().mockResolvedValue(undefined),
     terminateSession: jest.fn().mockResolvedValue(undefined),
   };
 }

@@ -213,6 +213,20 @@ export class AwsCognitoClient implements CognitoClient {
     }
   }
 
+  async setPassword(username: string, newPassword: string): Promise<void> {
+    const userPoolId = this.requireUserPoolId();
+    // PERMANENT so the account stays immediately usable for USER_PASSWORD_AUTH
+    // (a non-permanent set would drop the user into FORCE_CHANGE_PASSWORD).
+    await this.client.send(
+      new AdminSetUserPasswordCommand({
+        UserPoolId: userPoolId,
+        Username: username,
+        Password: newPassword,
+        Permanent: true,
+      })
+    );
+  }
+
   async terminateSession(sessionId: string): Promise<void> {
     // `sessionId` is the user's access token; GlobalSignOut invalidates all
     // refresh tokens issued to that user.

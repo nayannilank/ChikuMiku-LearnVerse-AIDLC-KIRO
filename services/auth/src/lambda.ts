@@ -146,6 +146,7 @@ function getManageLearnerDeps(): ManageLearnerDeps {
       passwordHasher: {
         hash: (password: string, costFactor: number) => bcrypt.hash(password, costFactor),
       },
+      cognitoClient: getCognitoClient(),
     };
   }
   return cachedManageLearnerDeps;
