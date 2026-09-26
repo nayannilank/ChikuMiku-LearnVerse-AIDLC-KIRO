@@ -53,7 +53,7 @@ export function ManageLearners() {
               {learner.subjects.map((s) => <span key={s} style={{ fontSize: 9, fontWeight: '600', padding: '3px 8px', borderRadius: 8, background: theme.colors.purpleLight, color: theme.colors.purple }}>{s}</span>)}
             </div>
             <div style={{ display: 'flex', gap: 6, paddingTop: 8, borderTop: `1px solid ${theme.colors.border}` }}>
-              <button style={{ fontSize: 10, fontWeight: '600', color: theme.colors.purple, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }} onClick={() => navigate('/register/learner')}>
+              <button style={{ fontSize: 10, fontWeight: '600', color: theme.colors.purple, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }} onClick={() => navigate(`/parent/learners/${learner.id}/edit`)}>
                 <i className="fas fa-edit" style={{ marginRight: 4 }} /> Edit
               </button>
               <button style={{ fontSize: 10, fontWeight: '600', color: theme.colors.red, background: 'none', border: 'none', cursor: 'pointer', padding: '4px 8px' }} onClick={() => handleRemove(learner.id)}>

@@ -13,7 +13,7 @@
  * pass through unchanged.
  */
 
-import { getPool, type Pool, type PoolClient } from '@chikumiku/db';
+import { getPool, withTransaction, type Pool, type PoolClient } from '@chikumiku/db';
 import type {
   LearnerRecord,
   ManageLearnerRepository,
@@ -65,6 +65,61 @@ function parseSubjectEntries(value: unknown): string[] {
     }
   }
   return entries;
+}
+
+/**
+ * Resolves a list of subject NAMES (as sent by the edit/registration UI) to
+ * real `subject.id` UUIDs, using the same rules as learner registration:
+ *   1. an existing default subject (is_default = TRUE, parent_id NULL), or
+ *   2. an existing custom subject owned by this parent, or
+ *   3. a newly created custom subject owned by this parent.
+ * Values that are already UUIDs pass through unchanged (idempotent — lets the
+ * edit form round-trip ids too). De-duplicated case-insensitively. Runs on the
+ * provided transaction client so any custom-subject inserts commit atomically
+ * with the learner update.
+ */
+async function resolveSubjectIds(
+  client: PoolClient,
+  parentId: string,
+  names: string[]
+): Promise<string[]> {
+  const resolved: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of names) {
+    const value = String(raw).trim();
+    if (value.length === 0) continue;
+    const key = value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    // Already a real subject id — keep as-is.
+    if (UUID_RE.test(value)) {
+      resolved.push(value);
+      continue;
+    }
+
+    const existing = await client.query<{ id: string }>(
+      `SELECT id FROM subject
+       WHERE LOWER(name) = LOWER($1)
+         AND (is_default = TRUE OR parent_id = $2)
+       ORDER BY is_default DESC
+       LIMIT 1`,
+      [value, parentId] as never[]
+    );
+    if (existing.rows[0]?.id) {
+      resolved.push(existing.rows[0].id);
+      continue;
+    }
+
+    const created = await client.query<{ id: string }>(
+      `INSERT INTO subject (name, is_default, parent_id)
+       VALUES ($1, FALSE, $2)
+       RETURNING id`,
+      [value, parentId] as never[]
+    );
+    resolved.push(created.rows[0].id);
+  }
+  return resolved;
 }
 
 /** Manage-learners repository backed by Neon PostgreSQL. */
@@ -149,6 +204,57 @@ export class NeonManageLearnerRepository implements ManageLearnerRepository {
     learnerId: string,
     data: Partial<Pick<LearnerRecord, 'name' | 'grade' | 'schoolName' | 'subjectIds'>>
   ): Promise<void> {
+    const hasSubjectUpdate = data.subjectIds !== undefined;
+
+    // Subjects need name->subject.id resolution (the edit UI sends subject
+    // *names*, matching registration), which requires the learner's parent id
+    // and may create custom subject rows — so run the whole update in a
+    // transaction when subjects change. Non-subject updates take the simple
+    // single-statement path below.
+    if (hasSubjectUpdate) {
+      await withTransaction(async (client) => {
+        const parentResult = await client.query<{ parent_id: string }>(
+          `SELECT parent_id FROM learner WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+          [learnerId] as never[]
+        );
+        const parentId = parentResult.rows[0]?.parent_id;
+        if (!parentId) {
+          throw new Error(`Learner not found: ${learnerId}`);
+        }
+
+        const resolvedIds = await resolveSubjectIds(
+          client,
+          parentId,
+          data.subjectIds as string[]
+        );
+
+        const sets: string[] = [];
+        const params: unknown[] = [];
+        let i = 1;
+        if (data.name !== undefined) {
+          sets.push(`name = $${i++}`);
+          params.push(data.name);
+        }
+        if (data.grade !== undefined) {
+          sets.push(`grade = $${i++}`);
+          params.push(data.grade);
+        }
+        if (data.schoolName !== undefined) {
+          sets.push(`school_name = $${i++}`);
+          params.push(data.schoolName);
+        }
+        sets.push(`subjects = $${i++}::jsonb`);
+        params.push(JSON.stringify(resolvedIds));
+        params.push(learnerId);
+        await client.query(
+          `UPDATE learner SET ${sets.join(', ')}
+           WHERE id = $${i} AND deleted_at IS NULL`,
+          params as never[]
+        );
+      });
+      return;
+    }
+
     const sets: string[] = [];
     const params: unknown[] = [];
     let i = 1;
@@ -163,10 +269,6 @@ export class NeonManageLearnerRepository implements ManageLearnerRepository {
     if (data.schoolName !== undefined) {
       sets.push(`school_name = $${i++}`);
       params.push(data.schoolName);
-    }
-    if (data.subjectIds !== undefined) {
-      sets.push(`subjects = $${i++}::jsonb`);
-      params.push(JSON.stringify(data.subjectIds));
     }
     if (sets.length === 0) {
       return;

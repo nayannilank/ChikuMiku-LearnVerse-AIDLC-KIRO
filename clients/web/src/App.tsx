@@ -31,6 +31,7 @@ import { ComprehensionQA } from './pages/learning/ComprehensionQA';
 import { RevisionQuiz } from './pages/learning/RevisionQuiz';
 import { ParentProfile } from './pages/settings/ParentProfile';
 import { ManageLearners } from './pages/settings/ManageLearners';
+import { EditLearner } from './pages/settings/EditLearner';
 
 /** API server base URL — injected via environment config. */
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
@@ -70,6 +71,7 @@ function AppContent() {
         <Route path="/parent/settings" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><ParentProfile /></ProtectedRoute>} />
         <Route path="/parent/manage-learners" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><ManageLearners /></ProtectedRoute>} />
         <Route path="/register/learner" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><LearnerRegistration /></ProtectedRoute>} />
+        <Route path="/parent/learners/:learnerId/edit" element={<ProtectedRoute allowedRoles={['parent']}><AppHeader /><EditLearner /></ProtectedRoute>} />
 
         {/* Learner Routes */}
         <Route path="/learner/dashboard" element={<ProtectedRoute allowedRoles={['learner']}><AppHeader /><LearnerDashboard /></ProtectedRoute>} />

@@ -157,15 +157,28 @@ export const learningApi = {
   },
 
   /**
-   * Update a learner's profile.
+   * Update a learner's editable fields (grade, school, subjects).
+   * Translates the client view shape (school/subjects) to the auth service's
+   * EditLearnerRequest shape (schoolName/subjectIds).
    */
   async updateLearner(
     learnerId: string,
     updates: UpdateLearnerRequest,
   ): Promise<{ success: boolean }> {
+    const body: {
+      name?: string;
+      grade?: string;
+      schoolName?: string;
+      subjectIds?: string[];
+    } = {};
+    if (updates.name !== undefined) body.name = updates.name;
+    if (updates.grade !== undefined) body.grade = updates.grade;
+    if (updates.school !== undefined) body.schoolName = updates.school;
+    if (updates.subjects !== undefined) body.subjectIds = updates.subjects;
+
     const { data } = await apiClient.put<{ success: boolean }>(
       `/auth/learners/${learnerId}`,
-      updates,
+      body,
     );
     return data;
   },
