@@ -108,14 +108,61 @@ export function ParentDashboard() {
                 <DetailView item={selectedItem} />
               )
             ) : (
-              <div style={styles.emptyState}>
-                <i className="fas fa-hand-pointer" style={{ fontSize: 32, color: theme.colors.border }} />
-                <p style={{ color: theme.colors.textLight, marginTop: 12 }}>Select a learner or chapter from the tree to view details</p>
-              </div>
+              <LearnersOverview
+                learners={learners}
+                onManageContent={(id, name) =>
+                  navigate(`/content/manage?learnerId=${encodeURIComponent(id)}&learnerName=${encodeURIComponent(name)}`)
+                }
+              />
             )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/**
+ * Default right-panel view (nothing selected): one card per learner, each with
+ * a visible "Manage Content" action, so content management is discoverable on
+ * dashboard load without having to select a tree node first.
+ */
+function LearnersOverview({
+  learners,
+  onManageContent,
+}: {
+  learners: DashboardLearner[];
+  onManageContent: (learnerId: string, learnerName: string) => void;
+}) {
+  return (
+    <div style={{ maxWidth: 640 }}>
+      <div style={{ fontSize: 15, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark, marginBottom: 4 }}>
+        Your Learners
+      </div>
+      <p style={{ fontSize: 12, color: theme.colors.textLight, marginBottom: 16 }}>
+        Select a learner below to add books and chapters, or pick a chapter in the tree to view progress.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+        {learners.map((learner) => (
+          <div key={learner.id} style={{ background: '#fff', borderRadius: theme.borderRadius.card, padding: 16, boxShadow: theme.shadows.card }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: '50%', backgroundColor: theme.colors.purpleLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <i className="fas fa-user-graduate" style={{ color: theme.colors.purple, fontSize: 14 }} />
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark }}>{learner.name}</div>
+                <div style={{ fontSize: 10, color: theme.colors.textLight }}>Grade {learner.grade}</div>
+              </div>
+            </div>
+            <button
+              style={{ width: '100%', padding: '10px 14px', border: 'none', borderRadius: theme.borderRadius.button, background: theme.gradients.primary, color: '#fff', fontSize: 12, fontWeight: theme.fonts.weights.bold, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+              onClick={() => onManageContent(learner.id, learner.name)}
+            >
+              <i className="fas fa-folder-open" /> Manage Content
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
