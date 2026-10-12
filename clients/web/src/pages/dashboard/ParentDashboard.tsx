@@ -30,6 +30,8 @@ export function ParentDashboard() {
     icon: 'user-graduate',
     iconColor: theme.colors.purple,
     meta: `Grade ${learner.grade}`,
+    // Carry learner identity so selecting the learner node offers content mgmt.
+    data: { nodeType: 'learner', learnerId: learner.id, learnerName: learner.name, grade: learner.grade },
     children: learner.subjects.map((subject) => ({
       id: subject.id,
       label: subject.name,
@@ -98,16 +100,58 @@ export function ParentDashboard() {
           </div>
           <div style={styles.rightPanel}>
             {selectedItem ? (
-              <DetailView item={selectedItem} />
+              selectedItem.nodeType === 'learner' ? (
+                <LearnerManagePanel item={selectedItem} onManageContent={(id, name) =>
+                  navigate(`/content/manage?learnerId=${encodeURIComponent(id)}&learnerName=${encodeURIComponent(name)}`)
+                } />
+              ) : (
+                <DetailView item={selectedItem} />
+              )
             ) : (
               <div style={styles.emptyState}>
                 <i className="fas fa-hand-pointer" style={{ fontSize: 32, color: theme.colors.border }} />
-                <p style={{ color: theme.colors.textLight, marginTop: 12 }}>Select a chapter from the tree to view details</p>
+                <p style={{ color: theme.colors.textLight, marginTop: 12 }}>Select a learner or chapter from the tree to view details</p>
               </div>
             )}
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Right-panel view shown when a learner node is selected in the tree. */
+function LearnerManagePanel({
+  item,
+  onManageContent,
+}: {
+  item: Record<string, unknown>;
+  onManageContent: (learnerId: string, learnerName: string) => void;
+}) {
+  const learnerId = (item.learnerId as string) || '';
+  const learnerName = (item.learnerName as string) || '';
+  const grade = (item.grade as string) || '';
+  return (
+    <div style={{ background: '#fff', borderRadius: theme.borderRadius.card, padding: 20, boxShadow: theme.shadows.card, maxWidth: 600 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+        <div style={{ width: 40, height: 40, borderRadius: '50%', backgroundColor: theme.colors.purpleLight, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <i className="fas fa-user-graduate" style={{ color: theme.colors.purple, fontSize: 16 }} />
+        </div>
+        <div>
+          <div style={{ fontSize: 14, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark }}>{learnerName}</div>
+          <div style={{ fontSize: 11, color: theme.colors.textLight }}>Grade {grade}</div>
+        </div>
+      </div>
+      <p style={{ fontSize: 12, color: theme.colors.textLight, lineHeight: 1.5, marginBottom: 16 }}>
+        Add books, create chapters, and manage {learnerName ? `${learnerName}'s` : 'this learner\u2019s'} content for each subject.
+      </p>
+      <button
+        style={{ padding: '12px 20px', border: 'none', borderRadius: theme.borderRadius.button, background: theme.gradients.primary, color: '#fff', fontSize: 13, fontWeight: theme.fonts.weights.bold, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}
+        onClick={() => onManageContent(learnerId, learnerName)}
+        disabled={!learnerId}
+      >
+        <i className="fas fa-folder-open" /> Manage Content
+      </button>
     </div>
   );
 }

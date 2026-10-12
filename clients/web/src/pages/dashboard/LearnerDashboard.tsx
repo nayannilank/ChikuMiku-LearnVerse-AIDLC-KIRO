@@ -12,7 +12,10 @@ import { useAuth } from '../../context/AuthContext';
 
 export function LearnerDashboard() {
   const navigate = useNavigate();
-  const { username } = useAuth();
+  const { username, user } = useAuth();
+  // The learner manages their own content; their app id is the custom:appUserId
+  // claim surfaced as user.id.
+  const myLearnerId = user?.id ?? '';
   const [subjects, setSubjects] = useState<DashboardSubject[]>([]);
   const [learnerName, setLearnerName] = useState('');
   const [streak, setStreak] = useState(0);
@@ -70,8 +73,17 @@ export function LearnerDashboard() {
         </div>
       </div>
       <div style={styles.banner}>
-        <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Hello, {learnerName || username}! 👋</span>
-        <span style={{ color: '#fff', fontSize: 14, fontWeight: theme.fonts.weights.bold, display: 'block', marginTop: 2 }}>My Learning</span>
+        <div>
+          <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11 }}>Hello, {learnerName || username}! 👋</span>
+          <span style={{ color: '#fff', fontSize: 14, fontWeight: theme.fonts.weights.bold, display: 'block', marginTop: 2 }}>My Learning</span>
+        </div>
+        <button
+          style={{ padding: '8px 16px', border: 'none', borderRadius: 18, background: '#fff', color: theme.colors.purple, fontSize: 11, fontWeight: theme.fonts.weights.bold, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, opacity: myLearnerId ? 1 : 0.5 }}
+          disabled={!myLearnerId}
+          onClick={() => navigate(`/content/manage?learnerId=${encodeURIComponent(myLearnerId)}&learnerName=${encodeURIComponent(learnerName || username || '')}`)}
+        >
+          <i className="fas fa-folder-open" /> Manage Content
+        </button>
       </div>
       <div style={styles.main}>
         <div style={styles.leftPanel}>
@@ -144,7 +156,7 @@ function LearnerDetailView({ item, navigate }: { item: Record<string, unknown>; 
 const styles: Record<string, React.CSSProperties> = {
   container: { fontFamily: theme.fonts.family, backgroundColor: theme.colors.bg, minHeight: '100vh' },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 20px', background: '#fff', borderBottom: `1px solid ${theme.colors.border}` },
-  banner: { background: theme.colors.dark, padding: '12px 20px' },
+  banner: { background: theme.colors.dark, padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   main: { display: 'flex', height: 'calc(100vh - 100px)' },
   leftPanel: { width: 240, backgroundColor: '#F3EEF9', borderRight: `1px solid ${theme.colors.border}`, overflowY: 'auto', padding: 12 },
   rightPanel: { flex: 1, padding: 20, overflowY: 'auto' },
