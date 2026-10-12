@@ -31,6 +31,8 @@ function createMockDeps(
   return {
     dbClient: {
       getBooksBySubject: jest.fn().mockResolvedValue([]),
+      listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
       getChaptersByBook: jest.fn().mockResolvedValue([]),
       chapterNumberExists: jest.fn().mockResolvedValue(false),
       createChapter: jest.fn().mockResolvedValue(null),

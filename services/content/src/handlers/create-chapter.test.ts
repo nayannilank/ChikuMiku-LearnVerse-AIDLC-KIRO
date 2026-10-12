@@ -50,6 +50,8 @@ function createMockDeps(overrides: Partial<CreateChapterDependencies> = {}): Cre
   return {
     dbClient: {
       getBooksBySubject: jest.fn().mockResolvedValue([mockBook()]),
+      listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
       getChaptersByBook: jest.fn().mockResolvedValue([]),
       chapterNumberExists: jest.fn().mockResolvedValue(false),
       createChapter: jest.fn().mockResolvedValue(mockChapter()),
@@ -186,7 +188,9 @@ describe('handleCreateChapter', () => {
     const deps = createMockDeps({
       dbClient: {
         getBooksBySubject: jest.fn().mockResolvedValue(existingBooks),
-        getChaptersByBook: jest.fn().mockResolvedValue([]),
+        listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
+      getChaptersByBook: jest.fn().mockResolvedValue([]),
         chapterNumberExists: jest.fn().mockResolvedValue(false),
         createChapter: jest.fn().mockResolvedValue(mockChapter()),
         getChapterById: jest.fn().mockResolvedValue(null),
@@ -224,7 +228,9 @@ describe('handleCreateChapter', () => {
     const deps = createMockDeps({
       dbClient: {
         getBooksBySubject: jest.fn().mockResolvedValue(existingBooks),
-        getChaptersByBook: jest.fn().mockResolvedValue([]),
+        listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
+      getChaptersByBook: jest.fn().mockResolvedValue([]),
         chapterNumberExists: jest.fn().mockResolvedValue(false),
         createChapter: jest.fn().mockResolvedValue(mockChapter()),
         getChapterById: jest.fn().mockResolvedValue(null),
@@ -253,7 +259,9 @@ describe('handleCreateChapter', () => {
     const deps = createMockDeps({
       dbClient: {
         getBooksBySubject: jest.fn().mockResolvedValue([mockBook()]),
-        getChaptersByBook: jest.fn().mockResolvedValue(existingChapters),
+        listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
+      getChaptersByBook: jest.fn().mockResolvedValue(existingChapters),
         chapterNumberExists: jest.fn().mockResolvedValue(false),
         createChapter: jest.fn().mockResolvedValue(mockChapter()),
         getChapterById: jest.fn().mockResolvedValue(null),
@@ -283,7 +291,9 @@ describe('handleCreateChapter', () => {
     const deps = createMockDeps({
       dbClient: {
         getBooksBySubject: jest.fn().mockResolvedValue([mockBook()]),
-        getChaptersByBook: jest.fn().mockResolvedValue([mockChapter()]),
+        listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
+      getChaptersByBook: jest.fn().mockResolvedValue([mockChapter()]),
         chapterNumberExists: jest.fn().mockResolvedValue(true),
         createChapter: jest.fn().mockResolvedValue(mockChapter()),
         getChapterById: jest.fn().mockResolvedValue(null),

@@ -7,10 +7,14 @@
  * APIGatewayProxyResult.
  *
  * Wired end-to-end:
+ *   GET    /content/subjects?learnerId=          → handleListSubjects
+ *   GET    /content/subjects/:id/books?learnerId= → handleListBooks
+ *   GET    /content/books/:id/chapters           → handleListChapters
  *   POST   /content/chapters                     → handleCreateChapter
  *   GET    /content/chapters/:id                 → handleGetChapter
  *   POST   /content/chapters/:id/pages           → handleUploadPages
  *   GET    /content/chapters/:id/ocr-status      → handleOCRProgress
+ *   GET    /content/chapters/:id/transcript      → handleGetTranscript
  *   PUT    /content/chapters/:id/transcript      → handleSaveTranscript
  *
  * Environment variables (provided by the content CDK stack):
@@ -31,6 +35,12 @@ import { handleGetChapter } from './handlers/get-chapter';
 import { handleUploadPages } from './handlers/upload-pages';
 import { handleOCRProgress } from './handlers/ocr-progress';
 import { handleSaveTranscript } from './handlers/save-transcript';
+import {
+  handleListSubjects,
+  handleListBooks,
+  handleListChapters,
+  handleGetTranscript,
+} from './handlers/list-content';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -151,6 +161,35 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
   try {
     const deps = getDeps();
+    const query = event.queryStringParameters ?? {};
+
+    // Route: GET /content/subjects?learnerId=
+    if (httpMethod === 'GET' && path === '/content/subjects') {
+      const result = await handleListSubjects(String(query.learnerId ?? ''), {
+        dbClient: deps.dbClient,
+      });
+      return toResponse(result);
+    }
+
+    // Route: GET /content/subjects/:id/books?learnerId=
+    const listBooksMatch = path.match(/^\/content\/subjects\/([^/]+)\/books$/);
+    if (httpMethod === 'GET' && listBooksMatch) {
+      const result = await handleListBooks(
+        listBooksMatch[1],
+        String(query.learnerId ?? ''),
+        { dbClient: deps.dbClient }
+      );
+      return toResponse(result);
+    }
+
+    // Route: GET /content/books/:id/chapters
+    const listChaptersMatch = path.match(/^\/content\/books\/([^/]+)\/chapters$/);
+    if (httpMethod === 'GET' && listChaptersMatch) {
+      const result = await handleListChapters(listChaptersMatch[1], {
+        dbClient: deps.dbClient,
+      });
+      return toResponse(result);
+    }
 
     // Route: POST /content/chapters
     if (httpMethod === 'POST' && path === '/content/chapters') {
@@ -202,6 +241,15 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const ocrStatusMatch = path.match(/^\/content\/chapters\/([^/]+)\/ocr-status$/);
     if (httpMethod === 'GET' && ocrStatusMatch) {
       const result = await handleOCRProgress(ocrStatusMatch[1], {
+        dbClient: deps.dbClient,
+      });
+      return toResponse(result);
+    }
+
+    // Route: GET /content/chapters/:id/transcript
+    const getTranscriptMatch = path.match(/^\/content\/chapters\/([^/]+)\/transcript$/);
+    if (httpMethod === 'GET' && getTranscriptMatch) {
+      const result = await handleGetTranscript(getTranscriptMatch[1], {
         dbClient: deps.dbClient,
       });
       return toResponse(result);

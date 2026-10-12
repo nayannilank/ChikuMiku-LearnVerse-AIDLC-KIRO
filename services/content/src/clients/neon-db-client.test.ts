@@ -69,6 +69,104 @@ beforeEach(() => {
 });
 
 describe('content NeonDBClient', () => {
+  describe('listSubjectsByLearner', () => {
+    const MATHS_ID = '11111111-2222-4333-8444-555555555555';
+    const SCI_ID = '66666666-7777-4888-8999-aaaaaaaaaaaa';
+
+    it('resolves UUID enrollment ids to subject names, preserving order', async () => {
+      const query = jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [{ subjects: [MATHS_ID, SCI_ID] }] }) // learner
+        .mockResolvedValueOnce({
+          rows: [
+            { id: SCI_ID, name: 'Science' },
+            { id: MATHS_ID, name: 'Maths' },
+          ],
+        }); // subject lookup (any order)
+      const client = new NeonDBClient({ pool: mockPool(query) });
+
+      const subjects = await client.listSubjectsByLearner('l-1');
+      expect(subjects).toEqual([
+        { id: MATHS_ID, name: 'Maths' },
+        { id: SCI_ID, name: 'Science' },
+      ]);
+
+      const [learnerSql, learnerParams] = query.mock.calls[0];
+      expect(learnerSql).toContain('FROM learner');
+      expect(learnerParams).toEqual(['l-1']);
+      const [subjSql] = query.mock.calls[1];
+      expect(subjSql).toContain('FROM subject');
+      expect(subjSql).toContain('id = ANY');
+    });
+
+    it('keeps legacy name-string enrollments and skips the subject lookup', async () => {
+      const query = jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [{ subjects: ['Maths', 'English'] }] });
+      const client = new NeonDBClient({ pool: mockPool(query) });
+
+      const subjects = await client.listSubjectsByLearner('l-1');
+      expect(subjects).toEqual([
+        { id: 'Maths', name: 'Maths' },
+        { id: 'English', name: 'English' },
+      ]);
+      expect(query).toHaveBeenCalledTimes(1); // no UUIDs -> no resolution query
+    });
+
+    it('returns [] when the learner is not found', async () => {
+      const client = new NeonDBClient({ pool: mockPool() });
+      expect(await client.listSubjectsByLearner('missing')).toEqual([]);
+    });
+
+    it('skips UUID enrollments with no matching subject row', async () => {
+      const query = jest
+        .fn()
+        .mockResolvedValueOnce({ rows: [{ subjects: [MATHS_ID] }] })
+        .mockResolvedValueOnce({ rows: [] }); // subject deleted/not found
+      const client = new NeonDBClient({ pool: mockPool(query) });
+
+      expect(await client.listSubjectsByLearner('l-1')).toEqual([]);
+    });
+  });
+
+  describe('getTranscriptByChapter', () => {
+    it('maps pages to transcript entries ordered by page number', async () => {
+      const query = jest.fn().mockResolvedValue({
+        rows: [
+          {
+            id: 'pg-1',
+            chapter_id: 'c-1',
+            page_number: '1',
+            classification: 'content',
+            image_s3_key: 's3://k/1.png',
+            transcript_text: 'Hello',
+            detected_language: 'en',
+            ocr_status: 'completed',
+            processed_at: null,
+          },
+          {
+            id: 'pg-2',
+            chapter_id: 'c-1',
+            page_number: '2',
+            classification: 'exercise',
+            image_s3_key: 's3://k/2.png',
+            transcript_text: null,
+            detected_language: null,
+            ocr_status: 'pending',
+            processed_at: null,
+          },
+        ],
+      });
+      const client = new NeonDBClient({ pool: mockPool(query) });
+
+      const pages = await client.getTranscriptByChapter('c-1');
+      expect(pages).toEqual([
+        { pageNumber: 1, classification: 'content', text: 'Hello', language: 'en' },
+        { pageNumber: 2, classification: 'exercise', text: '', language: null },
+      ]);
+    });
+  });
+
   describe('getBooksBySubject', () => {
     it('queries book by subject + learner and maps rows', async () => {
       const query = jest.fn().mockResolvedValue({ rows: [BOOK_ROW] });

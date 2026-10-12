@@ -30,3 +30,17 @@ export type {
   RetryOCRResponse,
   RetryOCRDependencies,
 } from './retry-ocr';
+
+export {
+  handleListSubjects,
+  handleListBooks,
+  handleListChapters,
+  handleGetTranscript,
+} from './list-content';
+export type {
+  ListContentDependencies,
+  ListSubjectsResponse,
+  ListBooksResponse,
+  ListChaptersResponse,
+  GetTranscriptResponse,
+} from './list-content';

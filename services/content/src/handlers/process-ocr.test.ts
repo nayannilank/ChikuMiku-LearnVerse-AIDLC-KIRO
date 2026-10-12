@@ -42,6 +42,8 @@ function mockChapterWithPages(pages: PageRecord[] = [mockPage()]): ChapterWithPa
 function createMockDBClient(overrides: Partial<DBClient> = {}): DBClient {
   return {
     getBooksBySubject: jest.fn().mockResolvedValue([]),
+    listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+    getTranscriptByChapter: jest.fn().mockResolvedValue([]),
     getChaptersByBook: jest.fn().mockResolvedValue([]),
     chapterNumberExists: jest.fn().mockResolvedValue(false),
     createChapter: jest.fn().mockResolvedValue({}),

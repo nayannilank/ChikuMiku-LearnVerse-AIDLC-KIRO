@@ -38,6 +38,8 @@ function makeChapterWithPages(overrides: Partial<ChapterWithPages> = {}): Chapte
 function createMockDbClient(overrides: Partial<DBClient> = {}): DBClient {
   return {
     getBooksBySubject: jest.fn().mockResolvedValue([]),
+    listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+    getTranscriptByChapter: jest.fn().mockResolvedValue([]),
     getChaptersByBook: jest.fn().mockResolvedValue([]),
     chapterNumberExists: jest.fn().mockResolvedValue(false),
     createChapter: jest.fn(),

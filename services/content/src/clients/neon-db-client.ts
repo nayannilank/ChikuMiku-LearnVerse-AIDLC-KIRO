@@ -21,7 +21,43 @@ import type {
   ChapterWithPages,
   DBClient,
   PageRecord,
+  SubjectRecord,
+  TranscriptPageRecord,
 } from './db-client';
+
+/** Matches a canonical UUID — distinguishes a real subject.id from a name. */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Parses the `learner.subjects` JSONB into a flat list of raw entries. Current
+ * data stores subject.id UUID strings; legacy data may store name strings or
+ * `{id,name}` objects (all handled defensively).
+ */
+function parseSubjectEntries(value: unknown): string[] {
+  let parsed: unknown = value;
+  if (typeof value === 'string') {
+    try {
+      parsed = JSON.parse(value);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+  const entries: string[] = [];
+  for (const el of parsed) {
+    if (typeof el === 'string' && el.length > 0) {
+      entries.push(el);
+    } else if (el && typeof el === 'object') {
+      const obj = el as Record<string, unknown>;
+      if (obj.id !== undefined) entries.push(String(obj.id));
+      else if (obj.name !== undefined) entries.push(String(obj.name));
+    }
+  }
+  return entries;
+}
 
 /** Options for the Neon content DB client (test seam). */
 export interface NeonDBClientOptions {
@@ -131,6 +167,52 @@ export class NeonDBClient implements DBClient {
       ocrStatus: row.ocr_status,
       processedAt: toIsoOrNull(row.processed_at),
     };
+  }
+
+  // ---- subjects --------------------------------------------------------
+
+  async listSubjectsByLearner(learnerId: string): Promise<SubjectRecord[]> {
+    const db = await this.db();
+    // Read the learner's enrollment JSONB, then resolve ids -> names.
+    const learnerResult = await db.query<{ subjects: unknown }>(
+      `SELECT subjects FROM learner WHERE id = $1 AND deleted_at IS NULL LIMIT 1`,
+      [learnerId] as never[]
+    );
+    if (learnerResult.rows.length === 0) {
+      return [];
+    }
+    const entries = parseSubjectEntries(learnerResult.rows[0].subjects);
+    if (entries.length === 0) {
+      return [];
+    }
+
+    const uuidIds = entries.filter((e) => UUID_RE.test(e));
+    // Resolve UUID enrollments to real names via the subject table.
+    const nameById = new Map<string, string>();
+    if (uuidIds.length > 0) {
+      const subjectResult = await db.query<{ id: string; name: string }>(
+        `SELECT id, name FROM subject WHERE id = ANY($1::uuid[])`,
+        [uuidIds] as never[]
+      );
+      for (const row of subjectResult.rows) {
+        nameById.set(row.id, row.name);
+      }
+    }
+
+    // Preserve enrollment order; keep legacy name-string entries as-is
+    // (id === name), and skip UUID entries with no matching subject row.
+    const subjects: SubjectRecord[] = [];
+    for (const entry of entries) {
+      if (UUID_RE.test(entry)) {
+        const name = nameById.get(entry);
+        if (name) {
+          subjects.push({ id: entry, name });
+        }
+      } else {
+        subjects.push({ id: entry, name: entry });
+      }
+    }
+    return subjects;
   }
 
   // ---- books -----------------------------------------------------------
@@ -332,6 +414,24 @@ export class NeonDBClient implements DBClient {
       [chapterId] as never[]
     );
     return result.rows.map((row) => this.mapPage(row));
+  }
+
+  async getTranscriptByChapter(
+    chapterId: string
+  ): Promise<TranscriptPageRecord[]> {
+    const db = await this.db();
+    const result = await db.query<PageRow>(
+      `SELECT ${PAGE_COLUMNS} FROM page
+       WHERE chapter_id = $1
+       ORDER BY page_number`,
+      [chapterId] as never[]
+    );
+    return result.rows.map((row) => ({
+      pageNumber: toNumber(row.page_number),
+      classification: row.classification,
+      text: row.transcript_text ?? '',
+      language: row.detected_language,
+    }));
   }
 
   async createPage(page: {

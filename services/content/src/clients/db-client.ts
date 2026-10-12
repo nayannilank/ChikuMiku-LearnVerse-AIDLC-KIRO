@@ -40,7 +40,29 @@ export interface ChapterWithPages extends ChapterRecord {
   subjectId: string;
 }
 
+/** A subject a learner is enrolled in (resolved from learner.subjects). */
+export interface SubjectRecord {
+  id: string;
+  name: string;
+}
+
+/** A page's transcript as returned to the client for editing. */
+export interface TranscriptPageRecord {
+  pageNumber: number;
+  classification: 'content' | 'exercise';
+  text: string;
+  language: string | null;
+}
+
 export interface DBClient {
+  /**
+   * List the subjects a learner is enrolled in, resolved from the learner's
+   * denormalized `subjects` JSONB (an array of subject.id UUIDs) against the
+   * `subject` table. Returns `{ id, name }` pairs; unknown/stale ids are
+   * skipped.
+   */
+  listSubjectsByLearner(learnerId: string): Promise<SubjectRecord[]>;
+
   /**
    * Get all books for a given subject belonging to a learner.
    */
@@ -91,6 +113,12 @@ export interface DBClient {
    * Get all pages for a given chapter, ordered by page number.
    */
   getPagesByChapter(chapterId: string): Promise<PageRecord[]>;
+
+  /**
+   * Get the transcript (one entry per page) for a chapter, ordered by page
+   * number. Returns an empty array when the chapter has no pages.
+   */
+  getTranscriptByChapter(chapterId: string): Promise<TranscriptPageRecord[]>;
 
   /**
    * Create a new page record.

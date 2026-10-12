@@ -41,6 +41,8 @@ function createMockDeps(overrides: Partial<UploadPagesDependencies> = {}): Uploa
   return {
     dbClient: {
       getBooksBySubject: jest.fn().mockResolvedValue([]),
+      listSubjectsByLearner: jest.fn().mockResolvedValue([]),
+      getTranscriptByChapter: jest.fn().mockResolvedValue([]),
       getChaptersByBook: jest.fn().mockResolvedValue([]),
       chapterNumberExists: jest.fn().mockResolvedValue(false),
       createChapter: jest.fn().mockResolvedValue(null),
