@@ -2,13 +2,17 @@
  * SelectSubjectBook — Split layout with subject sidebar and book/chapter panel.
  */
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { theme } from '../../theme';
 import { contentApi } from '../../services/contentApi';
 import type { Subject } from '../../services/contentApi';
 
 export function SelectSubjectBook() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  // Which learner's content is being managed. Passed in by the entry point
+  // (dashboard / manage flow); content is always scoped to a specific learner.
+  const learnerId = searchParams.get('learnerId') ?? '';
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [selectedSubject, setSelectedSubject] = useState('');
   const [bookName, setBookName] = useState('');
@@ -18,16 +22,21 @@ export function SelectSubjectBook() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    contentApi.getEnrolledSubjects()
+    if (!learnerId) {
+      setError('No learner selected. Open content management from a learner.');
+      setLoading(false);
+      return;
+    }
+    contentApi.getEnrolledSubjects(learnerId)
       .then((data) => { setSubjects(data); setLoading(false); })
       .catch((err) => { setError(err.message); setLoading(false); });
-  }, []);
+  }, [learnerId]);
 
   const handleSubmit = async () => {
-    if (!selectedSubject || !bookName || !chapterName) return;
+    if (!selectedSubject || !bookName || !chapterName || !learnerId) return;
     try {
-      const res = await contentApi.createChapter({ subjectId: selectedSubject, bookName, chapterNumber: Number(chapterNumber), chapterName } as never);
-      navigate(`/content/capture?chapterId=${res.chapterId}`);
+      const res = await contentApi.createChapter({ subjectId: selectedSubject, bookName, chapterNumber: Number(chapterNumber), chapterName, learnerId });
+      navigate(`/content/capture?chapterId=${res.chapter.id}&learnerId=${encodeURIComponent(learnerId)}`);
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Failed to create chapter');
     }

@@ -19,76 +19,126 @@ export interface Subject {
   name: string;
 }
 
+/** Mirrors the content service's BookRecord. */
 export interface Book {
   id: string;
-  name: string;
+  learnerId: string;
   subjectId: string;
+  name: string;
+  createdAt: string;
 }
 
+/** Mirrors the content service's ChapterRecord. */
 export interface Chapter {
   id: string;
   bookId: string;
   chapterNumber: number;
   chapterName: string;
-  pageCount: number;
+  aiAssetsGenerated: boolean;
+  academicYear: string;
   createdAt: string;
+  updatedAt: string;
 }
 
+/** POST /content/chapters response — the created chapter record. */
 export interface CreateChapterResponse {
+  success: boolean;
+  chapter: Chapter;
+}
+
+/** A single page summary as returned inside the upload-pages response. */
+export interface UploadedPage {
+  id: string;
   chapterId: string;
-  message: string;
-}
-
-export interface PageUploadResponse {
-  pageId: string;
   pageNumber: number;
-  ocrStatus: 'queued' | 'processing' | 'completed' | 'failed';
+  classification: 'content' | 'exercise';
+  ocrStatus: 'pending' | 'processing' | 'completed' | 'failed';
 }
 
+/** POST /content/chapters/:id/pages response. */
+export interface PageUploadResponse {
+  success: boolean;
+  pages: UploadedPage[];
+}
+
+/** GET /content/chapters/:id/ocr-status response (per-chapter aggregate). */
 export interface OcrStatusResponse {
-  pageId: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  text?: string;
-  language?: string;
-  confidence?: number;
+  success: boolean;
+  chapterId: string;
+  progress: {
+    total: number;
+    completed: number;
+    processing: number;
+    pending: number;
+    failed: number;
+  };
+  isComplete: boolean;
+  pages: {
+    pageId: string;
+    pageNumber: number;
+    ocrStatus: 'pending' | 'processing' | 'completed' | 'failed';
+    detectedLanguage: string | null;
+    hasTranscript: boolean;
+  }[];
 }
 
 export interface SaveTranscriptResponse {
   success: boolean;
-  message: string;
+}
+
+/** A single page upload the client submits (base64-encoded image). */
+export interface PageUploadInput {
+  /** Base64-encoded image bytes (no data: prefix). */
+  imageData: string;
+  format: 'jpeg' | 'png' | 'heic';
+  sizeBytes: number;
+  pageOrder: number;
+  classification: 'content' | 'exercise';
 }
 
 // ─── Content API Service ─────────────────────────────────────────────────────
 
 export const contentApi = {
   /**
-   * Get the learner's enrolled subjects.
+   * Get a learner's enrolled subjects. `learnerId` identifies whose content
+   * is being managed (parent or learner can manage any learner's content).
    */
-  async getEnrolledSubjects(): Promise<Subject[]> {
-    const { data } = await apiClient.get<Subject[]>('/content/subjects');
-    return data;
+  async getEnrolledSubjects(learnerId: string): Promise<Subject[]> {
+    const { data } = await apiClient.get<{ success: boolean; subjects: Subject[] }>(
+      `/content/subjects?learnerId=${encodeURIComponent(learnerId)}`,
+    );
+    return data.subjects;
   },
 
   /**
-   * Get existing books for a given subject.
+   * Get existing books for a given subject, scoped to a learner.
    */
-  async getBooksForSubject(subjectId: string): Promise<Book[]> {
-    const { data } = await apiClient.get<Book[]>(`/content/subjects/${subjectId}/books`);
-    return data;
+  async getBooksForSubject(subjectId: string, learnerId: string): Promise<Book[]> {
+    const { data } = await apiClient.get<{ success: boolean; books: Book[] }>(
+      `/content/subjects/${subjectId}/books?learnerId=${encodeURIComponent(learnerId)}`,
+    );
+    return data.books;
   },
 
   /**
    * Get existing chapters for a given book.
    */
   async getChaptersForBook(bookId: string): Promise<Chapter[]> {
-    const { data } = await apiClient.get<Chapter[]>(`/content/books/${bookId}/chapters`);
-    return data;
+    const { data } = await apiClient.get<{ success: boolean; chapters: Chapter[] }>(
+      `/content/books/${bookId}/chapters`,
+    );
+    return data.chapters;
   },
 
   /**
-   * Create a new chapter (Req 6.1, 6.3).
+   * Create a new chapter (Req 6.1, 6.3). The backend find-or-creates the book
+   * by name within the (subject, learner) scope and requires `learnerId` in
+   * the body (the shared ChapterCreateRequest omits it, so it's added here).
+   * Returns the created chapter record.
    */
-  async createChapter(request: ChapterCreateRequest): Promise<CreateChapterResponse> {
+  async createChapter(
+    request: ChapterCreateRequest & { learnerId: string },
+  ): Promise<CreateChapterResponse> {
     const { data } = await apiClient.post<CreateChapterResponse>(
       '/content/chapters',
       request,
@@ -97,49 +147,27 @@ export const contentApi = {
   },
 
   /**
-   * Upload a page image to a chapter for OCR processing (Req 7.2).
-   * Uses multipart/form-data for the image upload.
+   * Upload one or more page images to a chapter for OCR processing (Req 7.2).
+   * The content Lambda expects a JSON body with base64-encoded image data (NOT
+   * multipart), under a `pages` array.
    */
-  async uploadPage(
+  async uploadPages(
     chapterId: string,
-    imageFile: File,
-    pageOrder: number,
-    classification: 'content' | 'exercise',
+    pages: PageUploadInput[],
   ): Promise<PageUploadResponse> {
-    const formData = new FormData();
-    formData.append('image', imageFile);
-    formData.append('pageOrder', String(pageOrder));
-    formData.append('classification', classification);
-
-    // Use fetch directly for multipart — apiClient sets Content-Type to JSON
-    const token = localStorage.getItem('chikumiku_access_token');
-    const { API_BASE_URL } = await import('../config/environment');
-    const response = await fetch(`${API_BASE_URL}/content/chapters/${chapterId}/pages`, {
-      method: 'POST',
-      headers: {
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw {
-        status: response.status,
-        message: (err as { message?: string }).message || 'Page upload failed',
-        retryable: response.status >= 500,
-      };
-    }
-
-    return (await response.json()) as PageUploadResponse;
+    const { data } = await apiClient.post<PageUploadResponse>(
+      `/content/chapters/${chapterId}/pages`,
+      { pages },
+    );
+    return data;
   },
 
   /**
-   * Check OCR processing status for a page.
+   * Get the per-chapter OCR progress aggregate.
    */
-  async getOcrStatus(chapterId: string, pageId: string): Promise<OcrStatusResponse> {
+  async getOcrStatus(chapterId: string): Promise<OcrStatusResponse> {
     const { data } = await apiClient.get<OcrStatusResponse>(
-      `/content/chapters/${chapterId}/pages/${pageId}/ocr-status`,
+      `/content/chapters/${chapterId}/ocr-status`,
     );
     return data;
   },
@@ -148,10 +176,10 @@ export const contentApi = {
    * Get the full transcript for a chapter (all pages).
    */
   async getTranscript(chapterId: string): Promise<TranscriptPage[]> {
-    const { data } = await apiClient.get<TranscriptPage[]>(
+    const { data } = await apiClient.get<{ success: boolean; pages: TranscriptPage[] }>(
       `/content/chapters/${chapterId}/transcript`,
     );
-    return data;
+    return data.pages;
   },
 
   /**
@@ -168,3 +196,29 @@ export const contentApi = {
     return data;
   },
 };
+
+/**
+ * Reads a File into a base64 string (no `data:` prefix) plus its detected
+ * image format, for submission to `uploadPages`. Throws for unsupported types.
+ */
+export async function fileToPageUploadData(
+  file: File,
+): Promise<{ imageData: string; format: PageUploadInput['format']; sizeBytes: number }> {
+  const typeToFormat: Record<string, PageUploadInput['format']> = {
+    'image/jpeg': 'jpeg',
+    'image/jpg': 'jpeg',
+    'image/png': 'png',
+    'image/heic': 'heic',
+  };
+  const format = typeToFormat[file.type];
+  if (!format) {
+    throw new Error(`Unsupported image type: ${file.type || 'unknown'}`);
+  }
+  const buffer = await file.arrayBuffer();
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return { imageData: btoa(binary), format, sizeBytes: file.size };
+}

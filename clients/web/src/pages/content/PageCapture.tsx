@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { theme } from '../../theme';
-import { contentApi } from '../../services/contentApi';
+import { contentApi, fileToPageUploadData, type PageUploadInput } from '../../services/contentApi';
 
 interface Page { id: string; pageNumber: number; isExercise: boolean; file?: File }
 
@@ -12,6 +12,7 @@ export function PageCapture() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const chapterId = searchParams.get('chapterId') || '';
+  const learnerId = searchParams.get('learnerId') || '';
   const [pages, setPages] = useState<Page[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
@@ -48,12 +49,25 @@ export function PageCapture() {
     setUploading(true);
     setError('');
     try {
+      // Convert each selected file to the base64 JSON shape the content Lambda
+      // expects, then upload them all in a single request.
+      const uploads: PageUploadInput[] = [];
       for (const page of pages) {
-        if (page.file) {
-          await contentApi.uploadPage(chapterId, page.file, page.pageNumber, page.isExercise ? 'exercise' : 'content');
-        }
+        if (!page.file) continue;
+        const { imageData, format, sizeBytes } = await fileToPageUploadData(page.file);
+        uploads.push({
+          imageData,
+          format,
+          sizeBytes,
+          pageOrder: page.pageNumber,
+          classification: page.isExercise ? 'exercise' : 'content',
+        });
       }
-      navigate(`/content/ocr?chapterId=${chapterId}`);
+      if (uploads.length > 0) {
+        await contentApi.uploadPages(chapterId, uploads);
+      }
+      const q = learnerId ? `?chapterId=${chapterId}&learnerId=${encodeURIComponent(learnerId)}` : `?chapterId=${chapterId}`;
+      navigate(`/content/ocr${q}`);
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Upload failed');
     } finally {
