@@ -6,68 +6,113 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { theme } from '../../theme';
 import { contentApi, fileToPageUploadData, type PageUploadInput } from '../../services/contentApi';
 
-interface Page { id: string; pageNumber: number; isExercise: boolean; file?: File }
+/** True when a File is a PDF (by MIME type or extension). Kept local so the
+ * heavy pdf.js module stays lazily imported only at upload time. */
+function fileIsPdf(file: File): boolean {
+  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+}
+
+/**
+ * A selected source item. An image file maps to a single page; a PDF file maps
+ * to one page per PDF page (expanded at upload time). `isExercise` applies to
+ * all pages produced from that item.
+ */
+interface Item { id: string; label: string; isExercise: boolean; file: File; isPdf: boolean }
 
 export function PageCapture() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const chapterId = searchParams.get('chapterId') || '';
   const learnerId = searchParams.get('learnerId') || '';
-  const [pages, setPages] = useState<Page[]>([]);
+  const [items, setItems] = useState<Item[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
 
   const handleUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = 'image/*';
+    // Accept raster images and PDFs; PDFs are split into page images client-side.
+    input.accept = 'image/jpeg,image/png,image/heic,application/pdf,.pdf';
     input.multiple = true;
     input.onchange = (e) => {
       const files = (e.target as HTMLInputElement).files;
       if (files) {
-        const newPages: Page[] = Array.from(files).map((file, i) => ({
-          id: `p${pages.length + i + 1}`,
-          pageNumber: pages.length + i + 1,
+        const newItems: Item[] = Array.from(files).map((file, i) => ({
+          id: `item-${Date.now()}-${items.length + i}`,
+          label: file.name,
           isExercise: false,
           file,
+          isPdf: fileIsPdf(file),
         }));
-        setPages([...pages, ...newPages]);
+        setItems((prev) => [...prev, ...newItems]);
       }
     };
     input.click();
   };
 
   const toggleExercise = (id: string) => {
-    setPages(pages.map((p) => p.id === id ? { ...p, isExercise: !p.isExercise } : p));
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, isExercise: !it.isExercise } : it)));
   };
 
-  const removePage = (id: string) => {
-    setPages(pages.filter((p) => p.id !== id));
+  const removeItem = (id: string) => {
+    setItems((prev) => prev.filter((it) => it.id !== id));
   };
 
-  const handleDone = async () => {
+  /**
+   * Expands all selected items into page uploads (images → 1 page each, PDFs →
+   * one page per PDF page) with sequential page order, then uploads them.
+   */
+  const uploadAll = async (): Promise<boolean> => {
+    const uploads: PageUploadInput[] = [];
+    let pageOrder = 1;
+    for (const item of items) {
+      const classification = item.isExercise ? 'exercise' : 'content';
+      if (item.isPdf) {
+        // Lazily load pdf.js only when a PDF is actually being uploaded, so the
+        // heavy worker/library isn't in the initial bundle for other users.
+        const { pdfFileToPageUploads } = await import('../../services/pdfToPages');
+        const pdfPages = await pdfFileToPageUploads(item.file, pageOrder, classification);
+        uploads.push(...pdfPages);
+        pageOrder += pdfPages.length;
+      } else {
+        const { imageData, format, sizeBytes } = await fileToPageUploadData(item.file);
+        uploads.push({ imageData, format, sizeBytes, pageOrder, classification });
+        pageOrder += 1;
+      }
+    }
+    if (uploads.length > 0) {
+      await contentApi.uploadPages(chapterId, uploads);
+    }
+    return true;
+  };
+
+  const contentHref = learnerId
+    ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}`
+    : '/content/manage';
+
+  // Upload the pages and go on to the OCR / transcript step.
+  const handleExtract = async () => {
     setUploading(true);
     setError('');
     try {
-      // Convert each selected file to the base64 JSON shape the content Lambda
-      // expects, then upload them all in a single request.
-      const uploads: PageUploadInput[] = [];
-      for (const page of pages) {
-        if (!page.file) continue;
-        const { imageData, format, sizeBytes } = await fileToPageUploadData(page.file);
-        uploads.push({
-          imageData,
-          format,
-          sizeBytes,
-          pageOrder: page.pageNumber,
-          classification: page.isExercise ? 'exercise' : 'content',
-        });
-      }
-      if (uploads.length > 0) {
-        await contentApi.uploadPages(chapterId, uploads);
-      }
+      await uploadAll();
       const q = learnerId ? `?chapterId=${chapterId}&learnerId=${encodeURIComponent(learnerId)}` : `?chapterId=${chapterId}`;
       navigate(`/content/ocr${q}`);
+    } catch (err: unknown) {
+      setError((err as { message?: string })?.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Upload the pages (if any) and return to Content Management, so the user can
+  // come back and extract text / add more chapters later.
+  const handleSaveAndExit = async () => {
+    setUploading(true);
+    setError('');
+    try {
+      await uploadAll();
+      navigate(contentHref);
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Upload failed');
     } finally {
@@ -84,9 +129,12 @@ export function PageCapture() {
           <span style={{ fontSize: 16, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark }}>Add Pages</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 10, color: theme.colors.textLight }}>JPEG, PNG, HEIC • Max 10MB</span>
-          <button style={styles.cameraBtn}>
-            <i className="fas fa-camera" style={{ marginRight: 6 }} />Use Camera
+          <span style={{ fontSize: 10, color: theme.colors.textLight }}>Images (JPEG, PNG, HEIC) or PDF • Max 10MB</span>
+          <button
+            style={{ background: 'none', border: `1px solid ${theme.colors.border}`, borderRadius: 14, padding: '6px 12px', color: theme.colors.purple, fontSize: 10, fontWeight: theme.fonts.weights.semibold, cursor: 'pointer' }}
+            onClick={() => navigate(learnerId ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}` : '/content/manage')}
+          >
+            <i className="fas fa-folder-open" style={{ marginRight: 6 }} />Back to Content
           </button>
         </div>
       </div>
@@ -96,29 +144,32 @@ export function PageCapture() {
       {/* Drag & drop zone */}
       <div style={styles.dropZone} onClick={handleUpload}>
         <i className="fas fa-cloud-upload-alt" style={{ fontSize: 32, color: theme.colors.purple, marginBottom: 8 }} />
-        <div style={{ fontSize: 13, fontWeight: theme.fonts.weights.semibold, color: theme.colors.text, marginBottom: 4 }}>Drag & drop images here</div>
+        <div style={{ fontSize: 13, fontWeight: theme.fonts.weights.semibold, color: theme.colors.text, marginBottom: 4 }}>Add images or a PDF</div>
+        <div style={{ fontSize: 11, color: theme.colors.textLight, marginBottom: 4 }}>Each image is one page; a PDF is split into one page per PDF page.</div>
         <div style={{ fontSize: 11, color: theme.colors.textLight, marginBottom: 12 }}>or</div>
         <button style={styles.browseBtn}>Browse Files</button>
       </div>
 
-      {/* Page counter */}
+      {/* Item counter */}
       <div style={{ fontSize: 12, fontWeight: theme.fonts.weights.semibold, color: theme.colors.text, marginBottom: 12 }}>
-        Uploaded Pages ({pages.length} of 50)
+        Selected Files ({items.length})
       </div>
 
-      {/* 6-column thumbnail grid */}
-      {pages.length > 0 && (
+      {/* Selected-file list */}
+      {items.length > 0 && (
         <div style={styles.thumbGrid}>
-          {pages.map((page) => (
-            <div key={page.id} style={styles.thumbCard}>
+          {items.map((item) => (
+            <div key={item.id} style={styles.thumbCard}>
               <div style={styles.thumbImage}>
-                <i className="fas fa-file-image" style={{ color: theme.colors.border, fontSize: 20 }} />
+                <i className={`fas fa-${item.isPdf ? 'file-pdf' : 'file-image'}`} style={{ color: item.isPdf ? theme.colors.red : theme.colors.border, fontSize: 20 }} />
               </div>
-              <button style={styles.deleteBtn} onClick={() => removePage(page.id)}>✕</button>
+              <button style={styles.deleteBtn} onClick={() => removeItem(item.id)}>✕</button>
               <div style={styles.thumbLabel}>
-                <span style={{ fontSize: 9, color: theme.colors.textLight }}>Page {page.pageNumber}</span>
-                <button style={{ ...styles.typeToggle, ...(page.isExercise ? { background: theme.colors.goldLight, color: theme.colors.hindi, borderColor: theme.colors.gold } : {}) }} onClick={() => toggleExercise(page.id)}>
-                  {page.isExercise ? 'Exercise' : 'Content'}
+                <span style={{ fontSize: 9, color: theme.colors.textLight, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 70 }} title={item.label}>
+                  {item.isPdf ? 'PDF' : item.label}
+                </span>
+                <button style={{ ...styles.typeToggle, ...(item.isExercise ? { background: theme.colors.goldLight, color: theme.colors.hindi, borderColor: theme.colors.gold } : {}) }} onClick={() => toggleExercise(item.id)}>
+                  {item.isExercise ? 'Exercise' : 'Content'}
                 </button>
               </div>
             </div>
@@ -126,10 +177,23 @@ export function PageCapture() {
         </div>
       )}
 
-      {/* Done button — gold gradient */}
-      <button style={{ ...styles.doneBtn, opacity: pages.length > 0 ? 1 : 0.5 }} onClick={handleDone} disabled={pages.length === 0 || uploading}>
-        <i className="fas fa-check" style={{ marginRight: 8 }} />{uploading ? 'Uploading...' : 'Done — Extract Text →'}
-      </button>
+      {/* Footer actions: save & exit, or continue to text extraction */}
+      <div style={{ display: 'flex', gap: 10 }}>
+        <button
+          style={{ ...styles.saveExitBtn, opacity: items.length > 0 && !uploading ? 1 : 0.5 }}
+          onClick={handleSaveAndExit}
+          disabled={items.length === 0 || uploading}
+        >
+          <i className="fas fa-check" style={{ marginRight: 8 }} />{uploading ? 'Saving...' : 'Save & Exit'}
+        </button>
+        <button
+          style={{ ...styles.doneBtn, opacity: items.length > 0 && !uploading ? 1 : 0.5 }}
+          onClick={handleExtract}
+          disabled={items.length === 0 || uploading}
+        >
+          <i className="fas fa-arrow-right" style={{ marginRight: 8 }} />{uploading ? 'Uploading...' : 'Extract Text →'}
+        </button>
+      </div>
     </div>
   );
 }
@@ -146,5 +210,6 @@ const styles: Record<string, React.CSSProperties> = {
   deleteBtn: { position: 'absolute' as const, top: 4, right: 4, width: 18, height: 18, borderRadius: '50%', border: 'none', background: theme.colors.redLight, color: theme.colors.red, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 9 },
   thumbLabel: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 6px' },
   typeToggle: { fontSize: 8, fontWeight: '600', padding: '3px 6px', borderRadius: 6, border: `1px solid ${theme.colors.border}`, background: '#fff', color: theme.colors.textLight, cursor: 'pointer' },
-  doneBtn: { width: '100%', padding: 14, border: 'none', borderRadius: theme.borderRadius.button, background: `linear-gradient(135deg, ${theme.colors.gold}, #E5A100)`, color: '#fff', fontSize: 13, fontWeight: theme.fonts.weights.bold, cursor: 'pointer' },
+  doneBtn: { flex: 1, padding: 14, border: 'none', borderRadius: theme.borderRadius.button, background: `linear-gradient(135deg, ${theme.colors.gold}, #E5A100)`, color: '#fff', fontSize: 13, fontWeight: theme.fonts.weights.bold, cursor: 'pointer' },
+  saveExitBtn: { flex: 1, padding: 14, border: `1px solid ${theme.colors.purple}`, borderRadius: theme.borderRadius.button, background: '#fff', color: theme.colors.purple, fontSize: 13, fontWeight: theme.fonts.weights.bold, cursor: 'pointer' },
 };

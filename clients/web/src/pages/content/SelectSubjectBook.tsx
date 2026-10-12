@@ -76,15 +76,18 @@ export function SelectSubjectBook() {
 
       {/* Right panel */}
       <div style={styles.main}>
+        <div style={{ marginBottom: 12 }}>
+          <button
+            style={{ background: 'none', border: 'none', color: theme.colors.purple, fontSize: 12, fontWeight: theme.fonts.weights.semibold, cursor: 'pointer', padding: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+            onClick={() => navigate(learnerId ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}` : '/content/manage')}
+          >
+            <i className="fas fa-arrow-left" /> Back to Content
+          </button>
+        </div>
         <div style={styles.header}>
           <span style={{ fontSize: 16, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark }}>
             {selectedSubjectData ? `${selectedSubjectData.name} — Books & Chapters` : 'Select a Subject'}
           </span>
-          {selectedSubject && (
-            <button style={styles.newBookBtn}>
-              <i className="fas fa-plus" style={{ marginRight: 6 }} />New Book
-            </button>
-          )}
         </div>
 
         {error && <div style={{ background: theme.colors.redLight, color: theme.colors.red, padding: '8px 12px', borderRadius: 8, marginBottom: 12, fontSize: 12 }}>{error}</div>}

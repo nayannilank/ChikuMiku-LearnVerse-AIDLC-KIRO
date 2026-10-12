@@ -10,6 +10,7 @@ export function TextRecognition() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const chapterId = searchParams.get('chapterId') || '';
+  const learnerId = searchParams.get('learnerId') || '';
   const [transcript, setTranscript] = useState<Array<{ pageNumber: number; text: string; language?: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,7 +33,9 @@ export function TextRecognition() {
     setSaving(true);
     try {
       await contentApi.saveTranscript(chapterId, transcript as never);
-      navigate(`/content/explain?chapterId=${chapterId}`);
+      // After saving the transcript, return to Content Management rather than
+      // forcing the user straight into the AI explanation view.
+      navigate(learnerId ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}` : '/content/manage');
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Save failed');
     } finally { setSaving(false); }
@@ -52,6 +55,12 @@ export function TextRecognition() {
           <span style={{ fontSize: 16, fontWeight: theme.fonts.weights.bold, color: theme.colors.dark }}>Chapter Transcript</span>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            style={{ background: 'none', border: `1px solid ${theme.colors.border}`, borderRadius: 8, padding: '6px 12px', color: theme.colors.purple, fontSize: 11, fontWeight: theme.fonts.weights.semibold, cursor: 'pointer' }}
+            onClick={() => navigate(learnerId ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}` : '/content/manage')}
+          >
+            <i className="fas fa-folder-open" style={{ marginRight: 4 }} />Back to Content
+          </button>
           <button style={styles.editBtn} onClick={() => setEditingPage(editingPage === selectedPage ? null : selectedPage)}>
             <i className={`fas fa-${editingPage === selectedPage ? 'check' : 'edit'}`} style={{ marginRight: 4 }} />
             {editingPage === selectedPage ? 'Done' : 'Edit'}
