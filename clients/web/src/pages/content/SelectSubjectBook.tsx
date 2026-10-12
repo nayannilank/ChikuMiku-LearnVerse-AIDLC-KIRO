@@ -13,9 +13,11 @@ export function SelectSubjectBook() {
   // Which learner's content is being managed. Passed in by the entry point
   // (dashboard / manage flow); content is always scoped to a specific learner.
   const learnerId = searchParams.get('learnerId') ?? '';
+  const prefillSubjectId = searchParams.get('subjectId') ?? '';
+  const prefillBookName = searchParams.get('bookName') ?? '';
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [selectedSubject, setSelectedSubject] = useState('');
-  const [bookName, setBookName] = useState('');
+  const [selectedSubject, setSelectedSubject] = useState(prefillSubjectId);
+  const [bookName, setBookName] = useState(prefillBookName);
   const [chapterNumber, setChapterNumber] = useState('1');
   const [chapterName, setChapterName] = useState('');
   const [loading, setLoading] = useState(true);

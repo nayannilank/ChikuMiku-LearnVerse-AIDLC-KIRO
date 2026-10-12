@@ -46,6 +46,30 @@ export interface CreateChapterResponse {
   chapter: Chapter;
 }
 
+/** GET /content/chapters/:id — chapter detail with page summaries. */
+export interface ChapterDetail {
+  id: string;
+  bookId: string;
+  bookName: string;
+  subjectId: string;
+  chapterNumber: number;
+  chapterName: string;
+  aiAssetsGenerated: boolean;
+  academicYear: string;
+  createdAt: string;
+  updatedAt: string;
+  pages: {
+    id: string;
+    pageNumber: number;
+    classification: 'content' | 'exercise';
+    ocrStatus: 'pending' | 'processing' | 'completed' | 'failed';
+    hasTranscript: boolean;
+    detectedLanguage: string | null;
+  }[];
+  totalContentPages: number;
+  totalExercisePages: number;
+}
+
 /** A single page summary as returned inside the upload-pages response. */
 export interface UploadedPage {
   id: string;
@@ -160,6 +184,30 @@ export const contentApi = {
       { pages },
     );
     return data;
+  },
+
+  /**
+   * Edit an existing chapter's name and/or number.
+   */
+  async editChapter(
+    chapterId: string,
+    updates: { chapterName?: string; chapterNumber?: number },
+  ): Promise<CreateChapterResponse> {
+    const { data } = await apiClient.put<CreateChapterResponse>(
+      `/content/chapters/${chapterId}`,
+      updates,
+    );
+    return data;
+  },
+
+  /**
+   * Get a single chapter's detail (name, number, book, pages, counts).
+   */
+  async getChapter(chapterId: string): Promise<ChapterDetail> {
+    const { data } = await apiClient.get<{ success: boolean; chapter: ChapterDetail }>(
+      `/content/chapters/${chapterId}`,
+    );
+    return data.chapter;
   },
 
   /**

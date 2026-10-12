@@ -167,6 +167,49 @@ describe('content NeonDBClient', () => {
     });
   });
 
+  describe('chapterNumberExistsExcluding', () => {
+    it('returns true when another chapter has the number', async () => {
+      const query = jest.fn().mockResolvedValue({ rows: [{ '?column?': 1 }] });
+      const client = new NeonDBClient({ pool: mockPool(query) });
+
+      expect(await client.chapterNumberExistsExcluding('b-1', 2, 'c-1')).toBe(true);
+      const [sql, params] = query.mock.calls[0];
+      expect(sql).toContain('id <> $3');
+      expect(params).toEqual(['b-1', 2, 'c-1']);
+    });
+
+    it('returns false when no other chapter has the number', async () => {
+      const client = new NeonDBClient({ pool: mockPool() });
+      expect(await client.chapterNumberExistsExcluding('b-1', 2, 'c-1')).toBe(false);
+    });
+  });
+
+  describe('updateChapter', () => {
+    it('updates only provided fields, bumps updated_at, and maps the row', async () => {
+      const query = jest.fn().mockResolvedValue({ rows: [CHAPTER_ROW] });
+      const client = new NeonDBClient({ pool: mockPool(query) });
+
+      const updated = await client.updateChapter('c-1', {
+        chapterName: 'Renamed',
+        chapterNumber: 4,
+      });
+      expect(updated?.id).toBe('c-1');
+
+      const [sql, params] = query.mock.calls[0];
+      expect(sql).toContain('UPDATE chapter');
+      expect(sql).toContain('chapter_name = $1');
+      expect(sql).toContain('chapter_number = $2');
+      expect(sql).toContain('updated_at = NOW()');
+      expect(sql).toContain('RETURNING');
+      expect(params).toEqual(['Renamed', 4, 'c-1']);
+    });
+
+    it('returns null when the chapter row does not exist', async () => {
+      const client = new NeonDBClient({ pool: mockPool() });
+      expect(await client.updateChapter('missing', { chapterName: 'X' })).toBeNull();
+    });
+  });
+
   describe('getBooksBySubject', () => {
     it('queries book by subject + learner and maps rows', async () => {
       const query = jest.fn().mockResolvedValue({ rows: [BOOK_ROW] });

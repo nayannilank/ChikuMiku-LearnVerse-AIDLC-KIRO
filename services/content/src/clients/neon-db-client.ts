@@ -289,6 +289,66 @@ export class NeonDBClient implements DBClient {
     return result.rows.length > 0;
   }
 
+  async chapterNumberExistsExcluding(
+    bookId: string,
+    chapterNumber: number,
+    excludeChapterId: string
+  ): Promise<boolean> {
+    const db = await this.db();
+    const result = await db.query(
+      `SELECT 1 FROM chapter
+       WHERE book_id = $1 AND chapter_number = $2 AND id <> $3
+       LIMIT 1`,
+      [bookId, chapterNumber, excludeChapterId] as never[]
+    );
+    return result.rows.length > 0;
+  }
+
+  async updateChapter(
+    chapterId: string,
+    fields: { chapterName?: string; chapterNumber?: number }
+  ): Promise<ChapterRecord | null> {
+    const sets: string[] = [];
+    const params: unknown[] = [];
+    let i = 1;
+    if (fields.chapterName !== undefined) {
+      sets.push(`chapter_name = $${i++}`);
+      params.push(fields.chapterName);
+    }
+    if (fields.chapterNumber !== undefined) {
+      sets.push(`chapter_number = $${i++}`);
+      params.push(fields.chapterNumber);
+    }
+    // Nothing to change — return the current record unmodified.
+    if (sets.length === 0) {
+      const current = await this.getChapterById(chapterId);
+      if (!current) return null;
+      return {
+        id: current.id,
+        bookId: current.bookId,
+        chapterNumber: current.chapterNumber,
+        chapterName: current.chapterName,
+        aiAssetsGenerated: current.aiAssetsGenerated,
+        academicYear: current.academicYear,
+        createdAt: current.createdAt,
+        updatedAt: current.updatedAt,
+      };
+    }
+    sets.push('updated_at = NOW()');
+    params.push(chapterId);
+    const db = await this.db();
+    const result = await db.query<ChapterRow>(
+      `UPDATE chapter SET ${sets.join(', ')}
+       WHERE id = $${i}
+       RETURNING ${CHAPTER_COLUMNS}`,
+      params as never[]
+    );
+    if (result.rows.length === 0) {
+      return null;
+    }
+    return this.mapChapter(result.rows[0]);
+  }
+
   async createChapter(params: {
     id: string;
     bookId: string;

@@ -24,6 +24,8 @@ function makeDeps(overrides?: Partial<ListContentDependencies['dbClient']>): Lis
       // Unused by these handlers; present to satisfy the DBClient type.
       findOrCreateBook: jest.fn(),
       chapterNumberExists: jest.fn(),
+      chapterNumberExistsExcluding: jest.fn(),
+      updateChapter: jest.fn(),
       createChapter: jest.fn(),
       getChapterById: jest.fn(),
       getPagesByChapter: jest.fn(),

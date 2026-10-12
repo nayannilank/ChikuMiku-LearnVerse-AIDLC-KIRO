@@ -37,6 +37,13 @@ export {
   handleListChapters,
   handleGetTranscript,
 } from './list-content';
+
+export { handleEditChapter } from './edit-chapter';
+export type {
+  EditChapterRequest,
+  EditChapterResponse,
+  EditChapterDependencies,
+} from './edit-chapter';
 export type {
   ListContentDependencies,
   ListSubjectsResponse,

@@ -21,6 +21,8 @@ import { LearnerRegistration } from './pages/auth/LearnerRegistration';
 import { ForgotPassword } from './pages/auth/ForgotPassword';
 import { ParentDashboard } from './pages/dashboard/ParentDashboard';
 import { LearnerDashboard } from './pages/dashboard/LearnerDashboard';
+import { ContentManager } from './pages/content/ContentManager';
+import { EditChapter } from './pages/content/EditChapter';
 import { SelectSubjectBook } from './pages/content/SelectSubjectBook';
 import { PageCapture } from './pages/content/PageCapture';
 import { TextRecognition } from './pages/content/TextRecognition';
@@ -75,6 +77,10 @@ function AppContent() {
 
         {/* Learner Routes */}
         <Route path="/learner/dashboard" element={<ProtectedRoute allowedRoles={['learner']}><AppHeader /><LearnerDashboard /></ProtectedRoute>} />
+
+        {/* Content Management */}
+        <Route path="/content/manage" element={<ProtectedRoute><AppHeader /><ContentManager /></ProtectedRoute>} />
+        <Route path="/content/chapters/:chapterId/edit" element={<ProtectedRoute><AppHeader /><EditChapter /></ProtectedRoute>} />
 
         {/* Content Ingestion */}
         <Route path="/content/add-chapter" element={<ProtectedRoute><AppHeader /><SelectSubjectBook /></ProtectedRoute>} />

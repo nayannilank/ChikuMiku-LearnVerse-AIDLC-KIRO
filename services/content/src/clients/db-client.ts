@@ -79,6 +79,17 @@ export interface DBClient {
   chapterNumberExists(bookId: string, chapterNumber: number): Promise<boolean>;
 
   /**
+   * Check if a chapter number already exists within a book, EXCLUDING a given
+   * chapter id. Used when editing a chapter so keeping its own number is not
+   * treated as a conflict.
+   */
+  chapterNumberExistsExcluding(
+    bookId: string,
+    chapterNumber: number,
+    excludeChapterId: string
+  ): Promise<boolean>;
+
+  /**
    * Create a new chapter record. Creates the book if it doesn't exist.
    * Returns the created chapter record.
    */
@@ -97,6 +108,16 @@ export interface DBClient {
    * Get a chapter by ID including its pages and AI status.
    */
   getChapterById(chapterId: string): Promise<ChapterWithPages | null>;
+
+  /**
+   * Update a chapter's editable fields (name and/or number) and bump
+   * updated_at. Only the provided fields change. Returns the updated record,
+   * or null if the chapter does not exist.
+   */
+  updateChapter(
+    chapterId: string,
+    fields: { chapterName?: string; chapterNumber?: number }
+  ): Promise<ChapterRecord | null>;
 
   /**
    * Find or create a book by name within a subject for a learner.

@@ -12,6 +12,7 @@
  *   GET    /content/books/:id/chapters           → handleListChapters
  *   POST   /content/chapters                     → handleCreateChapter
  *   GET    /content/chapters/:id                 → handleGetChapter
+ *   PUT    /content/chapters/:id                 → handleEditChapter
  *   POST   /content/chapters/:id/pages           → handleUploadPages
  *   GET    /content/chapters/:id/ocr-status      → handleOCRProgress
  *   GET    /content/chapters/:id/transcript      → handleGetTranscript
@@ -41,6 +42,7 @@ import {
   handleListChapters,
   handleGetTranscript,
 } from './handlers/list-content';
+import { handleEditChapter } from './handlers/edit-chapter';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -217,6 +219,21 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       const result = await handleGetChapter(getChapterMatch[1], {
         dbClient: deps.dbClient,
       });
+      return toResponse(result);
+    }
+
+    // Route: PUT /content/chapters/:id — edit chapter name/number.
+    const editChapterMatch = path.match(/^\/content\/chapters\/([^/]+)$/);
+    if (httpMethod === 'PUT' && editChapterMatch) {
+      const result = await handleEditChapter(
+        editChapterMatch[1],
+        {
+          chapterName: body.chapterName === undefined ? undefined : String(body.chapterName),
+          chapterNumber:
+            body.chapterNumber === undefined ? undefined : Number(body.chapterNumber),
+        },
+        { dbClient: deps.dbClient }
+      );
       return toResponse(result);
     }
 

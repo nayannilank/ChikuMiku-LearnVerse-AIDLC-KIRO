@@ -46,6 +46,8 @@ function createMockDBClient(overrides: Partial<DBClient> = {}): DBClient {
     getTranscriptByChapter: jest.fn().mockResolvedValue([]),
     getChaptersByBook: jest.fn().mockResolvedValue([]),
     chapterNumberExists: jest.fn().mockResolvedValue(false),
+    chapterNumberExistsExcluding: jest.fn().mockResolvedValue(false),
+    updateChapter: jest.fn().mockResolvedValue(null),
     createChapter: jest.fn().mockResolvedValue({}),
     getChapterById: jest.fn().mockResolvedValue(mockChapterWithPages()),
     findOrCreateBook: jest.fn().mockResolvedValue({}),
