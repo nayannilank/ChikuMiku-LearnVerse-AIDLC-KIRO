@@ -23,6 +23,9 @@ export function ContentManager() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
   const [chapters, setChapters] = useState<Chapter[]>([]);
+  // Per-chapter page counts (content + exercise), keyed by chapter id, so the
+  // chapter cards can show how many pages have actually been uploaded.
+  const [pageCounts, setPageCounts] = useState<Record<string, number>>({});
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
 
@@ -34,17 +37,69 @@ export function ContentManager() {
   // Add-book inline form state.
   const [newBookName, setNewBookName] = useState('');
 
-  // Load subjects on mount.
+  // Optional deep-link selection: when returning from the capture flow, the
+  // URL carries the subject/book that was just worked on so we can restore it.
+  const initialSubjectId = searchParams.get('subjectId') ?? '';
+  const initialBookId = searchParams.get('bookId') ?? '';
+
+  // Load subjects on mount, and restore any deep-linked subject → book → chapters.
   useEffect(() => {
     if (!learnerId) {
       setError('No learner selected. Open content management from a learner.');
       setLoadingSubjects(false);
       return;
     }
-    contentApi
-      .getEnrolledSubjects(learnerId)
-      .then((data) => { setSubjects(data); setLoadingSubjects(false); })
-      .catch((err) => { setError(err.message || 'Failed to load subjects'); setLoadingSubjects(false); });
+    let cancelled = false;
+    (async () => {
+      try {
+        const subjs = await contentApi.getEnrolledSubjects(learnerId);
+        if (cancelled) return;
+        setSubjects(subjs);
+        setLoadingSubjects(false);
+
+        // Restore the deep-linked subject (and book) if present.
+        const subject = initialSubjectId ? subjs.find((s) => s.id === initialSubjectId) : undefined;
+        if (!subject) return;
+        setSelectedSubject(subject);
+        setLoadingBooks(true);
+        const subjectBooks = await contentApi.getBooksForSubject(subject.id, learnerId);
+        if (cancelled) return;
+        setBooks(subjectBooks);
+        setLoadingBooks(false);
+
+        const book = initialBookId ? subjectBooks.find((b) => b.id === initialBookId) : undefined;
+        if (!book) return;
+        setSelectedBook(book);
+        setLoadingChapters(true);
+        const bookChapters = await contentApi.getChaptersForBook(book.id);
+        if (cancelled) return;
+        setChapters(bookChapters);
+        const counts = await Promise.all(
+          bookChapters.map(async (c) => {
+            try {
+              const detail = await contentApi.getChapter(c.id);
+              return [c.id, detail.totalContentPages + detail.totalExercisePages] as const;
+            } catch {
+              return [c.id, 0] as const;
+            }
+          })
+        );
+        if (cancelled) return;
+        setPageCounts(Object.fromEntries(counts));
+        setLoadingChapters(false);
+      } catch (err: unknown) {
+        if (!cancelled) {
+          setError((err as { message?: string })?.message || 'Failed to load content');
+          setLoadingSubjects(false);
+          setLoadingBooks(false);
+          setLoadingChapters(false);
+        }
+      }
+    })();
+    return () => { cancelled = true; };
+    // Deep-link params are read once on mount; subsequent navigation uses the
+    // click handlers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [learnerId]);
 
   const selectSubject = async (subject: Subject) => {
@@ -66,10 +121,25 @@ export function ContentManager() {
   const selectBook = async (book: Book) => {
     setSelectedBook(book);
     setChapters([]);
+    setPageCounts({});
     setError('');
     setLoadingChapters(true);
     try {
-      setChapters(await contentApi.getChaptersForBook(book.id));
+      const bookChapters = await contentApi.getChaptersForBook(book.id);
+      setChapters(bookChapters);
+      // Fetch each chapter's page counts in parallel so the cards can show how
+      // many pages were uploaded. Best-effort: a failed count just shows 0.
+      const counts = await Promise.all(
+        bookChapters.map(async (c) => {
+          try {
+            const detail = await contentApi.getChapter(c.id);
+            return [c.id, detail.totalContentPages + detail.totalExercisePages] as const;
+          } catch {
+            return [c.id, 0] as const;
+          }
+        })
+      );
+      setPageCounts(Object.fromEntries(counts));
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Failed to load chapters');
     } finally {
@@ -213,6 +283,8 @@ export function ContentManager() {
                     Ch {c.chapterNumber}: {c.chapterName}
                   </div>
                   <div style={{ fontSize: 10, color: theme.colors.textLight, marginTop: 2 }}>
+                    {pageCounts[c.id] ?? 0} page{(pageCounts[c.id] ?? 0) === 1 ? '' : 's'}
+                    {' · '}
                     {c.aiAssetsGenerated ? 'AI assets ready' : 'No AI assets yet'}
                   </div>
                 </div>

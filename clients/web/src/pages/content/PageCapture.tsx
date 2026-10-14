@@ -86,9 +86,29 @@ export function PageCapture() {
     return true;
   };
 
-  const contentHref = learnerId
-    ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}`
-    : '/content/manage';
+  /**
+   * Builds the return-to-Content-Management URL, pre-selecting the subject and
+   * book this chapter belongs to (resolved from the chapter detail) so the user
+   * lands back on exactly what they were working on and sees the new pages.
+   */
+  const buildContentHref = async (): Promise<string> => {
+    const params = new URLSearchParams();
+    if (learnerId) params.set('learnerId', learnerId);
+    try {
+      const detail = await contentApi.getChapter(chapterId);
+      params.set('subjectId', detail.subjectId);
+      params.set('bookId', detail.bookId);
+    } catch {
+      // If the lookup fails, fall back to the plain manager view.
+    }
+    const qs = params.toString();
+    return qs ? `/content/manage?${qs}` : '/content/manage';
+  };
+
+  // Immediate "Back to Content" (header) — no upload, best-effort pre-selection.
+  const navigateBackToContent = async () => {
+    navigate(await buildContentHref());
+  };
 
   // Upload the pages and go on to the OCR / transcript step.
   const handleExtract = async () => {
@@ -105,14 +125,14 @@ export function PageCapture() {
     }
   };
 
-  // Upload the pages (if any) and return to Content Management, so the user can
-  // come back and extract text / add more chapters later.
+  // Upload the pages (if any) and return to Content Management, pre-selecting
+  // the subject + book so the user can see the new pages and add more later.
   const handleSaveAndExit = async () => {
     setUploading(true);
     setError('');
     try {
       await uploadAll();
-      navigate(contentHref);
+      navigate(await buildContentHref());
     } catch (err: unknown) {
       setError((err as { message?: string })?.message || 'Upload failed');
     } finally {
@@ -132,7 +152,7 @@ export function PageCapture() {
           <span style={{ fontSize: 10, color: theme.colors.textLight }}>Images (JPEG, PNG, HEIC) or PDF • Max 10MB</span>
           <button
             style={{ background: 'none', border: `1px solid ${theme.colors.border}`, borderRadius: 14, padding: '6px 12px', color: theme.colors.purple, fontSize: 10, fontWeight: theme.fonts.weights.semibold, cursor: 'pointer' }}
-            onClick={() => navigate(learnerId ? `/content/manage?learnerId=${encodeURIComponent(learnerId)}` : '/content/manage')}
+            onClick={navigateBackToContent}
           >
             <i className="fas fa-folder-open" style={{ marginRight: 6 }} />Back to Content
           </button>
